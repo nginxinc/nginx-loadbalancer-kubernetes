@@ -1,34 +1,3 @@
-# NGINX Template Repository
-
-## How do I use this template?
-
-**DO NOT FORK** -- this template is meant to be used from the **[`Use this template`](https://github.com/nginxinc/template-repository/generate)** feature.
-
-1. Click on **[`Use this template`](https://github.com/nginxinc/template-repository/generate)**
-2. Give a name to your project
-3. Wait until the first run of CI finishes (Github Actions will process the template and commit to your new repo)
-4. Clone your new project and happy coding!
-
-**NOTE**: **WAIT** until the first CI run on GitHub Actions before cloning your new project.
-
-## What is included on this template?
-
-This template includes all the scaffolding you need to get started on a standards compliant NGINX repository:
-
-* Issue and PR templates
-* Contributing guidelines
-* Support guidelines
-* Security guidelines for reporting major vulnerabilities
-* Standard `.gitignore` with minimal defaults
-* NGINX Code of Conduct
-* Standard license for NGINX OSS projects
-* Changelog placeholder
-* Codeowners placeholder
-
----
-
-<!--  DELETE THE LINES ABOVE THIS AND WRITE YOUR PROJECT README BELOW -->
-
 # nginx_k8s_edge_controller
 
 ## Requirements
