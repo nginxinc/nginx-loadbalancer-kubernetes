@@ -13,7 +13,7 @@ A clear and concise description of what the bug is.
 
 Steps to reproduce the behavior:
 
-1. Deploy {{REPOSITORY_NAME}} using
+1. Deploy nginx_k8s_edge_controller using
 2. View output/logs/configuration on '...'
 3. See error
 
@@ -23,7 +23,7 @@ A clear and concise description of what you expected to happen.
 
 ### Your environment
 
-- Version of the {{REPOSITORY_NAME}} or specific commit
+- Version of the nginx_k8s_edge_controller or specific commit
 <!-- - Version of project language -->
 - Target deployment platform
 

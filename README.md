@@ -29,7 +29,7 @@ This template includes all the scaffolding you need to get started on a standard
 
 <!--  DELETE THE LINES ABOVE THIS AND WRITE YOUR PROJECT README BELOW -->
 
-# {{REPOSITORY_NAME}}
+# nginx_k8s_edge_controller
 
 ## Requirements
 
@@ -45,10 +45,10 @@ Maecenas at vehicula justo. Suspendisse posuere elementum elit vel posuere. Etia
 
 ## Development
 
-Read the [`CONTRIBUTING.md`](https://github.com/{{REPOSITORY_OWNER}}/{{REPOSITORY_URL}}/blob/main/CONTRIBUTING.md) file.
+Read the [`CONTRIBUTING.md`](https://github.com/nginxinc/nginx-k8s-edge-controller/blob/main/CONTRIBUTING.md) file.
 
 ## License
 
-[Apache License, Version 2.0](https://github.com/{{REPOSITORY_OWNER}}/{{REPOSITORY_URL}}/blob/main/LICENSE)
+[Apache License, Version 2.0](https://github.com/nginxinc/nginx-k8s-edge-controller/blob/main/LICENSE)
 
 &copy; [F5 Networks, Inc.](https://www.f5.com/) 2022

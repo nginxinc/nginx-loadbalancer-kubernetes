@@ -1,6 +1,6 @@
 # Contributing Guidelines
 
-The following is a set of guidelines for contributing to the {{REPOSITORY_NAME}}. We really appreciate that you are considering contributing!
+The following is a set of guidelines for contributing to the nginx_k8s_edge_controller. We really appreciate that you are considering contributing!
 
 #### Table Of Contents
 
@@ -10,11 +10,11 @@ The following is a set of guidelines for contributing to the {{REPOSITORY_NAME}}
 
 [Code Guidelines](#code-guidelines)
 
-[Code of Conduct](https://github.com/{{REPOSITORY_OWNER}}/{{REPOSITORY_URL}}/blob/main/CODE_OF_CONDUCT.md)
+[Code of Conduct](https://github.com/nginxinc/nginx-k8s-edge-controller/blob/main/CODE_OF_CONDUCT.md)
 
 ## Getting Started
 
-Follow our [Installation Guide](https://github.com/{{REPOSITORY_OWNER}}/{{REPOSITORY_URL}}/blob/main/README.md#Installation) to get the {{REPOSITORY_NAME}} up and running.
+Follow our [Installation Guide](https://github.com/nginxinc/nginx-k8s-edge-controller/blob/main/README.md#Installation) to get the nginx_k8s_edge_controller up and running.
 
 <!-- ### Project Structure (OPTIONAL) -->
 
@@ -31,7 +31,7 @@ To suggest a feature or enhancement, please create an issue on GitHub with the l
 ### Open a Pull Request
 
 * Fork the repo, create a branch, implement your changes, add any relevant tests, submit a PR when your changes are **tested** and ready for review.
-* Fill in [our pull request template](https://github.com/{{REPOSITORY_OWNER}}/{{REPOSITORY_URL}}/blob/main/.github/pull_request_template.md).
+* Fill in [our pull request template](https://github.com/nginxinc/nginx-k8s-edge-controller/blob/main/.github/pull_request_template.md).
 
 Note: if you'd like to implement a new feature, please consider creating a feature request issue first to start a discussion about the feature.
 
