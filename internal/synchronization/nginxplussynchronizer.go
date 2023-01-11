@@ -5,14 +5,19 @@
 package synchronization
 
 import (
-	"errors"
-	"github.com/nginxinc/kubernetes-nginx-ingress/internal/config"
+	nginxClient "github.com/nginxinc/nginx-plus-go-client/client"
 )
 
-type NginxPlusSynchronizer struct{}
+type NginxPlusSynchronizer struct {
+	NginxPlusClient *nginxClient.NginxClient
+}
 
-func NewNginxPlusSynchronizer(settings *config.Settings) (*Synchronizer, error) {
-	return nil, errors.New("not implemented")
+func NewNginxPlusSynchronizer(nginxClient *nginxClient.NginxClient) (*NginxPlusSynchronizer, error) {
+	synchronizer := NginxPlusSynchronizer{
+		NginxPlusClient: nginxClient,
+	}
+
+	return &synchronizer, nil
 }
 
 func (*NginxPlusSynchronizer) Synchronize() (interface{}, error) {

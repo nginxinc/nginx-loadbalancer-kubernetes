@@ -5,14 +5,17 @@
 package eventing
 
 import (
-	"errors"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/synchronization"
 )
 
-type Watcher struct{}
+type Watcher struct {
+	synchronizer *synchronization.NginxPlusSynchronizer
+}
 
-func NewWatcher(*synchronization.Synchronizer) (*Watcher, error) {
-	return nil, errors.New("not implemented")
+func NewWatcher(synchronizer *synchronization.NginxPlusSynchronizer) (*Watcher, error) {
+	return &Watcher{
+		synchronizer: synchronizer,
+	}, nil
 }
 
 func (*Watcher) Watch() {

@@ -2,26 +2,33 @@
 // Use of this source code is governed by the Apache
 // license that can be found in the LICENSE file.
 
-package main
+package eventing
 
 import (
 	config2 "github.com/nginxinc/kubernetes-nginx-ingress/internal/config"
-	"github.com/nginxinc/kubernetes-nginx-ingress/internal/eventing"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/http"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/synchronization"
 	nginx "github.com/nginxinc/nginx-plus-go-client/client"
 	"github.com/sirupsen/logrus"
+	"os"
+	"testing"
 )
 
-func main() {
+func TestNewWatcher(t *testing.T) {
+	const EnvVarName = "NGINX_PLUS_HOST"
+	const ExpectedValue = "https://demo.nginx.com/api"
+
+	defer os.Unsetenv(EnvVarName)
+	os.Setenv(EnvVarName, ExpectedValue)
+
 	settings, err := config2.NewSettings()
 	if err != nil {
-		logrus.Error(err)
+		t.Fatalf(`unable to create settings: %v`, err)
 	}
 
 	httpClient, err := http.NewHttpClient()
 	if err != nil {
-		logrus.Error(err)
+		t.Fatalf(`unable to create http client: %v`, err)
 	}
 
 	nginxClient, err := nginx.NewNginxClient(httpClient, settings.NginxPlusHost)
@@ -31,13 +38,15 @@ func main() {
 
 	synchronizer, err := synchronization.NewNginxPlusSynchronizer(nginxClient)
 	if err != nil {
-		logrus.Error(err)
+		t.Fatalf(`unable to create synchronizer: %v`, err)
 	}
 
-	watcher, err := eventing.NewWatcher(synchronizer)
+	watcher, err := NewWatcher(synchronizer)
 	if err != nil {
-		logrus.Error(err)
+		t.Fatalf(`failed to create watcher: %v`, err)
 	}
 
-	watcher.Watch()
+	if watcher == nil {
+		t.Fatal("watcher should not be nil")
+	}
 }
