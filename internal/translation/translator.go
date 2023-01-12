@@ -5,5 +5,5 @@
 package translation
 
 type Translator interface {
-	translate() (interface{}, error)
+	Translate() (interface{}, error)
 }

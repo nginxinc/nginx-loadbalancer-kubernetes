@@ -14,3 +14,7 @@ type CreatedTranslator struct{}
 func NewCreatedTranslator() (*translation.Translator, error) {
 	return nil, errors.New("not implemented")
 }
+
+func (ct CreatedTranslator) Translate() (interface{}, error) {
+	return "Created", errors.New("not implemented")
+}

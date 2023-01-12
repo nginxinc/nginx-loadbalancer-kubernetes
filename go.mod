@@ -13,4 +13,8 @@ require (
 	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8 // indirect
 )
 
-replace github.com/nginxinc/kubernetes-nginx-ingress/internal/config => ./internal/config
+replace (
+	github.com/nginxinc/kubernetes-nginx-ingress/internal/config => ./internal/config
+	github.com/nginxinc/kubernetes-nginx-ingress/internal/translation => ./internal/translation
+	github.com/nginxinc/kubernetes-nginx-ingress/internal/translation/nginxplus => ./internal/translation/nginxplus
+)

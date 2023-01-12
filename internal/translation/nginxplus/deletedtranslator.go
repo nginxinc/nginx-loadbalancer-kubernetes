@@ -14,3 +14,7 @@ type DeletedTranslator struct{}
 func NewDeletedTranslator() (*translation.Translator, error) {
 	return nil, errors.New("not implemented")
 }
+
+func (dt DeletedTranslator) Translate() (interface{}, error) {
+	return "Deleted", errors.New("not implemented")
+}
