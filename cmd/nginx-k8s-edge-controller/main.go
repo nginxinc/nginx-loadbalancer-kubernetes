@@ -39,5 +39,13 @@ func main() {
 		logrus.Error(err)
 	}
 
-	watcher.Watch()
+	err = watcher.Initialize()
+	if err != nil {
+		logrus.Error(err)
+	}
+
+	err = watcher.Watch()
+	if err != nil {
+		logrus.Error(err)
+	}
 }
