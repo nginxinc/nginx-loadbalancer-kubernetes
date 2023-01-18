@@ -5,47 +5,49 @@
 package main
 
 import (
-	config2 "github.com/nginxinc/kubernetes-nginx-ingress/internal/config"
+	"context"
+	"fmt"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/eventing"
-	"github.com/nginxinc/kubernetes-nginx-ingress/internal/http"
-	"github.com/nginxinc/kubernetes-nginx-ingress/internal/synchronization"
-	nginx "github.com/nginxinc/nginx-plus-go-client/client"
 	"github.com/sirupsen/logrus"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
-	settings, err := config2.NewSettings()
+
+	err := run()
 	if err != nil {
 		logrus.Error(err)
+		return
 	}
 
-	httpClient, err := http.NewHttpClient()
-	if err != nil {
-		logrus.Error(err)
-	}
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, syscall.SIGTERM)
+	signal.Notify(signalChan, syscall.SIGINT)
+	<-signalChan
+}
 
-	nginxClient, err := nginx.NewNginxClient(httpClient, settings.NginxPlusHost)
-	if err != nil {
-		logrus.Error(err)
-	}
+func run() error {
+	ctx := context.Background()
 
-	synchronizer, err := synchronization.NewNginxPlusSynchronizer(nginxClient)
-	if err != nil {
-		logrus.Error(err)
-	}
+	handler := eventing.NewHandler()
+	handler.Initialize()
 
-	watcher, err := eventing.NewWatcher(synchronizer)
+	watcher, err := eventing.NewWatcher(ctx, handler)
 	if err != nil {
-		logrus.Error(err)
+		return fmt.Errorf(`error occurred creating a watcher: %w`, err)
 	}
 
 	err = watcher.Initialize()
 	if err != nil {
-		logrus.Error(err)
+		return fmt.Errorf(`error occurred initializing the watcher: %w`, err)
 	}
 
 	err = watcher.Watch()
 	if err != nil {
-		logrus.Error(err)
+		return fmt.Errorf(`error occurred watching for events: %w`, err)
 	}
+
+	return nil
 }

@@ -1,0 +1,2 @@
+- [] Plumb common Logger through
+- [] Add OTel support [opentelemetry-go](https://github.com/open-telemetry/opentelemetry-go)  

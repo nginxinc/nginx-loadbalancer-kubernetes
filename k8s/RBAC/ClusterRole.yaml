@@ -3,6 +3,8 @@ kind: ClusterRole
 metadata:
   name: ingress-resource-get-watch-list
 rules:
-  - apiGroups: [""]
+  - apiGroups:
+        - "extensions"
+        - "networking.k8s.io"
     resources: ["ingresses"]
     verbs: ["get", "watch", "list"]

@@ -7,34 +7,35 @@ package eventing
 import (
 	"context"
 	"fmt"
-	"github.com/nginxinc/kubernetes-nginx-ingress/internal/synchronization"
-	networking "k8s.io/api/networking/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/watch"
+	"github.com/sirupsen/logrus"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
-	"k8s.io/client-go/util/workqueue"
+	"time"
 )
 
 const ResyncPeriod = 0
 
 type Watcher struct {
+	ctx                      context.Context
 	client                   *kubernetes.Clientset
 	eventHandlerRegistration interface{}
-	eventQueue               workqueue.RateLimitingInterface
-	informer                 cache.SharedInformer
-	synchronizer             *synchronization.NginxPlusSynchronizer
+	handler                  *Handler
+	informer                 cache.SharedIndexInformer
 }
 
-func NewWatcher(synchronizer *synchronization.NginxPlusSynchronizer) (*Watcher, error) {
+func NewWatcher(ctx context.Context, handler *Handler) (*Watcher, error) {
 	return &Watcher{
-		synchronizer: synchronizer,
+		ctx:     ctx,
+		handler: handler,
 	}, nil
 }
 
 func (w *Watcher) Initialize() error {
+	logrus.Info("Watcher::Initialize")
 	var err error
 
 	w.client, err = w.buildKubernetesClient()
@@ -47,8 +48,6 @@ func (w *Watcher) Initialize() error {
 		return fmt.Errorf(`initialization error: %w`, err)
 	}
 
-	w.eventQueue, err = w.buildEventQueue()
-
 	err = w.initializeEventListeners()
 	if err != nil {
 		return fmt.Errorf(`initialization error: %w`, err)
@@ -58,48 +57,56 @@ func (w *Watcher) Initialize() error {
 }
 
 func (w *Watcher) Watch() error {
+	logrus.Info("Watcher::Watch")
+	defer utilruntime.HandleCrash()
+	defer w.handler.ShutDown()
+
+	go w.informer.Run(w.ctx.Done())
+
+	if !cache.WaitForNamedCacheSync(WatcherQueueName, w.ctx.Done(), w.informer.HasSynced) {
+		return fmt.Errorf(`error occurred waiting for the cache to sync`)
+	}
+
+	wait.Until(w.handler.Run, time.Second, w.ctx.Done())
 
 	return nil
 }
 
 func (w *Watcher) buildEventHandlerForAdd() func(interface{}) {
+	logrus.Info("Watcher::buildEventHandlerForAdd")
 	return func(obj interface{}) {
 		e := NewEvent(Created, obj, nil)
-		w.eventQueue.AddRateLimited(e)
+		w.handler.AddRateLimitedEvent(&e)
 	}
 }
 
 func (w *Watcher) buildEventHandlerForDelete() func(interface{}) {
+	logrus.Info("Watcher::buildEventHandlerForDelete")
 	return func(obj interface{}) {
 		e := NewEvent(Deleted, obj, nil)
-		w.eventQueue.AddRateLimited(e)
+		w.handler.AddRateLimitedEvent(&e)
 	}
 }
 
 func (w *Watcher) buildEventHandlerForUpdate() func(interface{}, interface{}) {
-	return func(previous interface{}, updated interface{}) {
+	logrus.Info("Watcher::buildEventHandlerForUpdate")
+	return func(previous, updated interface{}) {
 		e := NewEvent(Updated, updated, previous)
-		w.eventQueue.AddRateLimited(e)
+		w.handler.AddRateLimitedEvent(&e)
 	}
 }
 
-func (w *Watcher) buildEventQueue() (workqueue.RateLimitingInterface, error) {
-	eventQueue := workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
-	return eventQueue, nil
-}
+func (w *Watcher) buildInformer() (cache.SharedIndexInformer, error) {
+	logrus.Info("Watcher::buildInformer")
 
-func (w *Watcher) buildInformer() (cache.SharedInformer, error) {
-	listerWatcher, err := w.buildListWatcher()
-	if err != nil {
-		return nil, fmt.Errorf(`error occurred creating a ListerWatcher: %w`, err)
-	}
-
-	informer := cache.NewSharedInformer(listerWatcher, &networking.Ingress{}, ResyncPeriod)
+	factory := informers.NewSharedInformerFactory(w.client, ResyncPeriod)
+	informer := factory.Networking().V1().Ingresses().Informer()
 
 	return informer, nil
 }
 
 func (w *Watcher) buildKubernetesClient() (*kubernetes.Clientset, error) {
+	logrus.Info("Watcher::buildKubernetesClient")
 	k8sConfig, err := rest.InClusterConfig()
 	if err == rest.ErrNotInCluster {
 		return nil, fmt.Errorf(`not running in a Cluster: %w`, err)
@@ -115,20 +122,8 @@ func (w *Watcher) buildKubernetesClient() (*kubernetes.Clientset, error) {
 	return client, nil
 }
 
-func (w *Watcher) buildListWatcher() (*cache.ListWatch, error) {
-	lw := cache.ListWatch{
-		ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
-			return w.client.NetworkingV1beta1().Ingresses(metav1.NamespaceAll).List(context.TODO(), options)
-		},
-		WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
-			return w.client.NetworkingV1beta1().Ingresses(metav1.NamespaceAll).Watch(context.TODO(), options)
-		},
-	}
-
-	return &lw, nil
-}
-
 func (w *Watcher) initializeEventListeners() error {
+	logrus.Info("Watcher::initializeEventListeners")
 	var err error
 
 	handlers := cache.ResourceEventHandlerFuncs{
