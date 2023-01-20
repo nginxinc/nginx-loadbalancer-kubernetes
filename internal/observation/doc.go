@@ -3,8 +3,7 @@
 // license that can be found in the LICENSE file.
 
 /*
-Package http contains helper methods / modules to support creating and configuring standard
-net/http Http Client modules.
+Package observation includes functionality to add k8s event handlers to Ingress resources.
 */
 
-package http
+package observation

@@ -2,9 +2,11 @@
 // Use of this source code is governed by the Apache
 // license that can be found in the LICENSE file.
 
-package eventing
+package observation
 
 import (
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/translation/nginxplus"
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/util/workqueue"
 )
@@ -19,8 +21,8 @@ func NewHandler() *Handler {
 	return &Handler{}
 }
 
-func (h *Handler) AddRateLimitedEvent(event *Event) {
-	logrus.Infof(`Handler::AddRateLimitedEvent: %v`, event)
+func (h *Handler) AddRateLimitedEvent(event *core.Event) {
+	logrus.Infof(`Handler::AddRateLimitedEvent: %#v`, event)
 	h.eventQueue.AddRateLimited(event)
 }
 
@@ -40,11 +42,18 @@ func (h *Handler) ShutDown() {
 	h.eventQueue.ShutDown()
 }
 
-func (h *Handler) handleEvent(e *Event) {
+func (h *Handler) handleEvent(e *core.Event) {
 	logrus.Info("Handler::handleEvent")
-	// TODO: Implement translation logic
 	// TODO: Add Telemetry
-	logrus.Infof(`processing event: %v`, e)
+
+	// Translate into NGINX+ resource using Translator
+	event, err := nginxplus.Translate(e)
+	if err != nil {
+		logrus.Errorf(`Handler::handleEvent error translating: %v`, err)
+	}
+
+	// Add to Synchronizer Queue
+	logrus.Infof(`sending event to Synchronizer: %#v`, event)
 }
 
 func (h *Handler) handleNextEvent() bool {
@@ -56,7 +65,7 @@ func (h *Handler) handleNextEvent() bool {
 
 	defer h.eventQueue.Done(event)
 
-	h.handleEvent(event.(*Event))
+	h.handleEvent(event.(*core.Event))
 
 	return true
 }

@@ -5,27 +5,51 @@
 package nginxplus
 
 import (
-	"fmt"
-	"github.com/nginxinc/kubernetes-nginx-ingress/internal/translation"
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
+	v1 "k8s.io/api/networking/v1"
 	"testing"
 )
 
-// NOTE: this is just a placeholoder to ensure each implementation conforms to the translation.Translator interface.
-func TestResults(t *testing.T) {
-	ct := CreatedTranslator{}
-	dt := UpdatedTranslator{}
-	ut := DeletedTranslator{}
+func TestTranslateUnknown(t *testing.T) {
+	ingress := &v1.Ingress{}
+	var previousIngress *v1.Ingress
 
-	printResult(ct)
-	printResult(dt)
-	printResult(ut)
+	event := core.NewEvent(-1, ingress, previousIngress)
+	_, err := Translate(&event)
+	if err.Error() != "unknown event type" {
+		t.Fatalf("Expected an error %v", err)
+	}
 }
 
-func printResult(t translation.Translator) {
-	i, err := t.Translate()
+func TestTranslateCreated(t *testing.T) {
+	ingress := &v1.Ingress{}
+	previousIngress := &v1.Ingress{}
+
+	event := core.NewEvent(core.Created, ingress, previousIngress)
+	_, err := Translate(&event)
 	if err != nil {
-		fmt.Printf(`there was an error: %v`, err)
+		t.Fatalf("Translate() error = %v", err)
 	}
-	fmt.Println("  ")
-	fmt.Printf(`success! %v`, i)
+}
+
+func TestTranslateUpdated(t *testing.T) {
+	ingress := &v1.Ingress{}
+	previousIngress := &v1.Ingress{}
+
+	event := core.NewEvent(core.Updated, ingress, previousIngress)
+	_, err := Translate(&event)
+	if err != nil {
+		t.Fatalf("Translate() error = %v", err)
+	}
+}
+
+func TestTranslateDeleted(t *testing.T) {
+	ingress := &v1.Ingress{}
+	var previousIngress *v1.Ingress
+
+	event := core.NewEvent(core.Deleted, ingress, previousIngress)
+	_, err := Translate(&event)
+	if err != nil {
+		t.Fatalf("Translate() error = %v", err)
+	}
 }

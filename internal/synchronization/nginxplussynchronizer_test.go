@@ -5,8 +5,8 @@
 package synchronization
 
 import (
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/communication"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/config"
-	"github.com/nginxinc/kubernetes-nginx-ingress/internal/http"
 	nginx "github.com/nginxinc/nginx-plus-go-client/client"
 	"testing"
 )
@@ -14,7 +14,7 @@ import (
 func TestNewNginxPlusSynchronizer(t *testing.T) {
 	const NginxUrl = "http://demo.nginx.com/api"
 	settings := config.Settings{NginxPlusHost: NginxUrl}
-	httpClient, _ := http.NewHttpClient()
+	httpClient, _ := communication.NewHttpClient()
 	nginxClient, _ := nginx.NewNginxClient(httpClient, settings.NginxPlusHost)
 
 	synchronizer, err := NewNginxPlusSynchronizer(nginxClient)

@@ -4,6 +4,10 @@
 
 package translation
 
+import (
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
+)
+
 type Translator interface {
-	Translate() (interface{}, error)
+	Translate(event core.Event) (interface{}, error)
 }

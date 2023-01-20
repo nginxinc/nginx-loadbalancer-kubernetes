@@ -12,9 +12,11 @@ and then uses the Synchronizer to update the target NGINX+ instance via the [NGI
 ```mermaid
 erDiagram
     nginx-k8s-edge-controller ||--|| Watcher : ""
-    Watcher ||--|| Synchronizer : ""
-    Synchronizer ||--|| CreatedTranslator : ""
-    Synchronizer ||--|| DeletedTranslator : ""
-    Synchronizer ||--|| UpdatedTranslator : ""
+    Watcher ||--|| Handler : "Event Queue"
+    Handler ||--|| Translator : ""
+    Translator ||--|| Synchronizer : "Event Queue"
+    Translator ||--|| CreatedTranslator : ""
+    Translator ||--|| DeletedTranslator : ""
+    Translator ||--|| UpdatedTranslator : ""
 ```
 

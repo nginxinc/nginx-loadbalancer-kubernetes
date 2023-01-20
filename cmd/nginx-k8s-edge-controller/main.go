@@ -7,7 +7,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/nginxinc/kubernetes-nginx-ingress/internal/eventing"
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/observation"
 	"github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
@@ -31,10 +31,10 @@ func main() {
 func run() error {
 	ctx := context.Background()
 
-	handler := eventing.NewHandler()
+	handler := observation.NewHandler()
 	handler.Initialize()
 
-	watcher, err := eventing.NewWatcher(ctx, handler)
+	watcher, err := observation.NewWatcher(ctx, handler)
 	if err != nil {
 		return fmt.Errorf(`error occurred creating a watcher: %w`, err)
 	}

@@ -2,12 +2,14 @@
 // Use of this source code is governed by the Apache
 // license that can be found in the LICENSE file.
 
-package eventing
+package observation
 
 import (
 	"context"
 	"fmt"
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	"github.com/sirupsen/logrus"
+	v1 "k8s.io/api/networking/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/informers"
@@ -75,7 +77,9 @@ func (w *Watcher) Watch() error {
 func (w *Watcher) buildEventHandlerForAdd() func(interface{}) {
 	logrus.Info("Watcher::buildEventHandlerForAdd")
 	return func(obj interface{}) {
-		e := NewEvent(Created, obj, nil)
+		ingress := obj.(*v1.Ingress)
+		var previousIngress *v1.Ingress
+		e := core.NewEvent(core.Created, ingress, previousIngress)
 		w.handler.AddRateLimitedEvent(&e)
 	}
 }
@@ -83,7 +87,9 @@ func (w *Watcher) buildEventHandlerForAdd() func(interface{}) {
 func (w *Watcher) buildEventHandlerForDelete() func(interface{}) {
 	logrus.Info("Watcher::buildEventHandlerForDelete")
 	return func(obj interface{}) {
-		e := NewEvent(Deleted, obj, nil)
+		ingress := obj.(*v1.Ingress)
+		var previousIngress *v1.Ingress
+		e := core.NewEvent(core.Deleted, ingress, previousIngress)
 		w.handler.AddRateLimitedEvent(&e)
 	}
 }
@@ -91,7 +97,9 @@ func (w *Watcher) buildEventHandlerForDelete() func(interface{}) {
 func (w *Watcher) buildEventHandlerForUpdate() func(interface{}, interface{}) {
 	logrus.Info("Watcher::buildEventHandlerForUpdate")
 	return func(previous, updated interface{}) {
-		e := NewEvent(Updated, updated, previous)
+		ingress := updated.(*v1.Ingress)
+		previousIngress := previous.(*v1.Ingress)
+		e := core.NewEvent(core.Updated, ingress, previousIngress)
 		w.handler.AddRateLimitedEvent(&e)
 	}
 }
