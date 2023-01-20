@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nec-deployment
+  labels:
+    app: nec
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nec
+  template:
+    metadata:
+      labels:
+        app: nec
+    spec:
+      containers:
+        - name: nginx-k8s-edge-controller
+          env:
+            - name: NGINX_PLUS_HOST
+              value: "http://192.168.1.109:9000/api/"
+          image: ciroque/nginx-k8s-edge-controller:0.5.19
+          imagePullPolicy: Always
+      serviceAccountName: nginx-k8s-edge-controller
