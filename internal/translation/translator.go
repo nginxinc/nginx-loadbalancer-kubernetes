@@ -5,9 +5,49 @@
 package translation
 
 import (
+	"errors"
+	"fmt"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
+	nginxClient "github.com/nginxinc/nginx-plus-go-client/client"
+	"github.com/sirupsen/logrus"
+	v1 "k8s.io/api/networking/v1"
 )
 
-type Translator interface {
-	Translate(event core.Event) (interface{}, error)
+func Translate(event *core.Event) (*core.Event, error) {
+	logrus.Error("Translate::Translate")
+
+	addresses, err := extractAddresses(event.Ingress)
+	if err != nil {
+		return event, fmt.Errorf(`error translating IngressL %#v`, err)
+	}
+
+	buildAndAppendUpstreams(event, addresses)
+
+	return event, nil
+}
+
+func buildAndAppendUpstreams(event *core.Event, addresses []string) {
+	for _, address := range addresses {
+		event.NginxUpstreams = append(event.NginxUpstreams, nginxClient.UpstreamServer{
+			Server: address,
+		})
+	}
+}
+
+func extractAddresses(ingress *v1.Ingress) ([]string, error) {
+	var addresses []string
+
+	ingresses := ingress.Status.LoadBalancer.Ingress
+
+	for _, ingress := range ingresses {
+		if ingress.IP != "" {
+			addresses = append(addresses, ingress.IP)
+		} else if ingress.Hostname != "" {
+			addresses = append(addresses, ingress.Hostname)
+		} else {
+			return nil, errors.New("ingress status does not contain IP or Hostname")
+		}
+	}
+
+	return addresses, nil
 }

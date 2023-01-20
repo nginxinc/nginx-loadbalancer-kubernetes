@@ -6,7 +6,7 @@ package observation
 
 import (
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
-	"github.com/nginxinc/kubernetes-nginx-ingress/internal/translation/nginxplus"
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/translation"
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/util/workqueue"
 )
@@ -46,8 +46,7 @@ func (h *Handler) handleEvent(e *core.Event) {
 	logrus.Info("Handler::handleEvent")
 	// TODO: Add Telemetry
 
-	// Translate into NGINX+ resource using Translator
-	event, err := nginxplus.Translate(e)
+	event, err := translation.Translate(e)
 	if err != nil {
 		logrus.Errorf(`Handler::handleEvent error translating: %v`, err)
 	}
@@ -65,6 +64,7 @@ func (h *Handler) handleNextEvent() bool {
 
 	defer h.eventQueue.Done(event)
 
+	// TODO: use withRetry
 	h.handleEvent(event.(*core.Event))
 
 	return true

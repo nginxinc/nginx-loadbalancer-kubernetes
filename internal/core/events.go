@@ -17,7 +17,7 @@ type Event struct {
 	Type            EventType
 	Ingress         *v1.Ingress
 	PreviousIngress *v1.Ingress
-	NginxUpstream   *nginxClient.UpstreamServer
+	NginxUpstreams  []nginxClient.UpstreamServer
 }
 
 func NewEvent(eventType EventType, ingress *v1.Ingress, previousIngress *v1.Ingress) Event {
@@ -25,6 +25,6 @@ func NewEvent(eventType EventType, ingress *v1.Ingress, previousIngress *v1.Ingr
 		Type:            eventType,
 		Ingress:         ingress,
 		PreviousIngress: previousIngress,
-		NginxUpstream:   nil,
+		NginxUpstreams:  []nginxClient.UpstreamServer{},
 	}
 }
