@@ -6,19 +6,23 @@ package observation
 
 import (
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/synchronization"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/translation"
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/util/workqueue"
 )
 
-const WatcherQueueName = `nginx-k8s-edge-controller`
+const WatcherQueueName = `nec-handler`
 
 type Handler struct {
-	eventQueue workqueue.RateLimitingInterface
+	eventQueue   workqueue.RateLimitingInterface
+	synchronizer *synchronization.Synchronizer
 }
 
-func NewHandler() *Handler {
-	return &Handler{}
+func NewHandler(synchronizer *synchronization.Synchronizer) *Handler {
+	return &Handler{
+		synchronizer: synchronizer,
+	}
 }
 
 func (h *Handler) AddRateLimitedEvent(event *core.Event) {
@@ -49,10 +53,9 @@ func (h *Handler) handleEvent(e *core.Event) {
 	event, err := translation.Translate(e)
 	if err != nil {
 		logrus.Errorf(`Handler::handleEvent error translating: %v`, err)
+	} else {
+		h.synchronizer.AddRateLimitedEvent(event)
 	}
-
-	// Add to Synchronizer Queue
-	logrus.Infof(`sending event to Synchronizer: %#v`, event)
 }
 
 func (h *Handler) handleNextEvent() bool {

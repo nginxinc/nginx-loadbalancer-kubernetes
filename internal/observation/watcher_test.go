@@ -6,6 +6,7 @@ package observation
 
 import (
 	"context"
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/synchronization"
 	"os"
 	"testing"
 )
@@ -14,12 +15,17 @@ func TestNewWatcher(t *testing.T) {
 	const EnvVarName = "NGINX_PLUS_HOST"
 	const ExpectedValue = "https://demo.nginx.com/api"
 
+	synchronizer, err := synchronization.NewSynchronizer()
+	if err != nil {
+		t.Fatalf(`should have been no error, %v`, err)
+	}
+
 	defer os.Unsetenv(EnvVarName)
 	os.Setenv(EnvVarName, ExpectedValue)
 
 	ctx := context.Background()
 
-	handler := NewHandler()
+	handler := NewHandler(synchronizer)
 	handler.Initialize()
 
 	watcher, err := NewWatcher(ctx, handler)

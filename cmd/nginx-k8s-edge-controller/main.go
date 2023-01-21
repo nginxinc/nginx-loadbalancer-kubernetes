@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/observation"
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/synchronization"
 	"github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
@@ -31,7 +32,17 @@ func main() {
 func run() error {
 	ctx := context.Background()
 
-	handler := observation.NewHandler()
+	synchronizer, err := synchronization.NewSynchronizer()
+	if err != nil {
+		return fmt.Errorf(`error initializing synchronizer: %w`, err)
+	}
+
+	err = synchronizer.Initialize()
+	if err != nil {
+		return fmt.Errorf(`error initializing synchronizer: %w`, err)
+	}
+
+	handler := observation.NewHandler(synchronizer)
 	handler.Initialize()
 
 	watcher, err := observation.NewWatcher(ctx, handler)
