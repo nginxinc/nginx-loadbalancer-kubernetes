@@ -5,6 +5,7 @@
 package observation
 
 import (
+	"fmt"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/synchronization"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/translation"
@@ -13,6 +14,7 @@ import (
 	"k8s.io/client-go/util/workqueue"
 )
 
+const RetryCount = 5
 const Threads = 1
 const WatcherQueueName = `nec-handler`
 
@@ -51,30 +53,33 @@ func (h *Handler) ShutDown() {
 	h.eventQueue.ShutDown()
 }
 
-func (h *Handler) handleEvent(e *core.Event) {
+func (h *Handler) handleEvent(e *core.Event) error {
 	logrus.Info("Handler::handleEvent")
 	// TODO: Add Telemetry
 
 	event, err := translation.Translate(e)
 	if err != nil {
-		logrus.Errorf(`Handler::handleEvent error translating: %v`, err)
-	} else {
-		h.synchronizer.AddRateLimitedEvent(event)
+		return fmt.Errorf(`Handler::handleEvent error translating: %v`, err)
 	}
+
+	h.synchronizer.AddRateLimitedEvent(event)
+
+	return nil
 }
 
 func (h *Handler) handleNextEvent() bool {
 	logrus.Info("Handler::handleNextEvent")
-	event, quit := h.eventQueue.Get()
-	logrus.Infof(`Handler::handleNextEvent: %#v, quit: %v`, event, quit)
+	evt, quit := h.eventQueue.Get()
+	logrus.Infof(`Handler::handleNextEvent: %#v, quit: %v`, evt, quit)
 	if quit {
 		return false
 	}
 
-	defer h.eventQueue.Done(event)
+	defer h.eventQueue.Done(evt)
 
 	// TODO: use withRetry
-	h.handleEvent(event.(*core.Event))
+	event := evt.(*core.Event)
+	h.withRetry(h.handleEvent(event), event)
 
 	return true
 }
@@ -85,11 +90,11 @@ func (h *Handler) worker() {
 	}
 }
 
-func (h *Handler) withRetry(err error, event interface{}) {
+func (h *Handler) withRetry(err error, event *core.Event) {
 	logrus.Info("Handler::withRetry")
 	if err != nil {
 		// TODO: Add Telemetry
-		if h.eventQueue.NumRequeues(event) < 5 { // TODO: Make this configurable
+		if h.eventQueue.NumRequeues(event) < RetryCount { // TODO: Make this configurable
 			h.eventQueue.AddRateLimited(event)
 		} else {
 			h.eventQueue.Forget(event)

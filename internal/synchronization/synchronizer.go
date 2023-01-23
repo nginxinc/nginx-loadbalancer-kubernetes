@@ -15,6 +15,7 @@ import (
 	"k8s.io/client-go/util/workqueue"
 )
 
+const RetryCount = 5
 const Threads = 1
 const SynchronizerQueueName = `nec-synchronizer`
 
@@ -58,6 +59,7 @@ func (s *Synchronizer) Initialize() error {
 
 func (s *Synchronizer) Run(stopCh <-chan struct{}) {
 	logrus.Info(`Synchronizer::Run`)
+
 	for i := 0; i < Threads; i++ {
 		go wait.Until(s.worker, 0, stopCh)
 	}
@@ -70,21 +72,24 @@ func (s *Synchronizer) ShutDown() {
 	s.eventQueue.ShutDown()
 }
 
-func (s *Synchronizer) handleEvent(event *core.Event) {
+func (s *Synchronizer) handleEvent(event *core.Event) error {
 	logrus.Info(`Synchronizer::handleEvent`)
 	logrus.Infof(`Synchronizer::handleEvent: %#v`, event)
+
+	return nil
 }
 
 func (s *Synchronizer) handleNextEvent() bool {
 	logrus.Info(`Synchronizer::handleNextEvent`)
-	event, quit := s.eventQueue.Get()
+	evt, quit := s.eventQueue.Get()
 	if quit {
 		return false
 	}
 
-	defer s.eventQueue.Done(event)
+	defer s.eventQueue.Done(evt)
 
-	s.handleEvent(event.(*core.Event))
+	event := evt.(*core.Event)
+	s.withRetry(s.handleEvent(event), event)
 
 	return true
 }
@@ -94,4 +99,16 @@ func (s *Synchronizer) worker() {
 	for s.handleNextEvent() {
 		// TODO: Add Telemetry
 	}
+}
+
+func (s *Synchronizer) withRetry(err error, event *core.Event) {
+	logrus.Info("Handler::withRetry")
+	if err != nil {
+		// TODO: Add Telemetry
+		if s.eventQueue.NumRequeues(event) < RetryCount { // TODO: Make this configurable
+			s.eventQueue.AddRateLimited(event)
+		} else {
+			s.eventQueue.Forget(event)
+		}
+	} // TODO: Add error logging
 }
