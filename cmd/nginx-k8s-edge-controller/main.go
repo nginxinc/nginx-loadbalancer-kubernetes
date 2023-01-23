@@ -10,27 +10,18 @@ import (
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/observation"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/synchronization"
 	"github.com/sirupsen/logrus"
-	"os"
-	"os/signal"
-	"syscall"
 )
 
 func main() {
-
 	err := run()
 	if err != nil {
-		logrus.Error(err)
-		return
+		logrus.Fatal(err)
 	}
-
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, syscall.SIGTERM)
-	signal.Notify(signalChan, syscall.SIGINT)
-	<-signalChan
 }
 
 func run() error {
 	ctx := context.Background()
+	var err error
 
 	synchronizer, err := synchronization.NewSynchronizer()
 	if err != nil {
@@ -55,10 +46,14 @@ func run() error {
 		return fmt.Errorf(`error occurred initializing the watcher: %w`, err)
 	}
 
+	go handler.Run(ctx.Done())
+	go synchronizer.Run(ctx.Done())
+
 	err = watcher.Watch()
 	if err != nil {
 		return fmt.Errorf(`error occurred watching for events: %w`, err)
 	}
 
+	<-ctx.Done()
 	return nil
 }

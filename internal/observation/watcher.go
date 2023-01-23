@@ -67,8 +67,6 @@ func (w *Watcher) Watch() error {
 		return fmt.Errorf(`error occurred waiting for the cache to sync`)
 	}
 
-	w.handler.Run(w.ctx.Done())
-
 	<-w.ctx.Done()
 	return nil
 }

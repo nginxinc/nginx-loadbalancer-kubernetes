@@ -43,8 +43,6 @@ func (h *Handler) Run(stopCh <-chan struct{}) {
 		go wait.Until(h.worker, 0, stopCh)
 	}
 
-	h.synchronizer.Run(stopCh)
-
 	<-stopCh
 }
 
