@@ -76,6 +76,11 @@ func (s *Synchronizer) handleEvent(event *core.Event) error {
 	logrus.Info(`Synchronizer::handleEvent`)
 	logrus.Infof(`Synchronizer::handleEvent: %#v`, event)
 
+	_, _, _, err := s.NginxPlusClient.UpdateHTTPServers("", event.NginxUpstreams)
+	if err != nil {
+		return fmt.Errorf(`error occurred updating the nginx+ host: %w`, err)
+	}
+
 	return nil
 }
 
@@ -102,13 +107,15 @@ func (s *Synchronizer) worker() {
 }
 
 func (s *Synchronizer) withRetry(err error, event *core.Event) {
-	logrus.Info("Handler::withRetry")
+	logrus.Info("Synchronizer::withRetry")
 	if err != nil {
 		// TODO: Add Telemetry
 		if s.eventQueue.NumRequeues(event) < RetryCount { // TODO: Make this configurable
 			s.eventQueue.AddRateLimited(event)
+			logrus.Infof(`Synchronizer::withRetry: requeued event: %#v; error: %v`, event, err)
 		} else {
 			s.eventQueue.Forget(event)
+			logrus.Warnf(`Synchronizer::withRetry: event %#v has been dropped due to too many retries`, event)
 		}
 	} // TODO: Add error logging
 }

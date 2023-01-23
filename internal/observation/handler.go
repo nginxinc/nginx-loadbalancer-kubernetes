@@ -77,7 +77,6 @@ func (h *Handler) handleNextEvent() bool {
 
 	defer h.eventQueue.Done(evt)
 
-	// TODO: use withRetry
 	event := evt.(*core.Event)
 	h.withRetry(h.handleEvent(event), event)
 
@@ -96,8 +95,10 @@ func (h *Handler) withRetry(err error, event *core.Event) {
 		// TODO: Add Telemetry
 		if h.eventQueue.NumRequeues(event) < RetryCount { // TODO: Make this configurable
 			h.eventQueue.AddRateLimited(event)
+			logrus.Infof(`Handler::withRetry: requeued event: %#v; error: %v`, event, err)
 		} else {
 			h.eventQueue.Forget(event)
+			logrus.Warnf(`Handler::withRetry: event %#v has been dropped due to too many retries`, event)
 		}
 	} // TODO: Add error logging
 }
