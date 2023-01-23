@@ -9,9 +9,11 @@ import (
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/synchronization"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/translation"
 	"github.com/sirupsen/logrus"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/workqueue"
 )
 
+const Threads = 1
 const WatcherQueueName = `nec-handler`
 
 type Handler struct {
@@ -34,11 +36,16 @@ func (h *Handler) Initialize() {
 	h.eventQueue = workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), WatcherQueueName)
 }
 
-func (h *Handler) Run() {
+func (h *Handler) Run(stopCh <-chan struct{}) {
 	logrus.Info("Handler::Run")
-	for h.handleNextEvent() {
-		// TODO: Add Telemetry
+
+	for i := 0; i < Threads; i++ {
+		go wait.Until(h.worker, 0, stopCh)
 	}
+
+	h.synchronizer.Run(stopCh)
+
+	<-stopCh
 }
 
 func (h *Handler) ShutDown() {
@@ -61,6 +68,7 @@ func (h *Handler) handleEvent(e *core.Event) {
 func (h *Handler) handleNextEvent() bool {
 	logrus.Info("Handler::handleNextEvent")
 	event, quit := h.eventQueue.Get()
+	logrus.Infof(`Handler::handleNextEvent: %#v, quit: %v`, event, quit)
 	if quit {
 		return false
 	}
@@ -71,6 +79,12 @@ func (h *Handler) handleNextEvent() bool {
 	h.handleEvent(event.(*core.Event))
 
 	return true
+}
+
+func (h *Handler) worker() {
+	for h.handleNextEvent() {
+		// TODO: Add Telemetry
+	}
 }
 
 func (h *Handler) withRetry(err error, event interface{}) {

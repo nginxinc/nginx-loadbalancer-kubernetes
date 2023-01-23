@@ -11,12 +11,10 @@ import (
 	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/networking/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
-	"time"
 )
 
 const ResyncPeriod = 0
@@ -69,8 +67,9 @@ func (w *Watcher) Watch() error {
 		return fmt.Errorf(`error occurred waiting for the cache to sync`)
 	}
 
-	wait.Until(w.handler.Run, time.Second, w.ctx.Done())
+	w.handler.Run(w.ctx.Done())
 
+	<-w.ctx.Done()
 	return nil
 }
 

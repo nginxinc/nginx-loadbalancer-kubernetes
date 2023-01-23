@@ -11,9 +11,11 @@ import (
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	nginxClient "github.com/nginxinc/nginx-plus-go-client/client"
 	"github.com/sirupsen/logrus"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/workqueue"
 )
 
+const Threads = 1
 const SynchronizerQueueName = `nec-synchronizer`
 
 type Synchronizer struct {
@@ -54,11 +56,13 @@ func (s *Synchronizer) Initialize() error {
 	return nil
 }
 
-func (s *Synchronizer) Run() {
+func (s *Synchronizer) Run(stopCh <-chan struct{}) {
 	logrus.Info(`Synchronizer::Run`)
-	for s.handleNextEvent() {
-		// TODO: Add Telemetry
+	for i := 0; i < Threads; i++ {
+		go wait.Until(s.worker, 0, stopCh)
 	}
+
+	<-stopCh
 }
 
 func (s *Synchronizer) ShutDown() {
@@ -83,4 +87,11 @@ func (s *Synchronizer) handleNextEvent() bool {
 	s.handleEvent(event.(*core.Event))
 
 	return true
+}
+
+func (s *Synchronizer) worker() {
+	logrus.Info(`Synchronizer::sync`)
+	for s.handleNextEvent() {
+		// TODO: Add Telemetry
+	}
 }

@@ -19,6 +19,6 @@ spec:
           env:
             - name: NGINX_PLUS_HOST
               value: "http://192.168.1.109:9000/api/"
-          image: ciroque/nginx-k8s-edge-controller:0.5.22
+          image: ciroque/nginx-k8s-edge-controller:0.5.29
           imagePullPolicy: Always
       serviceAccountName: nginx-k8s-edge-controller
