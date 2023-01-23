@@ -90,7 +90,7 @@ func (s *Synchronizer) handleNextEvent() bool {
 }
 
 func (s *Synchronizer) worker() {
-	logrus.Info(`Synchronizer::sync`)
+	logrus.Info(`Synchronizer::worker`)
 	for s.handleNextEvent() {
 		// TODO: Add Telemetry
 	}
