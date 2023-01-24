@@ -14,7 +14,7 @@ import (
 )
 
 func Translate(event *core.Event) (*core.Event, error) {
-	logrus.Error("Translate::Translate")
+	logrus.Debug("Translate::Translate")
 
 	addresses, err := extractAddresses(event.Ingress)
 	if err != nil {

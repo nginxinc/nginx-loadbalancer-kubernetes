@@ -1,2 +1,5 @@
 - [] Plumb common Logger through
 - [] Add OTel support [opentelemetry-go](https://github.com/open-telemetry/opentelemetry-go)  
+  - [] Use [workqueue metrics](https://github.com/kubernetes/client-go/blob/v0.26.1/util/workqueue/metrics.go)
+- [] Make Rate Limiting values configurable in both Handler and Synchronizer
+- 

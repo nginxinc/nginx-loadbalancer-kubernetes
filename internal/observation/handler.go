@@ -12,8 +12,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/workqueue"
+	"time"
 )
 
+const RateLimiterBase = time.Second * 2
+const RateLimiterMax = time.Second * 60
 const RetryCount = 5
 const Threads = 1
 const WatcherQueueName = `nec-handler`
@@ -35,7 +38,8 @@ func (h *Handler) AddRateLimitedEvent(event *core.Event) {
 }
 
 func (h *Handler) Initialize() {
-	h.eventQueue = workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), WatcherQueueName)
+	rateLimiter := workqueue.NewItemExponentialFailureRateLimiter(RateLimiterBase, RateLimiterMax)
+	h.eventQueue = workqueue.NewNamedRateLimitingQueue(rateLimiter, WatcherQueueName)
 }
 
 func (h *Handler) Run(stopCh <-chan struct{}) {
