@@ -30,7 +30,7 @@ func NewHandler(synchronizer *synchronization.Synchronizer) *Handler {
 }
 
 func (h *Handler) AddRateLimitedEvent(event *core.Event) {
-	logrus.Infof(`Handler::AddRateLimitedEvent: %#v`, event)
+	logrus.Debugf(`Handler::AddRateLimitedEvent: %#v`, event)
 	h.eventQueue.AddRateLimited(event)
 }
 
@@ -39,7 +39,7 @@ func (h *Handler) Initialize() {
 }
 
 func (h *Handler) Run(stopCh <-chan struct{}) {
-	logrus.Info("Handler::Run")
+	logrus.Debug("Handler::Run")
 
 	for i := 0; i < Threads; i++ {
 		go wait.Until(h.worker, 0, stopCh)
@@ -49,12 +49,12 @@ func (h *Handler) Run(stopCh <-chan struct{}) {
 }
 
 func (h *Handler) ShutDown() {
-	logrus.Info("Handler::ShutDown")
+	logrus.Debug("Handler::ShutDown")
 	h.eventQueue.ShutDown()
 }
 
 func (h *Handler) handleEvent(e *core.Event) error {
-	logrus.Info("Handler::handleEvent")
+	logrus.Debugf(`Handler::handleEvent: %#v`, e)
 	// TODO: Add Telemetry
 
 	event, err := translation.Translate(e)
@@ -68,9 +68,9 @@ func (h *Handler) handleEvent(e *core.Event) error {
 }
 
 func (h *Handler) handleNextEvent() bool {
-	logrus.Info("Handler::handleNextEvent")
+	logrus.Debug("Handler::handleNextEvent")
 	evt, quit := h.eventQueue.Get()
-	logrus.Infof(`Handler::handleNextEvent: %#v, quit: %v`, evt, quit)
+	logrus.Debugf(`Handler::handleNextEvent: %#v, quit: %v`, evt, quit)
 	if quit {
 		return false
 	}
@@ -90,7 +90,7 @@ func (h *Handler) worker() {
 }
 
 func (h *Handler) withRetry(err error, event *core.Event) {
-	logrus.Info("Handler::withRetry")
+	logrus.Debug("Handler::withRetry")
 	if err != nil {
 		// TODO: Add Telemetry
 		if h.eventQueue.NumRequeues(event) < RetryCount { // TODO: Make this configurable

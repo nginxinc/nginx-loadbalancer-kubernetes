@@ -31,7 +31,7 @@ func NewSynchronizer() (*Synchronizer, error) {
 }
 
 func (s *Synchronizer) AddRateLimitedEvent(event *core.Event) {
-	logrus.Infof(`Synchronizer::AddRateLimitedEvent: %#v`, event)
+	logrus.Debugf(`Synchronizer::AddRateLimitedEvent: %#v`, event)
 	s.eventQueue.AddRateLimited(event)
 }
 
@@ -58,7 +58,7 @@ func (s *Synchronizer) Initialize() error {
 }
 
 func (s *Synchronizer) Run(stopCh <-chan struct{}) {
-	logrus.Info(`Synchronizer::Run`)
+	logrus.Debug(`Synchronizer::Run`)
 
 	for i := 0; i < Threads; i++ {
 		go wait.Until(s.worker, 0, stopCh)
@@ -68,13 +68,12 @@ func (s *Synchronizer) Run(stopCh <-chan struct{}) {
 }
 
 func (s *Synchronizer) ShutDown() {
-	logrus.Infof(`Synchronizer::ShutDown`)
+	logrus.Debugf(`Synchronizer::ShutDown`)
 	s.eventQueue.ShutDown()
 }
 
 func (s *Synchronizer) handleEvent(event *core.Event) error {
-	logrus.Info(`Synchronizer::handleEvent`)
-	logrus.Infof(`Synchronizer::handleEvent: %#v`, event)
+	logrus.Debugf(`Synchronizer::handleEvent: %#v`, event)
 
 	_, _, _, err := s.NginxPlusClient.UpdateHTTPServers("", event.NginxUpstreams)
 	if err != nil {
@@ -85,7 +84,7 @@ func (s *Synchronizer) handleEvent(event *core.Event) error {
 }
 
 func (s *Synchronizer) handleNextEvent() bool {
-	logrus.Info(`Synchronizer::handleNextEvent`)
+	logrus.Debug(`Synchronizer::handleNextEvent`)
 	evt, quit := s.eventQueue.Get()
 	if quit {
 		return false
@@ -100,14 +99,14 @@ func (s *Synchronizer) handleNextEvent() bool {
 }
 
 func (s *Synchronizer) worker() {
-	logrus.Info(`Synchronizer::worker`)
+	logrus.Debug(`Synchronizer::worker`)
 	for s.handleNextEvent() {
 		// TODO: Add Telemetry
 	}
 }
 
 func (s *Synchronizer) withRetry(err error, event *core.Event) {
-	logrus.Info("Synchronizer::withRetry")
+	logrus.Debug("Synchronizer::withRetry")
 	if err != nil {
 		// TODO: Add Telemetry
 		if s.eventQueue.NumRequeues(event) < RetryCount { // TODO: Make this configurable

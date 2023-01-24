@@ -35,7 +35,7 @@ func NewWatcher(ctx context.Context, handler *Handler) (*Watcher, error) {
 }
 
 func (w *Watcher) Initialize() error {
-	logrus.Info("Watcher::Initialize")
+	logrus.Debug("Watcher::Initialize")
 	var err error
 
 	w.client, err = w.buildKubernetesClient()
@@ -57,7 +57,7 @@ func (w *Watcher) Initialize() error {
 }
 
 func (w *Watcher) Watch() error {
-	logrus.Info("Watcher::Watch")
+	logrus.Debug("Watcher::Watch")
 	defer utilruntime.HandleCrash()
 	defer w.handler.ShutDown()
 
@@ -72,7 +72,7 @@ func (w *Watcher) Watch() error {
 }
 
 func (w *Watcher) buildEventHandlerForAdd() func(interface{}) {
-	logrus.Info("Watcher::buildEventHandlerForAdd")
+	logrus.Debug("Watcher::buildEventHandlerForAdd")
 	return func(obj interface{}) {
 		ingress := obj.(*v1.Ingress)
 		var previousIngress *v1.Ingress
@@ -82,7 +82,7 @@ func (w *Watcher) buildEventHandlerForAdd() func(interface{}) {
 }
 
 func (w *Watcher) buildEventHandlerForDelete() func(interface{}) {
-	logrus.Info("Watcher::buildEventHandlerForDelete")
+	logrus.Debug("Watcher::buildEventHandlerForDelete")
 	return func(obj interface{}) {
 		ingress := obj.(*v1.Ingress)
 		var previousIngress *v1.Ingress
@@ -92,7 +92,7 @@ func (w *Watcher) buildEventHandlerForDelete() func(interface{}) {
 }
 
 func (w *Watcher) buildEventHandlerForUpdate() func(interface{}, interface{}) {
-	logrus.Info("Watcher::buildEventHandlerForUpdate")
+	logrus.Debug("Watcher::buildEventHandlerForUpdate")
 	return func(previous, updated interface{}) {
 		ingress := updated.(*v1.Ingress)
 		previousIngress := previous.(*v1.Ingress)
@@ -102,7 +102,7 @@ func (w *Watcher) buildEventHandlerForUpdate() func(interface{}, interface{}) {
 }
 
 func (w *Watcher) buildInformer() (cache.SharedIndexInformer, error) {
-	logrus.Info("Watcher::buildInformer")
+	logrus.Debug("Watcher::buildInformer")
 
 	factory := informers.NewSharedInformerFactory(w.client, ResyncPeriod)
 	informer := factory.Networking().V1().Ingresses().Informer()
@@ -111,7 +111,7 @@ func (w *Watcher) buildInformer() (cache.SharedIndexInformer, error) {
 }
 
 func (w *Watcher) buildKubernetesClient() (*kubernetes.Clientset, error) {
-	logrus.Info("Watcher::buildKubernetesClient")
+	logrus.Debug("Watcher::buildKubernetesClient")
 	k8sConfig, err := rest.InClusterConfig()
 	if err == rest.ErrNotInCluster {
 		return nil, fmt.Errorf(`not running in a Cluster: %w`, err)
@@ -128,7 +128,7 @@ func (w *Watcher) buildKubernetesClient() (*kubernetes.Clientset, error) {
 }
 
 func (w *Watcher) initializeEventListeners() error {
-	logrus.Info("Watcher::initializeEventListeners")
+	logrus.Debug("Watcher::initializeEventListeners")
 	var err error
 
 	handlers := cache.ResourceEventHandlerFuncs{
