@@ -10,13 +10,35 @@ A Watcher handles the events raised by the Cluster and uses the appropriate Tran
 and then uses the Synchronizer to update the target NGINX+ instance via the [NGINX+ Configuration API](https://docs.nginx.com/nginx/admin-guide/load-balancer/dynamic-configuration-api/).
 
 ```mermaid
-erDiagram
-    nginx-k8s-edge-controller ||--|| Watcher : ""
-    Watcher ||--|| Handler : "Event Queue"
-    Handler ||--|| Translator : ""
-    Translator ||--|| Synchronizer : "Event Queue"
-    Translator ||--|| CreatedTranslator : ""
-    Translator ||--|| DeletedTranslator : ""
-    Translator ||--|| UpdatedTranslator : ""
+stateDiagram-v2
+    Controller --> Watcher 
+    Watcher --> Handler : "nec-handler queue"
+    Handler --> Translator
+    Translator --> Handler
+    Handler --> Synchronizer : "nec-synchronizer queue"
+    Synchronizer --> NGINX+
 ```
 
+### Event Handler
+
+The event handling is implemented using two [k8s work queues](https://pkg.go.dev/k8s.io/client-go/util/workqueue). 
+The first queue, "nec-handler", is populated with `core.Event` instances by the Watcher which are based upon the events 
+raised by k8s.
+
+The Handler then takes the `core.Event` instances and calls the `translation.Translator` to convert the event into a `nginx.Nginx` instance. 
+The `core.Event` instance is update with the `nginx.Nginx` instance and then placed on the second queue, named "nec-synchronizer". 
+
+### Synchronizer
+
+The Synchronizer is responsible for taking the `core.Event` instances from the "nec-synchronizer" queue and updating the target NGINX+
+using the `nginx.Nginx` member of the event.
+
+### Translator
+
+The Translator is responsible for converting the `k8s.Ingress` resource definition into an `nginxClient.UpstreamServer` definition.
+
+### Retry Mechanism
+
+The Synchronizer uses a retry mechanism to handle failures when updating the NGINX+ instance. 
+The retry mechanism is implemented in the workqueue using the `workqueue.NewItemExponentialFailureRateLimiter`. 
+Each workqueue can be configured independently, having defaults set to a base of 2 seconds, and a maximum of 60 seconds.
