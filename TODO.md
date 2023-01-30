@@ -3,3 +3,6 @@
   - [] Use [workqueue metrics](https://github.com/kubernetes/client-go/blob/v0.26.1/util/workqueue/metrics.go)
 - [] Make Rate Limiting values configurable in both Handler and Synchronizer
 - 
+- [] Switch to NGINX Ingress Controller -- uninstall existing ingress controller from Rancher
+- [] namespace "nginx-ingress" -> NginxIngressService, part of the deployment, using NodePort definition
+- [] Blow away Rancher and rebuild VM?

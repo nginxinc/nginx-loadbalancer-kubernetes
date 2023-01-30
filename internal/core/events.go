@@ -2,7 +2,7 @@ package core
 
 import (
 	nginxClient "github.com/nginxinc/nginx-plus-go-client/client"
-	v1 "k8s.io/api/networking/v1"
+	v1 "k8s.io/api/core/v1"
 )
 
 type EventType int
@@ -15,16 +15,16 @@ const (
 
 type Event struct {
 	Type            EventType
-	Ingress         *v1.Ingress
-	PreviousIngress *v1.Ingress
+	Service         *v1.Service
+	PreviousService *v1.Service
 	NginxUpstreams  []nginxClient.UpstreamServer
 }
 
-func NewEvent(eventType EventType, ingress *v1.Ingress, previousIngress *v1.Ingress) Event {
+func NewEvent(eventType EventType, service *v1.Service, previousService *v1.Service) Event {
 	return Event{
 		Type:            eventType,
-		Ingress:         ingress,
-		PreviousIngress: previousIngress,
+		Service:         service,
+		PreviousService: previousService,
 		NginxUpstreams:  []nginxClient.UpstreamServer{},
 	}
 }

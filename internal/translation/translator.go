@@ -5,20 +5,19 @@
 package translation
 
 import (
-	"errors"
 	"fmt"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	nginxClient "github.com/nginxinc/nginx-plus-go-client/client"
 	"github.com/sirupsen/logrus"
-	v1 "k8s.io/api/networking/v1"
+	v1 "k8s.io/api/core/v1"
 )
 
 func Translate(event *core.Event) (*core.Event, error) {
 	logrus.Debug("Translate::Translate")
 
-	addresses, err := extractAddresses(event.Ingress)
+	addresses, err := extractAddresses(event.Service)
 	if err != nil {
-		return event, fmt.Errorf(`error translating IngressL %#v`, err)
+		return event, fmt.Errorf(`error translating Servuce: %#v`, err)
 	}
 
 	buildAndAppendUpstreams(event, addresses)
@@ -34,20 +33,21 @@ func buildAndAppendUpstreams(event *core.Event, addresses []string) {
 	}
 }
 
-func extractAddresses(ingress *v1.Ingress) ([]string, error) {
+func extractAddresses(ingress *v1.Service) ([]string, error) {
+	logrus.Infof("extractAddresses::ingress: %#v", ingress)
 	var addresses []string
 
-	ingresses := ingress.Status.LoadBalancer.Ingress
-
-	for _, ingress := range ingresses {
-		if ingress.IP != "" {
-			addresses = append(addresses, ingress.IP)
-		} else if ingress.Hostname != "" {
-			addresses = append(addresses, ingress.Hostname)
-		} else {
-			return nil, errors.New("ingress status does not contain IP or Hostname")
-		}
-	}
+	//ingresses := ingress.Status.LoadBalancer.Ingress
+	//
+	//for _, ingress := range ingresses {
+	//	if ingress.IP != "" {
+	//		addresses = append(addresses, ingress.IP)
+	//	} else if ingress.Hostname != "" {
+	//		addresses = append(addresses, ingress.Hostname)
+	//	} else {
+	//		return nil, errors.New("ingress status does not contain IP or Hostname")
+	//	}
+	//}
 
 	return addresses, nil
 }

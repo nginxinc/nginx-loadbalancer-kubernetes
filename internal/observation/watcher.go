@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	"github.com/sirupsen/logrus"
-	v1 "k8s.io/api/networking/v1"
+	v1 "k8s.io/api/core/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
@@ -17,6 +17,7 @@ import (
 	"k8s.io/client-go/tools/cache"
 )
 
+const NginxIngressNamespace = "nginx-ingress"
 const ResyncPeriod = 0
 
 type Watcher struct {
@@ -72,31 +73,34 @@ func (w *Watcher) Watch() error {
 }
 
 func (w *Watcher) buildEventHandlerForAdd() func(interface{}) {
-	logrus.Debug("Watcher::buildEventHandlerForAdd")
+	logrus.Info("Watcher::buildEventHandlerForAdd")
 	return func(obj interface{}) {
-		ingress := obj.(*v1.Ingress)
-		var previousIngress *v1.Ingress
-		e := core.NewEvent(core.Created, ingress, previousIngress)
+		logrus.Infof("Watcher::buildEventHandlerForAdd: %v", obj)
+		service := obj.(*v1.Service)
+		var previousService *v1.Service
+		e := core.NewEvent(core.Created, service, previousService)
 		w.handler.AddRateLimitedEvent(&e)
 	}
 }
 
 func (w *Watcher) buildEventHandlerForDelete() func(interface{}) {
-	logrus.Debug("Watcher::buildEventHandlerForDelete")
+	logrus.Info("Watcher::buildEventHandlerForDelete")
 	return func(obj interface{}) {
-		ingress := obj.(*v1.Ingress)
-		var previousIngress *v1.Ingress
-		e := core.NewEvent(core.Deleted, ingress, previousIngress)
+		logrus.Infof("Watcher::buildEventHandlerForDelete: %v", obj)
+		service := obj.(*v1.Service)
+		var previousService *v1.Service
+		e := core.NewEvent(core.Deleted, service, previousService)
 		w.handler.AddRateLimitedEvent(&e)
 	}
 }
 
 func (w *Watcher) buildEventHandlerForUpdate() func(interface{}, interface{}) {
-	logrus.Debug("Watcher::buildEventHandlerForUpdate")
+	logrus.Info("Watcher::buildEventHandlerForUpdate")
 	return func(previous, updated interface{}) {
-		ingress := updated.(*v1.Ingress)
-		previousIngress := previous.(*v1.Ingress)
-		e := core.NewEvent(core.Updated, ingress, previousIngress)
+		logrus.Infof("Watcher::buildEventHandlerForUpdate: %v", updated)
+		service := updated.(*v1.Service)
+		previousService := previous.(*v1.Service)
+		e := core.NewEvent(core.Updated, service, previousService)
 		w.handler.AddRateLimitedEvent(&e)
 	}
 }
@@ -104,8 +108,9 @@ func (w *Watcher) buildEventHandlerForUpdate() func(interface{}, interface{}) {
 func (w *Watcher) buildInformer() (cache.SharedIndexInformer, error) {
 	logrus.Debug("Watcher::buildInformer")
 
-	factory := informers.NewSharedInformerFactory(w.client, ResyncPeriod)
-	informer := factory.Networking().V1().Ingresses().Informer()
+	options := informers.WithNamespace(NginxIngressNamespace)
+	factory := informers.NewSharedInformerFactoryWithOptions(w.client, ResyncPeriod, options)
+	informer := factory.Core().V1().Services().Informer()
 
 	return informer, nil
 }
