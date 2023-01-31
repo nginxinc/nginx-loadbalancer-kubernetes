@@ -3,7 +3,7 @@
 <br/>
 
 - Build an Nginx Kubernetes Loadbalancer Controller for MVP
-- Provide a functional replacement for the "Loadbalancer Service Type" external to an On Premise K8s cluster.
+- Provide a functional replacement for the "Loadbalancer Service Type" external to an On Premises K8s cluster.
 - Chris Akker  / Jan 2023 / Initial draft
 - Steve Wagner / Jan 2023 / Initial code
 
@@ -11,16 +11,16 @@
 
 ## Abstract:
 
-Create a new K8s Controller, that will monitor specified k8s Service Endpoints, and then send API calls to an external NginxPlus server to manage Nginx Upstream server blocks.  
-This is will synchronize the K8s Service Endpoint list, with the Nginx LB server's Upstream block server list.  
-The primary use case is for tracking the NodePort IP:Port definitions for the Nginx Ingress Controller's `nginx-ingress Service`.  
-With the NginxPlus Server located external to the K8s cluster, this new controller LB function would provide an alternative TCP "Load Balancer Service" for On Premises k8s clusters, which do not have access to a Cloud providers "Service Type LoadBalancer".
+- Create a new K8s Controller, that will monitor specified k8s Service Endpoints, and then send API calls to an external NginxPlus server to manage Nginx Upstream server blocks.  
+- This is will synchronize the K8s Service Endpoint list, with the Nginx LB server's Upstream block server list.  
+- The primary use case is for tracking the NodePort IP:Port definitions for the Nginx Ingress Controller's `nginx-ingress Service`.  
+- With the NginxPlus Server located external to the K8s cluster, this new controller LB function would provide an alternative TCP "Load Balancer Service" for On Premises k8s clusters, which do not have access to a Cloud providers "Service Type LoadBalancer".
 
 <br/>
 
 ## Solution Description:
 
-When running a k8s Cluster On Premise, there is no equivalent to a Cloud Provider's Loadbalancer Service Type.  This solution and new software is the TCP load balancer functional replacement.
+When running a k8s Cluster On Premises, there is no equivalent to a Cloud Provider's `Loadbalancer` Service Type.  This solution and new controller software is the TCP load balancer functional replacement.
 
 When using a Cloud Provider's Loadbalancer Service Type, it provides 3 basic functions for External access to the k8s pods/services running inside the cluster:
 
@@ -30,9 +30,13 @@ When using a Cloud Provider's Loadbalancer Service Type, it provides 3 basic fun
 
 This is often called "NLB", a term used in AWS for Network Load Balancer, but functions nearly identical in all Public Cloud Provider networks.  It is not actually a component of K8s, rather, it is a service provided by the Cloud Providers SDN (Software Defined Network), but is managed by the user with K8s Service Type LoadBalancer definitions/declarations.
 
-**This Solution uses NGINX to provide an alternative to #3, the TCP loadbalancing from PublicIP to k8s NodePort.**
+<br/>
 
-Note: This solution is not for Cloud-based K8s clusters, only On-Premise K8s clusters.
+>**This Solution uses NGINX to provide an alternative to #3, the TCP loadbalancing from PublicIP to k8s NodePort.**
+
+Note: This solution is not for Cloud-based K8s clusters, only On Premises K8s clusters.
+
+<br/>
 
 ## Reference Diagram:
 
@@ -44,7 +48,7 @@ Note: This solution is not for Cloud-based K8s clusters, only On-Premise K8s clu
 
 ## Business Case
 
-- Every On Premise Kubernetes cluster needs this Solution, for external clients to access pods/service running inside the cluster.
+- Every On Premises Kubernetes cluster needs this Solution, for external clients to access pods/service running inside the cluster.
 - Market opportunity is at least one NginxPlus license for every k8s cluster.  Two licenses if you agree that High Availability is a requirement.
 - Exposing Pods and Services with NodePort requires the use of high numbered TCP ports (greater than 30000 by default).  Lower, well-known TCP port numbers less than 1024 are NOT allowed to bind to the k8s Nodes' IP address.  This contradicts the ephemeral dynamic nature of k8s itself, and mandates that all HTTP URLs must contain port numbers unfamiliar to everyone.
 - There is a finite limit of available NodePorts available, as 30000-32767 is the default range, leaving ~ 2768 usable ports.
@@ -93,13 +97,13 @@ Preface -  Define access parameters for NKL Controller to communicate with Nginx
 
 1. Initialization:
 - Define the name of the target Upstream Server Block
-- "nginx-lb-http" or "nginx-lb-https" should be the default server block names, returns error if this does not exist
-- Using the Nginx Plus Go Client library, make and API query to NginxPlus LB server for current Upstream list
-- API query to K8s apiserver of list of Ingress Controller Endpoints
+- "nginx-lb-http" or "nginx-lb-https" should be the default server block names, returns error if these do not exist
+- Using the Nginx Plus Go Client library, make an API query to NginxPlus LB server for current Upstream list
+- API query to K8s apiserver for list of Ingress Controller Endpoints
 - Reconcile the two lists, making changes to Nginx Upstreams to match the Ingress Endpoints ( add / delete Upstreams as needed to converge the two lists )
 
 2. Runtime:
-- Periodic check - API query for the list of Servers in the Upstream block, using the NginxPlus API ( query time TBD )
+- Periodic check - API query for the list of Servers in the Upstream block, using the NginxPlus API ( query interval TBD )
 - IP:port definition
 - other possible metadata: status, connections, response_time, etc
 - Keep a copy of this list in memory, if state is required
@@ -120,15 +124,15 @@ Preface -  Define access parameters for NKL Controller to communicate with Nginx
 - Calculate the difference in the list, and create new Nginx API calls to update the Upstream list, adding or removing the changes needed to mirror the nginx-ingress Service Endpoints list
 - Log these changes
 
-6. Optional:  Make Nginx API calls to update the entire Upstream list, regardless of what the existing list contains.  *Not sure how NginxPlus responds when you try to add a duplicate server entry via the API - I believe it just fails with no effect to the existing server entry and established connections - needs to be tested*
+6. Optional:  Make Nginx API calls to update the entire Upstream list, regardless of what the existing list contains.  *Nginx will allow for the addition of duplicate server to the upstream block using the API, so at some point a process to "clean up and verify" the upstream list should be considered.  It is possible that the Nginx-Plus-Go_Client already does this function.*
 
 <br/>
 
-## PM/PD Suggestion - to build this new Controller, use the existing Nginx Ingress Controller framework/code, to create this new k8s Controller, leveraging the Enterprise class, supportable code Nginx already has on hand.
+## PM/PD Suggestion - to build this new Controller, use the existing Nginx Ingress Controller framework/code, to create this new k8s LB Controller, leveraging the Enterprise class, supportable code Nginx already has on hand.  Or perhaps, add this Loadbalancer solution as a new Feature to the exising Ingress Controller ( NIC, after all, is already watching the nginx-ingress namespace and services ).
 
 <br/>
 
-## Example Nginx Plus API request for Upstream block changes
+## Example Nginx Plus API requests for Upstream block changes
 
 <br/>
 
