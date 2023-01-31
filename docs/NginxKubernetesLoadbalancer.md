@@ -5,6 +5,7 @@
 - Build an Nginx Kubernetes Loadbalancer Controller for MVP
 - Provide a functional replacement for the "Loadbalancer Service Type" external to an On Premise K8s cluster.
 - Chris Akker  / Jan 2023 / Initial draft
+- Steve Wagner / Jan 2023 / Initial code
 
 <br/>
 
@@ -74,6 +75,7 @@ Why not Nginx OpenSource?  Nginx Open Source does not have the API endpoint and 
 - Nginx-lb-https - the Nginx LB Server Upstream block that represents the mapped Nginx Ingress Controller(s) `Host:NodePort` Endpoints for https
 - NodePort nginx-ingress Service - exposes the Nginx Ingress Controller(s) on Host:Port
 - Plus API - the standard Nginx Plus API service that is running on the Nginx LB Server
+- Nginx Plus Go Client - software that communicates with the Nginx LB Server
 - Upstream - the IP:Port list of servers that Nginx will Load Balance traffic to at Layer 4 TCP using the stream configuration
 
 <br/>
@@ -92,7 +94,7 @@ Preface -  Define access parameters for NKL Controller to communicate with Nginx
 1. Initialization:
 - Define the name of the target Upstream Server Block
 - "nginx-lb-http" or "nginx-lb-https" should be the default server block names, returns error if this does not exist
-- API query to NginxPlus LB server for current Upstream list
+- Using the Nginx Plus Go Client library, make and API query to NginxPlus LB server for current Upstream list
 - API query to K8s apiserver of list of Ingress Controller Endpoints
 - Reconcile the two lists, making changes to Nginx Upstreams to match the Ingress Endpoints ( add / delete Upstreams as needed to converge the two lists )
 
@@ -102,8 +104,8 @@ Preface -  Define access parameters for NKL Controller to communicate with Nginx
 - other possible metadata: status, connections, response_time, etc
 - Keep a copy of this list in memory, if state is required
 
-3. Modify Upstream server entries, based on K8s NodePort Service endpoint "Notification" changes
-- Register the LB Controller with the K8s watcher Service, subscribe to Notifications for changes to the nginx-ingress Service Endpoints.
+3. Register the LB Controller with the K8s watcher Service, subscribe to Notifications for changes to the nginx-ingress Service Endpoints.
+- Using the Nginx Plus Go Client libraries, modify Upstream server entries, based on K8s NodePort Service endpoint "Notification" changes
 - Add new Endpoint to Upstream Server list on k8s Notify
 - Remove deleted Endpoints to Upstream list, using the Nginx Plus "Drain" function, leaving existing TCP connections to close gracefully on K8s Notify delete.
 - Create and Set Drain_wait timer on Draining Upstream servers
@@ -211,6 +213,8 @@ Nginx API: http://nginx.org/en/docs/http/ngx_http_api_module.html
 
 Example: http://nginx.org/en/docs/http/ngx_http_api_module.html#example
 
+Nginx Plus Go Client:  https://github.com/nginxinc/nginx-plus-go-client
+
 Nginx Upstream API examples:  http://nginx.org/en/docs/http/ngx_http_api_module.html#stream_upstreams_stream_upstream_name_servers_stream_upstream_server_id
 
 <br/>
@@ -223,31 +227,40 @@ Nginx Upstream API examples:  http://nginx.org/en/docs/http/ngx_http_api_module.
 # TCP Proxy and load balancing block
 # Nginx Kubernetes Loadbalancer
 # backup servers allow Nginx to start
+# State file used to preserve config across restarts
 #
 #### nginxlb.conf
 
    upstream nginx-lb-http {
-      zone nginx_lb_http 256k;
+      zone nginx-lb-http 256k;
       #placeholder
-      server 1.1.1.1:32080 backup; 
+      #server 1.1.1.1:32080 backup;
+      state /var/lib/nginx/state/nginx-lb-http.state; 
     }
 
    upstream nginx-lb-https {
-      zone nginx_lb_https 256k;
+      zone nginx-lb-https 256k;
       #placeholder
-      server 1.1.1.1:32443 backup; 
+      #server 1.1.1.1:32443 backup;
+      state /var/lib/nginx/state/nginx-lb-https.state; 
     }
 
    server {
       listen 80;
-      status_zone nginx_lb_http;
+      status_zone nginx-lb-http;
       proxy_pass nginx-lb-http;
     }
 
    server {
       listen 443;
-      status_zone nginx_lb_https;
+      status_zone nginx-lb-https;
       proxy_pass nginx-lb-https;
     }
 
-```
+
+#Sample Nginx State for Upstreams
+# configuration file /var/lib/nginx/state/nginx-lb-http.state:
+server 1.1.1.1:32080 backup down;
+
+# configuration file /var/lib/nginx/state/nginx-lb-https.state:
+server 1.1.1.1:30443 backup down;
