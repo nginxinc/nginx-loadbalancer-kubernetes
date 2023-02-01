@@ -10,44 +10,61 @@ import (
 	nginxClient "github.com/nginxinc/nginx-plus-go-client/client"
 	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
+	"strings"
 )
 
-func Translate(event *core.Event) (*core.Event, error) {
+const NklPrefix = "nkl-"
+
+func Translate(event *core.Event) (core.ServerUpdateEvents, error) {
 	logrus.Debug("Translate::Translate")
 
-	addresses, err := extractAddresses(event.Service)
-	if err != nil {
-		return event, fmt.Errorf(`error translating Servuce: %#v`, err)
-	}
+	portsOfInterest := filterPorts(event.Service.Spec.Ports)
 
-	buildAndAppendUpstreams(event, addresses)
-
-	return event, nil
+	return buildServerUpdateEvents(portsOfInterest)
 }
 
-func buildAndAppendUpstreams(event *core.Event, addresses []string) {
-	for _, address := range addresses {
-		event.NginxUpstreams = append(event.NginxUpstreams, nginxClient.UpstreamServer{
-			Server: address,
-		})
+func filterPorts(ports []v1.ServicePort) []v1.ServicePort {
+	var portsOfInterest []v1.ServicePort
+
+	for _, port := range ports {
+		if strings.HasPrefix(port.Name, NklPrefix) {
+			portsOfInterest = append(portsOfInterest, port)
+		}
 	}
+
+	return portsOfInterest
 }
 
-func extractAddresses(ingress *v1.Service) ([]string, error) {
-	logrus.Infof("extractAddresses::ingress: %#v", ingress)
-	var addresses []string
+// TODO: Get the list of Node IPs from the Kubernetes API and fan out over the port
+func buildServerUpdateEvents(ports []v1.ServicePort) (core.ServerUpdateEvents, error) {
+	logrus.Debugf("Translate::buildServerUpdateEvents(ports=%#v)", ports)
 
-	//ingresses := ingress.Status.LoadBalancer.Ingress
-	//
-	//for _, ingress := range ingresses {
-	//	if ingress.IP != "" {
-	//		addresses = append(addresses, ingress.IP)
-	//	} else if ingress.Hostname != "" {
-	//		addresses = append(addresses, ingress.Hostname)
-	//	} else {
-	//		return nil, errors.New("ingress status does not contain IP or Hostname")
-	//	}
-	//}
+	nodeIps := []string{"127.0.0.1"}
 
-	return addresses, nil
+	upstreams := core.ServerUpdateEvents{}
+	for _, port := range ports {
+		ingressName := fixIngressName(port.Name)
+		servers, _ := buildServers(nodeIps, port)
+
+		upstreams = append(upstreams, core.NewServerUpdateEvent(ingressName, servers))
+	}
+
+	return upstreams, nil
+}
+
+func buildServers(nodeIps []string, port v1.ServicePort) ([]nginxClient.StreamUpstreamServer, error) {
+	var servers []nginxClient.StreamUpstreamServer
+
+	for _, nodeIp := range nodeIps {
+		server := nginxClient.StreamUpstreamServer{
+			Server: fmt.Sprintf("%s:%d", nodeIp, port.NodePort),
+		}
+		servers = append(servers, server)
+	}
+
+	return servers, nil
+}
+
+func fixIngressName(name string) string {
+	return name[4:]
 }

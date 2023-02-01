@@ -18,7 +18,7 @@ spec:
         - name: nginx-k8s-edge-controller
           env:
             - name: NGINX_PLUS_HOST
-              value: "http://192.168.1.109:9000/api/"
+              value: "http://192.168.1.109:9000/api"
           image: ciroque/nginx-k8s-edge-controller:latest
           imagePullPolicy: Always
       serviceAccountName: nginx-k8s-edge-controller

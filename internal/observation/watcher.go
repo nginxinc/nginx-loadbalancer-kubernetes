@@ -75,7 +75,6 @@ func (w *Watcher) Watch() error {
 func (w *Watcher) buildEventHandlerForAdd() func(interface{}) {
 	logrus.Info("Watcher::buildEventHandlerForAdd")
 	return func(obj interface{}) {
-		logrus.Infof("Watcher::buildEventHandlerForAdd: %v", obj)
 		service := obj.(*v1.Service)
 		var previousService *v1.Service
 		e := core.NewEvent(core.Created, service, previousService)
@@ -86,7 +85,6 @@ func (w *Watcher) buildEventHandlerForAdd() func(interface{}) {
 func (w *Watcher) buildEventHandlerForDelete() func(interface{}) {
 	logrus.Info("Watcher::buildEventHandlerForDelete")
 	return func(obj interface{}) {
-		logrus.Infof("Watcher::buildEventHandlerForDelete: %v", obj)
 		service := obj.(*v1.Service)
 		var previousService *v1.Service
 		e := core.NewEvent(core.Deleted, service, previousService)
@@ -97,7 +95,6 @@ func (w *Watcher) buildEventHandlerForDelete() func(interface{}) {
 func (w *Watcher) buildEventHandlerForUpdate() func(interface{}, interface{}) {
 	logrus.Info("Watcher::buildEventHandlerForUpdate")
 	return func(previous, updated interface{}) {
-		logrus.Infof("Watcher::buildEventHandlerForUpdate: %v", updated)
 		service := updated.(*v1.Service)
 		previousService := previous.(*v1.Service)
 		e := core.NewEvent(core.Updated, service, previousService)

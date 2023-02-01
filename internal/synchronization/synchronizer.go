@@ -13,11 +13,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/workqueue"
-	"time"
 )
 
-const RateLimiterBase = time.Second * 2
-const RateLimiterMax = time.Second * 60
 const RetryCount = 5
 const Threads = 1
 const SynchronizerQueueName = `nec-synchronizer`
@@ -33,8 +30,15 @@ func NewSynchronizer() (*Synchronizer, error) {
 	return &synchronizer, nil
 }
 
-func (s *Synchronizer) AddRateLimitedEvent(event *core.Event) {
-	logrus.Debugf(`Synchronizer::AddRateLimitedEvent: %#v`, event)
+func (s *Synchronizer) AddEvents(events core.ServerUpdateEvents) {
+	logrus.Debug(`Synchronizer::AddEvents adding %d events`, len(events))
+	for _, event := range events {
+		s.AddEvent(event)
+	}
+}
+
+func (s *Synchronizer) AddEvent(event *core.ServerUpdateEvent) {
+	logrus.Debugf(`Synchronizer::AddEvent: %#v`, event)
 	s.eventQueue.AddRateLimited(event)
 }
 
@@ -55,9 +59,7 @@ func (s *Synchronizer) Initialize() error {
 		return fmt.Errorf(`error creating Nginx Plus client: %v`, err)
 	}
 
-	rateLimiter := workqueue.NewItemExponentialFailureRateLimiter(RateLimiterBase, RateLimiterMax)
-
-	s.eventQueue = workqueue.NewNamedRateLimitingQueue(rateLimiter, SynchronizerQueueName)
+	s.eventQueue = workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), SynchronizerQueueName)
 
 	return nil
 }
@@ -77,19 +79,22 @@ func (s *Synchronizer) ShutDown() {
 	s.eventQueue.ShutDownWithDrain()
 }
 
-func (s *Synchronizer) handleEvent(event *core.Event) error {
-	logrus.Infof(`Synchronizer::handleEvent: %#v`, event)
+func (s *Synchronizer) handleEvent(serverUpdateEvent *core.ServerUpdateEvent) error {
+	logrus.Debugf(`Synchronizer::handleEvent: %#v`, serverUpdateEvent)
 
-	_, _, _, err := s.NginxPlusClient.UpdateHTTPServers("", event.NginxUpstreams)
+	_, _, _, err := s.NginxPlusClient.UpdateStreamServers(serverUpdateEvent.UpstreamName, serverUpdateEvent.Servers)
 	if err != nil {
 		return fmt.Errorf(`error occurred updating the nginx+ host: %w`, err)
 	}
+
+	logrus.Infof(`Synchronizer::handleEvent: successfully updated the nginx+ hosts for Ingress: "%s"`, serverUpdateEvent.UpstreamName)
 
 	return nil
 }
 
 func (s *Synchronizer) handleNextEvent() bool {
 	logrus.Debug(`Synchronizer::handleNextEvent`)
+
 	evt, quit := s.eventQueue.Get()
 	if quit {
 		return false
@@ -97,7 +102,7 @@ func (s *Synchronizer) handleNextEvent() bool {
 
 	defer s.eventQueue.Done(evt)
 
-	event := evt.(*core.Event)
+	event := evt.(*core.ServerUpdateEvent)
 	s.withRetry(s.handleEvent(event), event)
 
 	return true
@@ -110,7 +115,7 @@ func (s *Synchronizer) worker() {
 	}
 }
 
-func (s *Synchronizer) withRetry(err error, event *core.Event) {
+func (s *Synchronizer) withRetry(err error, event *core.ServerUpdateEvent) {
 	logrus.Debug("Synchronizer::withRetry")
 	if err != nil {
 		// TODO: Add Telemetry

@@ -61,12 +61,12 @@ func (h *Handler) handleEvent(e *core.Event) error {
 	logrus.Debugf(`Handler::handleEvent: %#v`, e)
 	// TODO: Add Telemetry
 
-	event, err := translation.Translate(e)
+	events, err := translation.Translate(e)
 	if err != nil {
 		return fmt.Errorf(`Handler::handleEvent error translating: %v`, err)
 	}
 
-	h.synchronizer.AddRateLimitedEvent(event)
+	h.synchronizer.AddEvents(events)
 
 	return nil
 }
