@@ -20,7 +20,7 @@ const RateLimiterBase = time.Second * 2
 const RateLimiterMax = time.Second * 60
 const RetryCount = 5
 const Threads = 1
-const SynchronizerQueueName = `nec-synchronizer`
+const SynchronizerQueueName = `nkl-synchronizer`
 
 type Synchronizer struct {
 	NginxPlusClient *nginxClient.NginxClient

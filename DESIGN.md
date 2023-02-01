@@ -12,25 +12,25 @@ and then uses the Synchronizer to update the target NGINX+ instance via the [NGI
 ```mermaid
 stateDiagram-v2
     Controller --> Watcher 
-    Watcher --> Handler : "nec-handler queue"
+    Watcher --> Handler : "nkl-handler queue"
     Handler --> Translator
     Translator --> Handler
-    Handler --> Synchronizer : "nec-synchronizer queue"
+    Handler --> Synchronizer : "nkl-synchronizer queue"
     Synchronizer --> NGINX+
 ```
 
 ### Event Handler
 
 The event handling is implemented using two [k8s work queues](https://pkg.go.dev/k8s.io/client-go/util/workqueue). 
-The first queue, "nec-handler", is populated with `core.Event` instances by the Watcher which are based upon the events 
+The first queue, "nkl-handler", is populated with `core.Event` instances by the Watcher which are based upon the events 
 raised by k8s.
 
 The Handler then takes the `core.Event` instances and calls the `translation.Translator` to convert the event into a `nginx.Nginx` instance. 
-The `core.Event` instance is update with the `nginx.Nginx` instance and then placed on the second queue, named "nec-synchronizer". 
+The `core.Event` instance is update with the `nginx.Nginx` instance and then placed on the second queue, named "nkl-synchronizer". 
 
 ### Synchronizer
 
-The Synchronizer is responsible for taking the `core.Event` instances from the "nec-synchronizer" queue and updating the target NGINX+
+The Synchronizer is responsible for taking the `core.Event` instances from the "nkl-synchronizer" queue and updating the target NGINX+
 using the `nginx.Nginx` member of the event.
 
 ### Translator

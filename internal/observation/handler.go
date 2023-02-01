@@ -19,7 +19,7 @@ const RateLimiterBase = time.Second * 2
 const RateLimiterMax = time.Second * 60
 const RetryCount = 5
 const Threads = 1
-const WatcherQueueName = `nec-handler`
+const WatcherQueueName = `nkl-handler`
 
 type Handler struct {
 	eventQueue   workqueue.RateLimitingInterface
