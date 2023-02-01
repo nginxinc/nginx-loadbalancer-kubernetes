@@ -13,8 +13,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/workqueue"
+	"time"
 )
 
+const RateLimiterBase = time.Second * 2
+const RateLimiterMax = time.Second * 60
 const RetryCount = 5
 const Threads = 1
 const SynchronizerQueueName = `nec-synchronizer`
@@ -59,7 +62,8 @@ func (s *Synchronizer) Initialize() error {
 		return fmt.Errorf(`error creating Nginx Plus client: %v`, err)
 	}
 
-	s.eventQueue = workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), SynchronizerQueueName)
+	rateLimiter := workqueue.NewItemExponentialFailureRateLimiter(RateLimiterBase, RateLimiterMax)
+	s.eventQueue = workqueue.NewNamedRateLimitingQueue(rateLimiter, SynchronizerQueueName)
 
 	return nil
 }
