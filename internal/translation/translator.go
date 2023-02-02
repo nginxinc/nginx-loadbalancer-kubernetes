@@ -20,7 +20,7 @@ func Translate(event *core.Event) (core.ServerUpdateEvents, error) {
 
 	portsOfInterest := filterPorts(event.Service.Spec.Ports)
 
-	return buildServerUpdateEvents(portsOfInterest)
+	return buildServerUpdateEvents(portsOfInterest, event.NodeIps)
 }
 
 func filterPorts(ports []v1.ServicePort) []v1.ServicePort {
@@ -36,10 +36,8 @@ func filterPorts(ports []v1.ServicePort) []v1.ServicePort {
 }
 
 // TODO: Get the list of Node IPs from the Kubernetes API and fan out over the port
-func buildServerUpdateEvents(ports []v1.ServicePort) (core.ServerUpdateEvents, error) {
+func buildServerUpdateEvents(ports []v1.ServicePort, nodeIps []string) (core.ServerUpdateEvents, error) {
 	logrus.Debugf("Translate::buildServerUpdateEvents(ports=%#v)", ports)
-
-	nodeIps := []string{"127.0.0.1"}
 
 	upstreams := core.ServerUpdateEvents{}
 	for _, port := range ports {

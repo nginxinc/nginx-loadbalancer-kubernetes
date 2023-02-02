@@ -16,6 +16,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
+	"time"
 )
 
 const NginxIngressNamespace = "nginx-ingress"
@@ -63,13 +64,6 @@ func (w *Watcher) Watch() error {
 	defer utilruntime.HandleCrash()
 	defer w.handler.ShutDown()
 
-	nodeIps, err := w.retrieveNodeIps()
-	if err != nil {
-		return fmt.Errorf(`error occurred retrieving node ips: %w`, err)
-	}
-
-	logrus.Infof("Watcher::Watch::nodeIps: %v", nodeIps)
-	
 	go w.informer.Run(w.ctx.Done())
 
 	if !cache.WaitForNamedCacheSync(WatcherQueueName, w.ctx.Done(), w.informer.HasSynced) {
@@ -83,9 +77,14 @@ func (w *Watcher) Watch() error {
 func (w *Watcher) buildEventHandlerForAdd() func(interface{}) {
 	logrus.Info("Watcher::buildEventHandlerForAdd")
 	return func(obj interface{}) {
+		nodeIps, err := w.retrieveNodeIps()
+		if err != nil {
+			logrus.Errorf(`error occurred retrieving node ips: %v`, err)
+			return
+		}
 		service := obj.(*v1.Service)
 		var previousService *v1.Service
-		e := core.NewEvent(core.Created, service, previousService)
+		e := core.NewEvent(core.Created, service, previousService, nodeIps)
 		w.handler.AddRateLimitedEvent(&e)
 	}
 }
@@ -93,9 +92,14 @@ func (w *Watcher) buildEventHandlerForAdd() func(interface{}) {
 func (w *Watcher) buildEventHandlerForDelete() func(interface{}) {
 	logrus.Info("Watcher::buildEventHandlerForDelete")
 	return func(obj interface{}) {
+		nodeIps, err := w.retrieveNodeIps()
+		if err != nil {
+			logrus.Errorf(`error occurred retrieving node ips: %v`, err)
+			return
+		}
 		service := obj.(*v1.Service)
 		var previousService *v1.Service
-		e := core.NewEvent(core.Deleted, service, previousService)
+		e := core.NewEvent(core.Deleted, service, previousService, nodeIps)
 		w.handler.AddRateLimitedEvent(&e)
 	}
 }
@@ -103,9 +107,14 @@ func (w *Watcher) buildEventHandlerForDelete() func(interface{}) {
 func (w *Watcher) buildEventHandlerForUpdate() func(interface{}, interface{}) {
 	logrus.Info("Watcher::buildEventHandlerForUpdate")
 	return func(previous, updated interface{}) {
+		nodeIps, err := w.retrieveNodeIps()
+		if err != nil {
+			logrus.Errorf(`error occurred retrieving node ips: %v`, err)
+			return
+		}
 		service := updated.(*v1.Service)
 		previousService := previous.(*v1.Service)
-		e := core.NewEvent(core.Updated, service, previousService)
+		e := core.NewEvent(core.Updated, service, previousService, nodeIps)
 		w.handler.AddRateLimitedEvent(&e)
 	}
 }
@@ -156,6 +165,7 @@ func (w *Watcher) initializeEventListeners() error {
 }
 
 func (w *Watcher) retrieveNodeIps() ([]string, error) {
+	started := time.Now()
 	logrus.Debug("Watcher::retrieveNodeIps")
 
 	var nodeIps []string
@@ -167,12 +177,23 @@ func (w *Watcher) retrieveNodeIps() ([]string, error) {
 	}
 
 	for _, node := range nodes.Items {
-		for _, address := range node.Status.Addresses {
-			if address.Type == v1.NodeInternalIP {
-				nodeIps = append(nodeIps, address.Address)
+		if w.notMasterNode(node) {
+			for _, address := range node.Status.Addresses {
+				if address.Type == v1.NodeInternalIP {
+					nodeIps = append(nodeIps, address.Address)
+				}
 			}
 		}
 	}
 
+	logrus.Infof("Watcher::retrieveNodeIps duration: %d", time.Since(started).Nanoseconds())
 	return nodeIps, nil
+}
+
+func (w *Watcher) notMasterNode(node v1.Node) bool {
+	logrus.Debug("Watcher::notMasterNode")
+
+	_, found := node.Labels["node-role.kubernetes.io/master"]
+
+	return !found
 }

@@ -17,6 +17,7 @@ type Event struct {
 	Type            EventType
 	Service         *v1.Service
 	PreviousService *v1.Service
+	NodeIps         []string
 }
 
 type ServerUpdateEvent struct {
@@ -27,11 +28,12 @@ type ServerUpdateEvent struct {
 
 type ServerUpdateEvents = []*ServerUpdateEvent
 
-func NewEvent(eventType EventType, service *v1.Service, previousService *v1.Service) Event {
+func NewEvent(eventType EventType, service *v1.Service, previousService *v1.Service, nodeIps []string) Event {
 	return Event{
 		Type:            eventType,
 		Service:         service,
 		PreviousService: previousService,
+		NodeIps:         nodeIps,
 	}
 }
 
