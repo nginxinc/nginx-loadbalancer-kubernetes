@@ -4,7 +4,6 @@ metadata:
   name: ingress-resource-get-watch-list
 rules:
   - apiGroups:
-        - "extensions"
-        - "core"
-    resources: ["services"]
+        - ""
+    resources: ["services", "nodes"]
     verbs: ["get", "watch", "list"]

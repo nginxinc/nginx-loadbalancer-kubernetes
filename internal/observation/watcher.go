@@ -10,6 +10,7 @@ import (
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
@@ -62,6 +63,13 @@ func (w *Watcher) Watch() error {
 	defer utilruntime.HandleCrash()
 	defer w.handler.ShutDown()
 
+	nodeIps, err := w.retrieveNodeIps()
+	if err != nil {
+		return fmt.Errorf(`error occurred retrieving node ips: %w`, err)
+	}
+
+	logrus.Infof("Watcher::Watch::nodeIps: %v", nodeIps)
+	
 	go w.informer.Run(w.ctx.Done())
 
 	if !cache.WaitForNamedCacheSync(WatcherQueueName, w.ctx.Done(), w.informer.HasSynced) {
@@ -145,4 +153,26 @@ func (w *Watcher) initializeEventListeners() error {
 	}
 
 	return nil
+}
+
+func (w *Watcher) retrieveNodeIps() ([]string, error) {
+	logrus.Debug("Watcher::retrieveNodeIps")
+
+	var nodeIps []string
+
+	nodes, err := w.client.CoreV1().Nodes().List(w.ctx, metav1.ListOptions{})
+	if err != nil {
+		logrus.Errorf(`error occurred retrieving the list of nodes: %v`, err)
+		return nil, err
+	}
+
+	for _, node := range nodes.Items {
+		for _, address := range node.Status.Addresses {
+			if address.Type == v1.NodeInternalIP {
+				nodeIps = append(nodeIps, address.Address)
+			}
+		}
+	}
+
+	return nodeIps, nil
 }
