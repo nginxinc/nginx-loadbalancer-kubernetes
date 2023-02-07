@@ -7,9 +7,12 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/config"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/observation"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/synchronization"
 	"github.com/sirupsen/logrus"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 )
 
 func main() {
@@ -23,7 +26,22 @@ func run() error {
 	ctx := context.Background()
 	var err error
 
-	synchronizer, err := synchronization.NewSynchronizer()
+	k8sClient, err := buildKubernetesClient()
+	if err != nil {
+		return fmt.Errorf(`error building a Kubernetes client: %w`, err)
+	}
+
+	settings, err := config.NewSettings(ctx, k8sClient)
+	if err != nil {
+		return fmt.Errorf(`error occurred creating settings: %w`, err)
+	}
+
+	err = settings.Initialize()
+	if err != nil {
+		return fmt.Errorf(`error occurred initializing settings: %w`, err)
+	}
+
+	synchronizer, err := synchronization.NewSynchronizer(settings)
 	if err != nil {
 		return fmt.Errorf(`error initializing synchronizer: %w`, err)
 	}
@@ -36,7 +54,7 @@ func run() error {
 	handler := observation.NewHandler(synchronizer)
 	handler.Initialize()
 
-	watcher, err := observation.NewWatcher(ctx, handler)
+	watcher, err := observation.NewWatcher(ctx, handler, k8sClient)
 	if err != nil {
 		return fmt.Errorf(`error occurred creating a watcher: %w`, err)
 	}
@@ -46,6 +64,7 @@ func run() error {
 		return fmt.Errorf(`error occurred initializing the watcher: %w`, err)
 	}
 
+	go settings.Run()
 	go handler.Run(ctx.Done())
 	go synchronizer.Run(ctx.Done())
 
@@ -56,4 +75,21 @@ func run() error {
 
 	<-ctx.Done()
 	return nil
+}
+
+func buildKubernetesClient() (*kubernetes.Clientset, error) {
+	logrus.Debug("Watcher::buildKubernetesClient")
+	k8sConfig, err := rest.InClusterConfig()
+	if err == rest.ErrNotInCluster {
+		return nil, fmt.Errorf(`not running in a Cluster: %w`, err)
+	} else if err != nil {
+		return nil, fmt.Errorf(`error occurred getting the Cluster config: %w`, err)
+	}
+
+	client, err := kubernetes.NewForConfig(k8sConfig)
+	if err != nil {
+		return nil, fmt.Errorf(`error occurred creating a client: %w`, err)
+	}
+
+	return client, nil
 }

@@ -16,53 +16,58 @@ import (
 	"time"
 )
 
-const RateLimiterBase = time.Second * 2
-const RateLimiterMax = time.Second * 60
-const RetryCount = 5
-const Threads = 1
-const SynchronizerQueueName = `nkl-synchronizer`
+const (
+	// MaxMillisecondsJitter and MinMillisecondsJitter are used to randomize the rate limiter,
+	// creating headroom for calls to the NGINX edge hosts.
+	MaxMillisecondsJitter = 750
+	MinMillisecondsJitter = 250
+
+	RateLimiterBase       = time.Second * 2
+	RateLimiterMax        = time.Second * 60
+	RetryCount            = 5
+	Threads               = 1
+	SynchronizerQueueName = `nkl-synchronizer`
+)
 
 type Synchronizer struct {
-	NginxPlusClient *nginxClient.NginxClient
-	eventQueue      workqueue.RateLimitingInterface
+	eventQueue workqueue.RateLimitingInterface
+	settings   *config.Settings
 }
 
-func NewSynchronizer() (*Synchronizer, error) {
+func NewSynchronizer(settings *config.Settings) (*Synchronizer, error) {
 	synchronizer := Synchronizer{}
-
+	synchronizer.settings = settings
 	return &synchronizer, nil
 }
 
 func (s *Synchronizer) AddEvents(events core.ServerUpdateEvents) {
 	logrus.Debugf(`Synchronizer::AddEvents adding %d events`, len(events))
 
-	// TODO: Add fan-out for multiple NginxClients
-	for _, event := range events {
+	if len(s.settings.NginxPlusHosts) == 0 {
+		logrus.Warnf(`No Nginx Plus hosts were specified. Skipping synchronization.`)
+		return
+	}
+
+	updatedEvents := s.fanOutEventToHosts(events)
+
+	for _, event := range updatedEvents {
 		s.AddEvent(event)
 	}
 }
 
 func (s *Synchronizer) AddEvent(event *core.ServerUpdateEvent) {
 	logrus.Debugf(`Synchronizer::AddEvent: %#v`, event)
-	s.eventQueue.AddRateLimited(event)
+
+	if event.NginxHost == `` {
+		logrus.Warnf(`Nginx host was not specified. Skipping synchronization.`)
+		return
+	}
+
+	s.eventQueue.AddAfter(event, RandomMilliseconds(MinMillisecondsJitter, MaxMillisecondsJitter))
 }
 
 func (s *Synchronizer) Initialize() error {
-	var err error
-	settings, err := config.NewSettings()
-	if err != nil {
-		return fmt.Errorf(`error loading configuration: %v`, err)
-	}
-
-	httpClient, err := communication.NewHttpClient()
-	if err != nil {
-		return fmt.Errorf(`error creating HTTP client: %v`, err)
-	}
-
-	s.NginxPlusClient, err = nginxClient.NewNginxClient(httpClient, settings.NginxPlusHost)
-	if err != nil {
-		return fmt.Errorf(`error creating Nginx Plus client: %v`, err)
-	}
+	logrus.Debug(`Synchronizer::Initialize`)
 
 	rateLimiter := workqueue.NewItemExponentialFailureRateLimiter(RateLimiterBase, RateLimiterMax)
 	s.eventQueue = workqueue.NewNamedRateLimitingQueue(rateLimiter, SynchronizerQueueName)
@@ -85,28 +90,99 @@ func (s *Synchronizer) ShutDown() {
 	s.eventQueue.ShutDownWithDrain()
 }
 
-func (s *Synchronizer) handleEvent(serverUpdateEvent *core.ServerUpdateEvent) error {
-	logrus.Debugf(`Synchronizer::handleEvent: %#v`, serverUpdateEvent)
+func (s *Synchronizer) buildNginxPlusClient(nginxHost string) (*nginxClient.NginxClient, error) {
+	logrus.Debugf(`Synchronizer::buildNginxPlusClient for host: %s`, nginxHost)
 
-	switch serverUpdateEvent.Type {
-	case core.Created:
-		fallthrough
-	case core.Updated:
-		_, _, _, err := s.NginxPlusClient.UpdateStreamServers(serverUpdateEvent.UpstreamName, serverUpdateEvent.Servers)
-		if err != nil {
-			return fmt.Errorf(`error occurred updating the nginx+ upstream servers: %w`, err)
-		}
-	case core.Deleted:
-		// NOTE: Deleted events include a single server in the array
-		err := s.NginxPlusClient.DeleteStreamServer(serverUpdateEvent.UpstreamName, serverUpdateEvent.Servers[0].Server)
-		if err != nil {
-			return fmt.Errorf(`error occurred deleting the nginx+ upstream server: %w`, err)
-		}
-	default:
-		logrus.Warnf(`Synchronizer::handleEvent: unknown event type: %d`, serverUpdateEvent.Type)
+	var err error
+
+	httpClient, err := communication.NewHttpClient()
+	if err != nil {
+		return nil, fmt.Errorf(`error creating HTTP client: %v`, err)
 	}
 
-	logrus.Infof(`Synchronizer::handleEvent: successfully %s the nginx+ hosts for Ingress: "%s"`, serverUpdateEvent.TypeName(), serverUpdateEvent.UpstreamName)
+	client, err := nginxClient.NewNginxClient(httpClient, nginxHost)
+	if err != nil {
+		return nil, fmt.Errorf(`error creating Nginx Plus client: %v`, err)
+	}
+
+	return client, nil
+}
+
+func (s *Synchronizer) fanOutEventToHosts(event core.ServerUpdateEvents) core.ServerUpdateEvents {
+	logrus.Debugf(`Synchronizer::fanOutEventToHosts: %#v`, event)
+
+	var events core.ServerUpdateEvents
+
+	for hidx, host := range s.settings.NginxPlusHosts {
+		for eidx, event := range event {
+			id := fmt.Sprintf(`[%d:%d]-[%s]-[%s]-[%s]`, hidx, eidx, RandomString(12), event.UpstreamName, host)
+			updatedEvent := core.ServerUpdateEventWithIdAndHost(event, id, host)
+
+			events = append(events, updatedEvent)
+		}
+	}
+
+	return events
+}
+
+func (s *Synchronizer) handleEvent(event *core.ServerUpdateEvent) error {
+	logrus.Debugf(`Synchronizer::handleEvent: Id: %s`, event.Id)
+
+	var err error
+
+	switch event.Type {
+	case core.Created:
+		fallthrough
+
+	case core.Updated:
+		err = s.handleCreatedUpdatedEvent(event)
+
+	case core.Deleted:
+		err = s.handleDeletedEvent(event)
+
+	default:
+		logrus.Warnf(`Synchronizer::handleEvent: unknown event type: %d`, event.Type)
+	}
+
+	if err == nil {
+		logrus.Infof(`Synchronizer::handleEvent: successfully %s the nginx+ host(s) for Upstream: %s: Id(%s)`, event.TypeName(), event.UpstreamName, event.Id)
+	}
+
+	return err
+}
+
+func (s *Synchronizer) handleCreatedUpdatedEvent(serverUpdateEvent *core.ServerUpdateEvent) error {
+	logrus.Debugf(`Synchronizer::handleCreatedUpdatedEvent: Id: %s`, serverUpdateEvent.Id)
+
+	var err error
+
+	client, err := s.buildNginxPlusClient(serverUpdateEvent.NginxHost)
+	if err != nil {
+		return fmt.Errorf(`error occurred building the nginx+ client: %w`, err)
+	}
+
+	_, _, _, err = client.UpdateStreamServers(serverUpdateEvent.UpstreamName, serverUpdateEvent.Servers)
+	if err != nil {
+		return fmt.Errorf(`error occurred updating the nginx+ upstream servers: %w`, err)
+	}
+
+	return nil
+}
+
+func (s *Synchronizer) handleDeletedEvent(serverUpdateEvent *core.ServerUpdateEvent) error {
+	logrus.Debugf(`Synchronizer::handleDeletedEvent: Id: %s`, serverUpdateEvent.Id)
+
+	var err error
+
+	client, err := s.buildNginxPlusClient(serverUpdateEvent.NginxHost)
+	if err != nil {
+		return fmt.Errorf(`error occurred building the nginx+ client: %w`, err)
+	}
+
+	err = client.DeleteStreamServer(serverUpdateEvent.UpstreamName, serverUpdateEvent.Servers[0].Server)
+	if err != nil {
+		return fmt.Errorf(`error occurred deleting the nginx+ upstream server: %w`, err)
+	}
 
 	return nil
 }
@@ -130,7 +206,6 @@ func (s *Synchronizer) handleNextEvent() bool {
 func (s *Synchronizer) worker() {
 	logrus.Debug(`Synchronizer::worker`)
 	for s.handleNextEvent() {
-		// TODO: Add Telemetry
 	}
 }
 
@@ -140,10 +215,12 @@ func (s *Synchronizer) withRetry(err error, event *core.ServerUpdateEvent) {
 		// TODO: Add Telemetry
 		if s.eventQueue.NumRequeues(event) < RetryCount { // TODO: Make this configurable
 			s.eventQueue.AddRateLimited(event)
-			logrus.Infof(`Synchronizer::withRetry: requeued event: %#v; error: %v`, event, err)
+			logrus.Infof(`Synchronizer::withRetry: requeued event: %s; error: %v`, event.Id, err)
 		} else {
 			s.eventQueue.Forget(event)
 			logrus.Warnf(`Synchronizer::withRetry: event %#v has been dropped due to too many retries`, event)
 		}
+	} else {
+		s.eventQueue.Forget(event)
 	} // TODO: Add error logging
 }
