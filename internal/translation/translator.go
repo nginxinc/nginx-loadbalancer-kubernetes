@@ -20,7 +20,7 @@ func Translate(event *core.Event) (core.ServerUpdateEvents, error) {
 
 	portsOfInterest := filterPorts(event.Service.Spec.Ports)
 
-	return buildServerUpdateEvents(portsOfInterest, event.NodeIps)
+	return buildServerUpdateEvents(portsOfInterest, event)
 }
 
 func filterPorts(ports []v1.ServicePort) []v1.ServicePort {
@@ -35,19 +35,34 @@ func filterPorts(ports []v1.ServicePort) []v1.ServicePort {
 	return portsOfInterest
 }
 
-// TODO: Get the list of Node IPs from the Kubernetes API and fan out over the port
-func buildServerUpdateEvents(ports []v1.ServicePort, nodeIps []string) (core.ServerUpdateEvents, error) {
+// buildServerUpdateEvents builds a list of ServerUpdateEvents based on the event type
+// The NGINX+ Client uses a list of servers for Created and Updated events; the client performs reconciliation between
+// the list of servers in the NGINX+ Client call and the list of servers in NGINX+.
+// The NGINX+ Client uses a single server for Deleted events; so the list of servers is broken up into individual events.
+func buildServerUpdateEvents(ports []v1.ServicePort, event *core.Event) (core.ServerUpdateEvents, error) {
 	logrus.Debugf("Translate::buildServerUpdateEvents(ports=%#v)", ports)
 
-	upstreams := core.ServerUpdateEvents{}
+	updateEvents := core.ServerUpdateEvents{}
 	for _, port := range ports {
 		ingressName := fixIngressName(port.Name)
-		servers, _ := buildServers(nodeIps, port)
+		servers, _ := buildServers(event.NodeIps, port)
 
-		upstreams = append(upstreams, core.NewServerUpdateEvent(ingressName, servers))
+		switch event.Type {
+		case core.Created:
+			fallthrough
+		case core.Updated:
+			updateEvents = append(updateEvents, core.NewServerUpdateEvent(event.Type, ingressName, servers))
+		case core.Deleted:
+			for _, server := range servers {
+				updateEvents = append(updateEvents, core.NewServerUpdateEvent(event.Type, ingressName, []nginxClient.StreamUpstreamServer{server}))
+			}
+		default:
+			logrus.Warnf(`Translator::buildServerUpdateEvents: unknown event type: %d`, event.Type)
+		}
+
 	}
 
-	return upstreams, nil
+	return updateEvents, nil
 }
 
 func buildServers(nodeIps []string, port v1.ServicePort) ([]nginxClient.StreamUpstreamServer, error) {

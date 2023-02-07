@@ -21,7 +21,7 @@ type Event struct {
 }
 
 type ServerUpdateEvent struct {
-	id           string
+	Type         EventType
 	UpstreamName string
 	Servers      []nginxClient.StreamUpstreamServer
 }
@@ -37,9 +37,23 @@ func NewEvent(eventType EventType, service *v1.Service, previousService *v1.Serv
 	}
 }
 
-func NewServerUpdateEvent(upstreamName string, servers []nginxClient.StreamUpstreamServer) *ServerUpdateEvent {
+func NewServerUpdateEvent(eventType EventType, upstreamName string, servers []nginxClient.StreamUpstreamServer) *ServerUpdateEvent {
 	return &ServerUpdateEvent{
+		Type:         eventType,
 		UpstreamName: upstreamName,
 		Servers:      servers,
+	}
+}
+
+func (e *ServerUpdateEvent) TypeName() string {
+	switch e.Type {
+	case Created:
+		return "Created"
+	case Updated:
+		return "Updated"
+	case Deleted:
+		return "Deleted"
+	default:
+		return "Unknown"
 	}
 }
