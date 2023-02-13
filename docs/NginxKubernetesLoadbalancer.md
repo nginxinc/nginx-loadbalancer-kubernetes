@@ -15,6 +15,7 @@
 - This is will synchronize the K8s Service Endpoint list, with the Nginx LB server's Upstream block server list.  
 - The primary use case is for tracking the NodePort IP:Port definitions for the Nginx Ingress Controller's `nginx-ingress Service`.  
 - With the NginxPlus Server located external to the K8s cluster, this new controller LB function would provide an alternative TCP "Load Balancer Service" for On Premises k8s clusters, which do not have access to a Cloud providers "Service Type LoadBalancer".
+- Make the solution a native Kubernetes Component, configured and managed with standard K8s tools.
 
 <br/>
 
@@ -34,7 +35,7 @@ This is often called "NLB", a term used in AWS for Network Load Balancer, but fu
 
 >**This Solution uses NGINX to provide an alternative to #3, the TCP loadbalancing from PublicIP to k8s NodePort.**
 
-Note: This solution is not for Cloud-based K8s clusters, only On Premises K8s clusters.
+Note: This solution is not for Cloud-based K8s clusters, it is only for On Premises K8s clusters.
 
 <br/>
 
@@ -62,7 +63,11 @@ Alternatives:
 
 However, most of these alternatives are proprietary, open source / unsupported, competitive, or have other customer concerns.
 
+<br/>
+
 >**`NGINX PLUS is a viable alternative for most customers.`**
+
+<br/>
 
 Why not Nginx OpenSource?  Nginx Open Source does not have the API endpoint and service for managing Upstream Server block configurations.
 
@@ -81,6 +86,7 @@ Why not Nginx OpenSource?  Nginx Open Source does not have the API endpoint and 
 - Plus API - the standard Nginx Plus API service that is running on the Nginx LB Server
 - Nginx Plus Go Client - software that communicates with the Nginx LB Server
 - Upstream - the IP:Port list of servers that Nginx will Load Balance traffic to at Layer 4 TCP using the stream configuration
+- Fan-out support - the ability to run 2 or more Nginx LB servers external to the cluster for High Availability
 
 <br/>
 
@@ -89,50 +95,54 @@ Why not Nginx OpenSource?  Nginx Open Source does not have the API endpoint and 
 <br/>
 
 Preface -  Define access parameters for NKL Controller to communicate with NginxPlus instance:
-- IP address:port or FQDN of the target Nginx LB Server
+- IP address:port of the target Nginx LB Server(s)
 - Optional auth:  SSL certificate/key
 - Optional auth:  IP allow list
 - Optional auth:  HTTP Auth userid/password
 - Optional auth:  JWT Token
 
 1. Initialization:
+
 - Define the name of the target Upstream Server Block
 - "nginx-lb-http" or "nginx-lb-https" should be the default server block names, returns error if these do not exist
 - Using the Nginx Plus Go Client library, make an API query to NginxPlus LB server for current Upstream list
 - API query to K8s apiserver for list of Ingress Controller Endpoints
 - Reconcile the two lists, making changes to Nginx Upstreams to match the Ingress Endpoints ( add / delete Upstreams as needed to converge the two lists )
 
-2. Runtime:
-- Periodic check - API query for the list of Servers in the Upstream block, using the NginxPlus API ( query interval TBD )
-- IP:port definition
-- other possible metadata: status, connections, response_time, etc
-- Keep a copy of this list in memory, if state is required
+2. Configuration Requirements:
 
-3. Register the LB Controller with the K8s watcher Service, subscribe to Notifications for changes to the nginx-ingress Service Endpoints.
+- List of Nginx LB server IP:Ports, comma separated
+- List of K8s worker nodes
+- List of Nginx LB server upstream block names, current defaults are "nginx-lb-http" and "nginx-lb-https" - `nginxlb.conf` for examples
+- Nodeport Definition file, port names MUST match the upstream block names in the correct format, prefixed with `nkl-`, as in `nkl-nginx-lb-http` and `nkl-nginx-lb-https`
+
+3. Runtime:
+
+- Register the LB Controller with the K8s watcher Service, subscribe to Notifications for changes to the nginx-ingress Service Endpoints.
 - Using the Nginx Plus Go Client libraries, modify Upstream server entries, based on K8s NodePort Service endpoint "Notification" changes
 - Add new Endpoint to Upstream Server list on k8s Notify
-- Remove deleted Endpoints to Upstream list, using the Nginx Plus "Drain" function, leaving existing TCP connections to close gracefully on K8s Notify delete.
-- Create and Set Drain_wait timer on Draining Upstream servers
-- Remove Draining Upstream servers after Drain_wait timer expires
-- Log changes to debug, nginx error.log, or custom access.log as appropriate
+- Remove deleted Endpoints to Upstream list on k8s Notify
+- Log changes to debug, nginx error.log, custom access.log and controller log as appropriate
 
-4. Query the K8s api server, for the list of Endpoints for the "nginx-ingress" Service object.  This is the list of NodePorts where the Nginx Ingress Controller is listening.
-- Keep a copy of this list in memory, if state is desired
+4. Main program
 
-5. Main program 
 - Compare the list of Upstream servers from the Nginx API call, with the list nginx-ingress Service Endpoints from the K8s API call
 - Calculate the difference in the list, and create new Nginx API calls to update the Upstream list, adding or removing the changes needed to mirror the nginx-ingress Service Endpoints list
+- Periodic check - API query for the list of Servers in the Upstream block, using the NginxPlus API ( query interval TBD )
+- IP:port definition
+- other possible metadata collection: status, connections, response_time, etc
+- Register the LB Controller for liveness probes, so K8s has and endpoint to query for up/down status.
 - Log these changes
 
-6. Optional:  Make Nginx API calls to update the entire Upstream list, regardless of what the existing list contains.  *Nginx will allow for the addition of duplicate server to the upstream block using the API, so at some point a process to "clean up and verify" the upstream list should be considered.  It is possible that the Nginx-Plus-Go_Client already does this function.*
+6. Optional:  Add additional features/functions here, beyond MVP.
 
 <br/>
 
-## PM/PD Suggestion - to build this new Controller, use the existing Nginx Ingress Controller framework/code, to create this new k8s LB Controller, leveraging the Enterprise class, supportable code Nginx already has on hand.  Or perhaps, add this Loadbalancer solution as a new Feature to the exising Ingress Controller ( NIC, after all, is already watching the nginx-ingress namespace and services ).
+## PM/PD Suggestion - to build this new Controller, use the existing Nginx Ingress Controller framework/code, to create this new k8s LB Controller, leveraging the Enterprise class, supportable code Nginx already has on hand.  Or perhaps, add this Loadbalancer solution as a new Feature to the exising Ingress Controller ( NIC, after all, it is already watching the nginx-ingress namespace and services ).
 
 <br/>
 
-## Example Nginx Plus API requests for Upstream block changes
+### Example Nginx Plus API requests for Upstream block changes
 
 <br/>
 
