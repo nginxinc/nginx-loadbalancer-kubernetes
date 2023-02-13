@@ -1,3 +1,7 @@
+# This the default nodeport.yaml manifest for nginx-ingress.  
+#The port name MUST be changed to match the new LB Controller.
+# See the new nodeport-nkl.yaml file example.
+# 
 apiVersion: v1
 kind: Service
 metadata:
