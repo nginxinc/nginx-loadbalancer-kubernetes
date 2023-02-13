@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nkl-deployment
+  namespace: nkl
   labels:
     app: nkl
 spec:
@@ -16,9 +17,6 @@ spec:
     spec:
       containers:
         - name: nginx-k8s-edge-controller
-          env:
-            - name: NGINX_PLUS_HOST
-              value: "http://10.1.1.4:9000/api"
           image: ciroque/nginx-k8s-edge-controller:latest
           imagePullPolicy: Always
           ports:
