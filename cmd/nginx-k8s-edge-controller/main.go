@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/config"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/observation"
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/probation"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/synchronization"
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
@@ -67,6 +68,9 @@ func run() error {
 	go settings.Run()
 	go handler.Run(ctx.Done())
 	go synchronizer.Run(ctx.Done())
+
+	probeServer := probation.NewHealthServer()
+	probeServer.Start()
 
 	err = watcher.Watch()
 	if err != nil {
