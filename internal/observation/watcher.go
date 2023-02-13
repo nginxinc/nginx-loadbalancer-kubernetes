@@ -14,7 +14,6 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
 	"time"
 )
@@ -30,9 +29,10 @@ type Watcher struct {
 	informer                 cache.SharedIndexInformer
 }
 
-func NewWatcher(ctx context.Context, handler *Handler) (*Watcher, error) {
+func NewWatcher(ctx context.Context, handler *Handler, k8sClient *kubernetes.Clientset) (*Watcher, error) {
 	return &Watcher{
 		ctx:     ctx,
+		client:  k8sClient,
 		handler: handler,
 	}, nil
 }
@@ -40,11 +40,6 @@ func NewWatcher(ctx context.Context, handler *Handler) (*Watcher, error) {
 func (w *Watcher) Initialize() error {
 	logrus.Debug("Watcher::Initialize")
 	var err error
-
-	w.client, err = w.buildKubernetesClient()
-	if err != nil {
-		return fmt.Errorf(`initalization error: %w`, err)
-	}
 
 	w.informer, err = w.buildInformer()
 	if err != nil {
@@ -129,23 +124,6 @@ func (w *Watcher) buildInformer() (cache.SharedIndexInformer, error) {
 	return informer, nil
 }
 
-func (w *Watcher) buildKubernetesClient() (*kubernetes.Clientset, error) {
-	logrus.Debug("Watcher::buildKubernetesClient")
-	k8sConfig, err := rest.InClusterConfig()
-	if err == rest.ErrNotInCluster {
-		return nil, fmt.Errorf(`not running in a Cluster: %w`, err)
-	} else if err != nil {
-		return nil, fmt.Errorf(`error occurred getting the Cluster config: %w`, err)
-	}
-
-	client, err := kubernetes.NewForConfig(k8sConfig)
-	if err != nil {
-		return nil, fmt.Errorf(`error occurred creating a client: %w`, err)
-	}
-
-	return client, nil
-}
-
 func (w *Watcher) initializeEventListeners() error {
 	logrus.Debug("Watcher::initializeEventListeners")
 	var err error
@@ -186,7 +164,8 @@ func (w *Watcher) retrieveNodeIps() ([]string, error) {
 		}
 	}
 
-	logrus.Infof("Watcher::retrieveNodeIps duration: %d", time.Since(started).Nanoseconds())
+	logrus.Debugf("Watcher::retrieveNodeIps duration: %d", time.Since(started).Nanoseconds())
+
 	return nodeIps, nil
 }
 
