@@ -6,4 +6,4 @@
 Package config, application configuration.
 */
 
-package config
+package configuration

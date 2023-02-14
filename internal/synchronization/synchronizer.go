@@ -7,7 +7,7 @@ package synchronization
 import (
 	"fmt"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/communication"
-	"github.com/nginxinc/kubernetes-nginx-ingress/internal/config"
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	nginxClient "github.com/nginxinc/nginx-plus-go-client/client"
 	"github.com/sirupsen/logrus"
@@ -31,10 +31,10 @@ const (
 
 type Synchronizer struct {
 	eventQueue workqueue.RateLimitingInterface
-	settings   *config.Settings
+	settings   *configuration.Settings
 }
 
-func NewSynchronizer(settings *config.Settings) (*Synchronizer, error) {
+func NewSynchronizer(settings *configuration.Settings) (*Synchronizer, error) {
 	synchronizer := Synchronizer{}
 	synchronizer.settings = settings
 	return &synchronizer, nil

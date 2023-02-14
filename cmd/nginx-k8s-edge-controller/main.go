@@ -7,7 +7,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/nginxinc/kubernetes-nginx-ingress/internal/config"
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/observation"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/probation"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/synchronization"
@@ -32,7 +32,7 @@ func run() error {
 		return fmt.Errorf(`error building a Kubernetes client: %w`, err)
 	}
 
-	settings, err := config.NewSettings(ctx, k8sClient)
+	settings, err := configuration.NewSettings(ctx, k8sClient)
 	if err != nil {
 		return fmt.Errorf(`error occurred creating settings: %w`, err)
 	}
