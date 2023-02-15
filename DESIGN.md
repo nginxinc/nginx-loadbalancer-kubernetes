@@ -37,8 +37,8 @@ The master node ip is excluded from the list. (NOTE: This should be configurable
 
 ### Handler
 
-The Handler is responsible for taking the `core.Event` instances from the "nkl-handler" queue and calling the Translator to convert the event into a `core.ServerUpdateEvent` instance, 
-adding each `core.ServerUpdateEvent` to the "nkl-synchronizer" queue.
+The Handler is responsible for taking the `core.Event` instances from the "nkl-handler" queue and calling the Translator to convert the event into a `core.ServerUpdateEvent` instance,
+and then passing the list of events to the Synchronizer by calling the `AddEvents` method.
 
 ### Translator
 
@@ -46,8 +46,6 @@ The Translator is responsible for converting the `core.Event` event into an `ngi
 This involves filtering out the `core.Event` instances that are not of interest to the controller by accepting only Port names starting with the NklPrefix value (currently _nkl-_).
 The event is then fanned-out based on the defined Ports, one event per defined Port. Each port is then augmented with the Ingress name (the name configured in the Port definition with the NklPrefix value removed), 
 and the list of the Node's IP addresses.
-
-The Translator passes the list of events to the Synchronizer by calling the `AddEvents` method. 
 
 **NOTE: It is important that the Port names match the name of the defined NGINX Plus Upstreams.**
 
