@@ -15,7 +15,7 @@
 - This is will synchronize the K8s Service Endpoint list, with the Nginx LB server's Upstream block server list.  
 - The primary use case is for tracking the NodePort IP:Port definitions for the Nginx Ingress Controller's `nginx-ingress Service`.  
 - With the NginxPlus Server located external to the K8s cluster, this new controller LB function would provide an alternative TCP "Load Balancer Service" for On Premises k8s clusters, which do not have access to a Cloud providers "Service Type LoadBalancer".
-- Make the solution a native Kubernetes Component, configured and managed with standard K8s tools.
+- The solution works as a native Kubernetes Controller object, configured and managed with standard K8s tools.
 
 <br/>
 
