@@ -1,5 +1,5 @@
 # NKL Nodeport Service file
-# NodePort name must be in the format of
+# NodePort port name must be in the format of
 # nkl-<upstream-block-name>
 # Chris Akker, Jan 2023
 #

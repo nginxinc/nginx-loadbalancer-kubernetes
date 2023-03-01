@@ -15,7 +15,7 @@
 - This is will synchronize the K8s Service Endpoint list, with the Nginx LB server's Upstream block server list.  
 - The primary use case is for tracking the NodePort IP:Port definitions for the Nginx Ingress Controller's `nginx-ingress Service`.  
 - With the NginxPlus Server located external to the K8s cluster, this new controller LB function would provide an alternative TCP "Load Balancer Service" for On Premises k8s clusters, which do not have access to a Cloud providers "Service Type LoadBalancer".
-- Make the solution a native Kubernetes Component, configured and managed with standard K8s tools.
+- The solution works as a native Kubernetes Controller object, configured and managed with standard K8s tools.
 
 <br/>
 
@@ -27,7 +27,7 @@ When using a Cloud Provider's Loadbalancer Service Type, it provides 3 basic fun
 
 1. Public IP address allocation, visible from the Internet
 2. DNS record management for this Public IP (usually A records for FQDNs)
-3. TCP loadbalancing, from the PublicIP:wellknownports, to the NodePort:highnumberports of the cluster nodes.  
+3. TCP loadbalancing, from the PublicIP:well-known-ports, to the NodePort:high-number-ports of the cluster nodes.  
 
 This is often called "NLB", a term used in AWS for Network Load Balancer, but functions nearly identical in all Public Cloud Provider networks.  It is not actually a component of K8s, rather, it is a service provided by the Cloud Providers SDN (Software Defined Network), but is managed by the user with K8s Service Type LoadBalancer definitions/declarations.
 
@@ -43,7 +43,7 @@ Note: This solution is not for Cloud-based K8s clusters, it is only for On Premi
 
 <br/>
 
-![NGINX LB Server](media/nginxlb-nklv1.png)
+![NGINX LB Server](media/nginxlb-nklv2.png)
 
 <br/>
 
@@ -146,7 +146,7 @@ Preface -  Define access parameters for NKL Controller to communicate with Nginx
 
 <br/>
 
-Here are some examples of using cURL to the NginxPlus API to control Upstream server blocks:
+Here are some examples of using cURL to the Nginx Plus API to control Upstream server blocks:
 
 <Nginx API call to add Upstream Server, Nginx LB Server is at 172.16.1.15:9000 in these examples>
 
@@ -189,7 +189,7 @@ curl -X PATCH -d '{ "drain": true }' -s 'http://172.16.1.15:9000/api/4/stream/up
 Response is:
 {"id":2,"server":"127.0.0.1:8083","weight":1,"max_conns":0,"max_fails":1,"fail_timeout":"10s","slow_start":"0s","route":"","backup":false,"down":false,"drain":true}
 
-Note:  During recent testing with R28 and API version 8, the Drain command was 404 - not found.
+Note:  During recent testing with R28 and API version 8, the Drain command was 404 - not found for Stream Upstreams.  According to docs, DRAIN is only supported on HTTP Upstreams - to be verified.
  
 To `CHANGE the LB WEIGHT` of an Upstream Server with ID = 2:
 curl -X PATCH -d '{ "weight": 3 }' -s 'http://172.16.1.15:9000/api/4/stream/upstreams/nginx-lb-http/servers/2'
@@ -236,26 +236,22 @@ Nginx Upstream API examples:  http://nginx.org/en/docs/http/ngx_http_api_module.
 ## Sample NginxPlus LB Server configuration ( server and upstream blocks )
 
 ```bash
-# NginxLB Stream configuration, for TCP load balancing
+# NginxK8sLB Stream configuration, for L4 load balancing
 # Chris Akker, Jan 2023
 # TCP Proxy and load balancing block
 # Nginx Kubernetes Loadbalancer
-# backup servers allow Nginx to start
-# State file used to preserve config across restarts
+# State File for persistent reloads/restarts
+# Health Check Match example for cafe.example.com
 #
-#### nginxlb.conf
+#### nginxk8slb.conf
 
    upstream nginx-lb-http {
       zone nginx-lb-http 256k;
-      #placeholder
-      #server 1.1.1.1:32080 backup;
       state /var/lib/nginx/state/nginx-lb-http.state; 
     }
 
    upstream nginx-lb-https {
       zone nginx-lb-https 256k;
-      #placeholder
-      #server 1.1.1.1:32443 backup;
       state /var/lib/nginx/state/nginx-lb-https.state; 
     }
 
@@ -263,18 +259,24 @@ Nginx Upstream API examples:  http://nginx.org/en/docs/http/ngx_http_api_module.
       listen 80;
       status_zone nginx-lb-http;
       proxy_pass nginx-lb-http;
+      health_check match=cafe;
     }
-
+             
    server {
       listen 443;
       status_zone nginx-lb-https;
       proxy_pass nginx-lb-https;
+      health_check match=cafe;
+    }
+
+   match cafe {
+      send "GET cafe.example.com/ HTTP/1.0\r\n";
+      expect ~ "30*";
     }
 
 
-#Sample Nginx State for Upstreams
-# configuration file /var/lib/nginx/state/nginx-lb-http.state:
-server 1.1.1.1:32080 backup down;
+# Nginx State Files Required for Upstreams
+# state file /var/lib/nginx/state/nginx-lb-http.state
 
-# configuration file /var/lib/nginx/state/nginx-lb-https.state:
-server 1.1.1.1:30443 backup down;
+# state file /var/lib/nginx/state/nginx-lb-https.state
+```
