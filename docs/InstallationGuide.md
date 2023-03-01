@@ -165,7 +165,40 @@ After the new installation of Nginx Plus, make the following configuration chang
 
 - Change Nginx's http default server to port 8080.  See the included `default.conf` file.  After reloading nginx, the default `Welcome to Nginx` page will be located at http://localhost:8080.
 
-- Use the dashboard.conf file provided.  It will enable the /api endpoint, change the port to 9000, and provide access to the Plus dashboard.  Place this file in the /etc/nginx/conf.d folder, and reload nginx.  The Plus dashboard is now accessible at <linux-server-ip>:9000/dashboard.html.  It should look similar to this:
+```bash
+cat /etc/nginx/conf.d/default.conf
+# Nginx K8s Loadbalancer Solution
+# Chris Akker, Jan 2023
+# Example default.conf
+# Change default_server to port 8080
+#
+server {
+    listen       8080 default_server;   # Changed to 8080
+    server_name  localhost;
+
+    #access_log  /var/log/nginx/host.access.log  main;
+
+    location / {
+        root   /usr/share/nginx/html;
+        index  index.html index.htm;
+    }
+
+    #error_page  404              /404.html;
+
+    # redirect server error pages to the static page /50x.html
+    #
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   /usr/share/nginx/html;
+    }
+
+### other sections removed for clarity
+
+}
+
+```
+
+- Use the dashboard.conf file provided.  It will enable the /api endpoint, change the port to 9000, and provide access to the Plus Dashboard.  Place this file in the /etc/nginx/conf.d folder, and reload nginx.  The Plus dashboard is now accessible at http://nginx-lb-server-ip:9000/dashboard.html.  It should look similar to this:
 
 ![NGINX Dashboard](media/nginxlb-dashboard.png)
 
@@ -188,7 +221,75 @@ touch /var/lib/nginx/state/nginx-lp-https.state
 
 - Enable the `stream` context for Nginx, which provides TCP load balancing.  See the included nginx.conf file.  Notice that the stream context is no longer commented out, the new folder is included, and a new stream.log logfile is used to track requests/responses.
 
-- Configure Nginx Stream for TCP loadbalancing for this Solution.  Place this file in the /etc/nginx/stream folder.
+```bash
+cat /etc/nginx/nginx.conf
+
+# Nginx K8s Loadbalancer Solution
+# Chris Akker, Jan 2023
+# Example nginx.conf
+# Enable Stream context, add /var/log/nginx/stream.log
+#
+
+user  nginx;
+worker_processes  auto;
+
+error_log  /var/log/nginx/error.log notice;
+pid        /var/run/nginx.pid;
+
+events {
+    worker_connections  1024;
+}
+
+http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log  /var/log/nginx/access.log  main;
+
+    sendfile        on;
+    #tcp_nopush     on;
+
+    keepalive_timeout  65;
+
+    #gzip  on;
+
+    include /etc/nginx/conf.d/*.conf;
+}
+
+# TCP/UDP proxy and load balancing block
+#
+stream {
+    # Example configuration for TCP load balancing
+
+    #upstream stream_backend {
+    #    zone tcp_servers 64k;
+    #    server backend1.example.com:12345;
+    #    server backend2.example.com:12345;
+    #}
+
+    #server {
+    #    listen 12345;
+    #    status_zone tcp_server;
+    #    proxy_pass stream_backend;
+
+    include  /etc/nginx/stream/*.conf;
+
+    log_format  stream  '$remote_addr - $server_addr [$time_local] $status $upstream_addr $upstream_bytes_sent';
+
+    access_log  /var/log/nginx/stream.log  stream;
+}
+
+```
+
+- Configure Nginx Stream for TCP loadbalancing for this Solution.
+
+  `Notice that is uses Ports 80 and 443.`  
+  
+  Place this file in the /etc/nginx/stream folder.
 
 ```bash
 # NginxK8sLB Stream configuration, for L4 load balancing
