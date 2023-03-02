@@ -6,10 +6,15 @@
 
 <br/>
 
+![Kubernetes](media/kubernetes-icon.png) | ![Nginx Plus](media/nginx-plus-icon.png) | ![NIC](media/nginx-ingress-icon.png)
+--- | --- | ---
+
+<br/>
+
 ## Pre-Requisites
 
 - Working kubernetes cluster, with admin privleges
-- Running nginx-ingress controller, either OSS or Plus. This install guide follows the instructions for deploying an Nginx Ingress Controller here:  https://docs.nginx.com/nginx-ingress-controller/installation/installation-with-manifests/
+- Running nginx-ingress controller, either OSS or Plus. This install guide followed the instructions for deploying an Nginx Ingress Controller here:  https://docs.nginx.com/nginx-ingress-controller/installation/installation-with-manifests/
 - Demo application, this install guide uses the Nginx Cafe example, found here:  https://github.com/nginxinc/kubernetes-ingress/tree/main/examples/ingress-resources/complete-example
 - A bare metal Linux server or VM for the external LB Server, connected to a network external to the cluster.  Two of these will be required if High Availability is needed, as shown here.
 - Nginx Plus software loaded on the LB Server(s). This install guide follows the instructions for installing Nginx Plus on Centos 7, located here: https://docs.nginx.com/nginx/admin-guide/installing-nginx/installing-nginx-plus/
@@ -19,11 +24,23 @@
 
 ## Kubernetes Cluster
 
+<br/>
+
+![Kubernetes](media/kubernetes-icon.png)
+
+<br/>
+
 A standard K8s cluster is all that is required.  There must be enough resources available to run the Nginx Ingress Controller, and the Nginx Kubernetes Loadbalancer Controller.  You must have administrative access to be able to create the namespace, services, and deployments for this Solution.  This Solution was tested on Kubernetes version 1.23.  Most recent versions => v1.21 should work just fine.
 
 <br/>
 
 ## Nginx Ingress Controller
+
+<br/>
+
+![NIC](media/nginx-ingress-icon.png)
+
+<br/>
 
 The Nginx Ingress Controller in this Solution is the destination target for traffic (north-south) that is being sent to the cluster.  The installation of the actual Ingress Controller is outside the scope of this installation guide, but we include the links to the docs for your reference.  `The NIC installation must follow the documents exactly as written,` as this Solution refers to the `nginx-ingress` namespace and service objects.  **Only the very last step is changed.**  
 
@@ -73,11 +90,22 @@ kubectl apply -f nodeport-nkl.yaml
 
 ## Demo Application
 
-This is not part of the actual Solution, but it is useful to have a well-known application running in the cluster, as a useful target for test commands.  The example provided here is used by the Solution to demonstrate proper traffic flows, and application health check monitoring, to determine if the application is running in the cluster.  If you choose a different Application to test with, the health checks provided here will NOT work, and will need to be modified to work correctly.
+<br/>
+
+![Cafe Dashboard](media/cafe-dashboard.png)
+
+<br/>
+
+This is not part of the actual Solution, but it is useful to have a well-known application running in the cluster, as a useful target for test commands.  The example provided here is used by the Solution to demonstrate proper traffic flows, and application health check monitoring, to determine if the application is running in the cluster.  If you choose a different Application to test with, `the health checks provided here will NOT work,` and will need to be modified to work correctly.
 
 - Deploy the Nginx Cafe Demo application, found here:
 
 https://github.com/nginxinc/kubernetes-ingress/tree/main/examples/ingress-resources/complete-example
+
+- The Cafe Demo Docker image used is an upgraded one, with graphics and additional Request and Response variables added.
+
+https://hub.docker.com/r/nginxinc/ingress-demo
+You can use the `cafe.yaml` manifest included.
 
 - Do not use the `cafe-ingress.yaml` file.  Rather, use the `cafe-virtualserver.yaml` file that is provided here.  It uses the Nginx CRDs to define a VirtualServer, and the related Routes and Redirects needed.  The `redirects are required` for the LB Server's health checks to work correctly!
 
@@ -143,6 +171,9 @@ spec:
 
 ## Linux VM or bare-metal LB Server
 
+![Linux](media/linux-icon.png)
+
+
 This is a standard Linux OS system, based on the Linux Distro and Technical Specs required for Nginx Plus, which can be found here: https://docs.nginx.com/nginx/technical-specs/   
 
 This installation guide followed the "Installation of Nginx Plus on Centos/Redhat/Oracle" steps for installing Nginx Plus.  
@@ -152,6 +183,12 @@ This installation guide followed the "Installation of Nginx Plus on Centos/Redha
 <br/>
 
 ## Nginx Plus LB Server
+
+<br/>
+
+![Nginx Red Plus](media/nginxredplus.png)
+
+<br/>
 
 This is the configuration required for the LB Server, external to the cluster.  It must be configured for the following.
 
@@ -337,6 +374,11 @@ stream {
 ## Nginx Kubernetes Loadbalancing Controller
 
 <br/>
+
+![NIC](media/nginx-ingress-icon.png)
+
+<br/>
+
 
 This is the new Controller, which is configured to watch the k8s environment, the nginx-ingress Service object, and send API updates to the Nginx LB Server when there are changes.  It only requires three things.
 
