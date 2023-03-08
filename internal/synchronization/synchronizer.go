@@ -13,30 +13,26 @@ import (
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/workqueue"
-	"time"
 )
 
-const (
-	// MaxMillisecondsJitter and MinMillisecondsJitter are used to randomize the rate limiter,
-	// creating headroom for calls to the NGINX edge hosts.
-	MaxMillisecondsJitter = 750
-	MinMillisecondsJitter = 250
-
-	RateLimiterBase       = time.Second * 2
-	RateLimiterMax        = time.Second * 60
-	RetryCount            = 5
-	Threads               = 1
-	SynchronizerQueueName = `nkl-synchronizer`
-)
+type Interface interface {
+	AddEvents(events core.ServerUpdateEvents)
+	AddEvent(event *core.ServerUpdateEvent)
+	Run(stopCh <-chan struct{})
+	ShutDown()
+}
 
 type Synchronizer struct {
 	eventQueue workqueue.RateLimitingInterface
 	settings   *configuration.Settings
 }
 
-func NewSynchronizer(settings *configuration.Settings) (*Synchronizer, error) {
-	synchronizer := Synchronizer{}
-	synchronizer.settings = settings
+func NewSynchronizer(settings *configuration.Settings, eventQueue workqueue.RateLimitingInterface) (*Synchronizer, error) {
+	synchronizer := Synchronizer{
+		eventQueue: eventQueue,
+		settings:   settings,
+	}
+
 	return &synchronizer, nil
 }
 
@@ -63,22 +59,14 @@ func (s *Synchronizer) AddEvent(event *core.ServerUpdateEvent) {
 		return
 	}
 
-	s.eventQueue.AddAfter(event, RandomMilliseconds(MinMillisecondsJitter, MaxMillisecondsJitter))
-}
-
-func (s *Synchronizer) Initialize() error {
-	logrus.Debug(`Synchronizer::Initialize`)
-
-	rateLimiter := workqueue.NewItemExponentialFailureRateLimiter(RateLimiterBase, RateLimiterMax)
-	s.eventQueue = workqueue.NewNamedRateLimitingQueue(rateLimiter, SynchronizerQueueName)
-
-	return nil
+	after := RandomMilliseconds(s.settings.Synchronizer.MinMillisecondsJitter, s.settings.Synchronizer.MaxMillisecondsJitter)
+	s.eventQueue.AddAfter(event, after)
 }
 
 func (s *Synchronizer) Run(stopCh <-chan struct{}) {
 	logrus.Debug(`Synchronizer::Run`)
 
-	for i := 0; i < Threads; i++ {
+	for i := 0; i < s.settings.Synchronizer.Threads; i++ {
 		go wait.Until(s.worker, 0, stopCh)
 	}
 
@@ -213,7 +201,7 @@ func (s *Synchronizer) withRetry(err error, event *core.ServerUpdateEvent) {
 	logrus.Debug("Synchronizer::withRetry")
 	if err != nil {
 		// TODO: Add Telemetry
-		if s.eventQueue.NumRequeues(event) < RetryCount { // TODO: Make this configurable
+		if s.eventQueue.NumRequeues(event) < s.settings.Synchronizer.RetryCount { // TODO: Make this configurable
 			s.eventQueue.AddRateLimited(event)
 			logrus.Infof(`Synchronizer::withRetry: requeued event: %s; error: %v`, event.Id, err)
 		} else {

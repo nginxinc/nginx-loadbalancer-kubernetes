@@ -14,6 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 	"strings"
+	"time"
 )
 
 const (
@@ -21,21 +22,74 @@ const (
 	ResyncPeriod        = 0
 )
 
+type WorkQueueSettings struct {
+	Name            string
+	RateLimiterBase time.Duration
+	RateLimiterMax  time.Duration
+}
+
+type HandlerSettings struct {
+	RetryCount        int
+	Threads           int
+	WorkQueueSettings WorkQueueSettings
+}
+
+type WatcherSettings struct {
+	NginxIngressNamespace string
+	ResyncPeriod          time.Duration
+}
+
+type SynchronizerSettings struct {
+	MaxMillisecondsJitter int
+	MinMillisecondsJitter int
+	RetryCount            int
+	Threads               int
+	WorkQueueSettings     WorkQueueSettings
+}
+
 type Settings struct {
-	ctx                      context.Context
+	Context                  context.Context
 	NginxPlusHosts           []string
-	k8sClient                *kubernetes.Clientset
+	K8sClient                *kubernetes.Clientset
 	informer                 cache.SharedInformer
 	eventHandlerRegistration cache.ResourceEventHandlerRegistration
+
+	Handler      HandlerSettings
+	Synchronizer SynchronizerSettings
+	Watcher      WatcherSettings
 }
 
 func NewSettings(ctx context.Context, k8sClient *kubernetes.Clientset) (*Settings, error) {
-	config := new(Settings)
+	settings := &Settings{
+		Context:   ctx,
+		K8sClient: k8sClient,
+		Handler: HandlerSettings{
+			RetryCount: 5,
+			Threads:    1,
+			WorkQueueSettings: WorkQueueSettings{
+				RateLimiterBase: time.Second * 2,
+				RateLimiterMax:  time.Second * 60,
+				Name:            "nkl-handler",
+			},
+		},
+		Synchronizer: SynchronizerSettings{
+			MaxMillisecondsJitter: 750,
+			MinMillisecondsJitter: 250,
+			RetryCount:            5,
+			Threads:               1,
+			WorkQueueSettings: WorkQueueSettings{
+				RateLimiterBase: time.Second * 2,
+				RateLimiterMax:  time.Second * 60,
+				Name:            "nkl-synchronizer",
+			},
+		},
+		Watcher: WatcherSettings{
+			NginxIngressNamespace: "nginx-ingress",
+			ResyncPeriod:          0,
+		},
+	}
 
-	config.k8sClient = k8sClient
-	config.ctx = ctx
-
-	return config, nil
+	return settings, nil
 }
 
 func (s *Settings) Initialize() error {
@@ -63,14 +117,14 @@ func (s *Settings) Run() {
 
 	defer utilruntime.HandleCrash()
 
-	go s.informer.Run(s.ctx.Done())
+	go s.informer.Run(s.Context.Done())
 
-	<-s.ctx.Done()
+	<-s.Context.Done()
 }
 
 func (s *Settings) buildInformer() (cache.SharedInformer, error) {
 	options := informers.WithNamespace(ConfigMapsNamespace)
-	factory := informers.NewSharedInformerFactoryWithOptions(s.k8sClient, ResyncPeriod, options)
+	factory := informers.NewSharedInformerFactoryWithOptions(s.K8sClient, ResyncPeriod, options)
 	informer := factory.Core().V1().ConfigMaps().Informer()
 
 	return informer, nil

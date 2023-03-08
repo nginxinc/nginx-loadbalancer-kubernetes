@@ -5,35 +5,30 @@
 package observation
 
 import (
-	"context"
+	"errors"
 	"fmt"
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/informers"
-	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 	"time"
 )
 
-const NginxIngressNamespace = "nginx-ingress"
-const ResyncPeriod = 0
-
 type Watcher struct {
-	ctx                      context.Context
-	client                   *kubernetes.Clientset
 	eventHandlerRegistration interface{}
-	handler                  *Handler
+	handler                  HandlerInterface
 	informer                 cache.SharedIndexInformer
+	settings                 *configuration.Settings
 }
 
-func NewWatcher(ctx context.Context, handler *Handler, k8sClient *kubernetes.Clientset) (*Watcher, error) {
+func NewWatcher(settings *configuration.Settings, handler HandlerInterface) (*Watcher, error) {
 	return &Watcher{
-		ctx:     ctx,
-		client:  k8sClient,
-		handler: handler,
+		handler:  handler,
+		settings: settings,
 	}, nil
 }
 
@@ -56,16 +51,21 @@ func (w *Watcher) Initialize() error {
 
 func (w *Watcher) Watch() error {
 	logrus.Debug("Watcher::Watch")
+
+	if w.informer == nil {
+		return errors.New("error: Initialize must be called before Watch")
+	}
+
 	defer utilruntime.HandleCrash()
 	defer w.handler.ShutDown()
 
-	go w.informer.Run(w.ctx.Done())
+	go w.informer.Run(w.settings.Context.Done())
 
-	if !cache.WaitForNamedCacheSync(WatcherQueueName, w.ctx.Done(), w.informer.HasSynced) {
+	if !cache.WaitForNamedCacheSync(w.settings.Handler.WorkQueueSettings.Name, w.settings.Context.Done(), w.informer.HasSynced) {
 		return fmt.Errorf(`error occurred waiting for the cache to sync`)
 	}
 
-	<-w.ctx.Done()
+	<-w.settings.Context.Done()
 	return nil
 }
 
@@ -117,8 +117,8 @@ func (w *Watcher) buildEventHandlerForUpdate() func(interface{}, interface{}) {
 func (w *Watcher) buildInformer() (cache.SharedIndexInformer, error) {
 	logrus.Debug("Watcher::buildInformer")
 
-	options := informers.WithNamespace(NginxIngressNamespace)
-	factory := informers.NewSharedInformerFactoryWithOptions(w.client, ResyncPeriod, options)
+	options := informers.WithNamespace(w.settings.Watcher.NginxIngressNamespace)
+	factory := informers.NewSharedInformerFactoryWithOptions(w.settings.K8sClient, w.settings.Watcher.ResyncPeriod, options)
 	informer := factory.Core().V1().Services().Informer()
 
 	return informer, nil
@@ -148,7 +148,7 @@ func (w *Watcher) retrieveNodeIps() ([]string, error) {
 
 	var nodeIps []string
 
-	nodes, err := w.client.CoreV1().Nodes().List(w.ctx, metav1.ListOptions{})
+	nodes, err := w.settings.K8sClient.CoreV1().Nodes().List(w.settings.Context, metav1.ListOptions{})
 	if err != nil {
 		logrus.Errorf(`error occurred retrieving the list of nodes: %v`, err)
 		return nil, err

@@ -14,6 +14,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/util/workqueue"
 )
 
 func main() {
@@ -42,20 +43,24 @@ func run() error {
 		return fmt.Errorf(`error occurred initializing settings: %w`, err)
 	}
 
-	synchronizer, err := synchronization.NewSynchronizer(settings)
+	synchronizerWorkqueue, err := buildWorkQueue(settings.Synchronizer.WorkQueueSettings)
+	if err != nil {
+		return fmt.Errorf(`error occurred building a workqueue: %w`, err)
+	}
+
+	synchronizer, err := synchronization.NewSynchronizer(settings, synchronizerWorkqueue)
 	if err != nil {
 		return fmt.Errorf(`error initializing synchronizer: %w`, err)
 	}
 
-	err = synchronizer.Initialize()
+	handlerWorkqueue, err := buildWorkQueue(settings.Synchronizer.WorkQueueSettings)
 	if err != nil {
-		return fmt.Errorf(`error initializing synchronizer: %w`, err)
+		return fmt.Errorf(`error occurred building a workqueue: %w`, err)
 	}
 
-	handler := observation.NewHandler(synchronizer)
-	handler.Initialize()
+	handler := observation.NewHandler(settings, synchronizer, handlerWorkqueue)
 
-	watcher, err := observation.NewWatcher(ctx, handler, k8sClient)
+	watcher, err := observation.NewWatcher(settings, handler)
 	if err != nil {
 		return fmt.Errorf(`error occurred creating a watcher: %w`, err)
 	}
@@ -96,4 +101,11 @@ func buildKubernetesClient() (*kubernetes.Clientset, error) {
 	}
 
 	return client, nil
+}
+
+func buildWorkQueue(settings configuration.WorkQueueSettings) (workqueue.RateLimitingInterface, error) {
+	logrus.Debug("Watcher::buildSynchronizerWorkQueue")
+
+	rateLimiter := workqueue.NewItemExponentialFailureRateLimiter(settings.RateLimiterBase, settings.RateLimiterMax)
+	return workqueue.NewNamedRateLimitingQueue(rateLimiter, settings.Name), nil
 }

@@ -58,18 +58,18 @@ func (hs *HealthServer) Stop() {
 }
 
 func (hs *HealthServer) HandleLive(writer http.ResponseWriter, request *http.Request) {
-	handleProbe(writer, request, &hs.LiveCheck)
+	hs.handleProbe(writer, request, &hs.LiveCheck)
 }
 
 func (hs *HealthServer) HandleReady(writer http.ResponseWriter, request *http.Request) {
-	handleProbe(writer, request, &hs.ReadyCheck)
+	hs.handleProbe(writer, request, &hs.ReadyCheck)
 }
 
 func (hs *HealthServer) HandleStartup(writer http.ResponseWriter, request *http.Request) {
-	handleProbe(writer, request, &hs.StartupCheck)
+	hs.handleProbe(writer, request, &hs.StartupCheck)
 }
 
-func handleProbe(writer http.ResponseWriter, _ *http.Request, check Check) {
+func (hs *HealthServer) handleProbe(writer http.ResponseWriter, _ *http.Request, check Check) {
 	if check.Check() {
 		writer.WriteHeader(http.StatusOK)
 
