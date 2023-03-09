@@ -6,28 +6,31 @@ package observation
 
 import (
 	"fmt"
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/synchronization"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/translation"
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/workqueue"
-	"time"
 )
 
-const RateLimiterBase = time.Second * 2
-const RateLimiterMax = time.Second * 60
-const RetryCount = 5
-const Threads = 1
-const WatcherQueueName = `nkl-handler`
+type HandlerInterface interface {
+	AddRateLimitedEvent(event *core.Event)
+	Run(stopCh <-chan struct{})
+	ShutDown()
+}
 
 type Handler struct {
 	eventQueue   workqueue.RateLimitingInterface
-	synchronizer *synchronization.Synchronizer
+	settings     *configuration.Settings
+	synchronizer synchronization.Interface
 }
 
-func NewHandler(synchronizer *synchronization.Synchronizer) *Handler {
+func NewHandler(settings *configuration.Settings, synchronizer synchronization.Interface, eventQueue workqueue.RateLimitingInterface) *Handler {
 	return &Handler{
+		eventQueue:   eventQueue,
+		settings:     settings,
 		synchronizer: synchronizer,
 	}
 }
@@ -37,15 +40,10 @@ func (h *Handler) AddRateLimitedEvent(event *core.Event) {
 	h.eventQueue.AddRateLimited(event)
 }
 
-func (h *Handler) Initialize() {
-	rateLimiter := workqueue.NewItemExponentialFailureRateLimiter(RateLimiterBase, RateLimiterMax)
-	h.eventQueue = workqueue.NewNamedRateLimitingQueue(rateLimiter, WatcherQueueName)
-}
-
 func (h *Handler) Run(stopCh <-chan struct{}) {
 	logrus.Debug("Handler::Run")
 
-	for i := 0; i < Threads; i++ {
+	for i := 0; i < h.settings.Handler.Threads; i++ {
 		go wait.Until(h.worker, 0, stopCh)
 	}
 
@@ -97,7 +95,7 @@ func (h *Handler) withRetry(err error, event *core.Event) {
 	logrus.Debug("Handler::withRetry")
 	if err != nil {
 		// TODO: Add Telemetry
-		if h.eventQueue.NumRequeues(event) < RetryCount { // TODO: Make this configurable
+		if h.eventQueue.NumRequeues(event) < h.settings.Handler.RetryCount {
 			h.eventQueue.AddRateLimited(event)
 			logrus.Infof(`Handler::withRetry: requeued event: %#v; error: %v`, event, err)
 		} else {

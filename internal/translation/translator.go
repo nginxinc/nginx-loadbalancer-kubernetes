@@ -42,7 +42,7 @@ func filterPorts(ports []v1.ServicePort) []v1.ServicePort {
 func buildServerUpdateEvents(ports []v1.ServicePort, event *core.Event) (core.ServerUpdateEvents, error) {
 	logrus.Debugf("Translate::buildServerUpdateEvents(ports=%#v)", ports)
 
-	updateEvents := core.ServerUpdateEvents{}
+	events := core.ServerUpdateEvents{}
 	for _, port := range ports {
 		ingressName := fixIngressName(port.Name)
 		servers, _ := buildServers(event.NodeIps, port)
@@ -51,10 +51,10 @@ func buildServerUpdateEvents(ports []v1.ServicePort, event *core.Event) (core.Se
 		case core.Created:
 			fallthrough
 		case core.Updated:
-			updateEvents = append(updateEvents, core.NewServerUpdateEvent(event.Type, ingressName, servers))
+			events = append(events, core.NewServerUpdateEvent(event.Type, ingressName, servers))
 		case core.Deleted:
 			for _, server := range servers {
-				updateEvents = append(updateEvents, core.NewServerUpdateEvent(event.Type, ingressName, []nginxClient.StreamUpstreamServer{server}))
+				events = append(events, core.NewServerUpdateEvent(event.Type, ingressName, []nginxClient.StreamUpstreamServer{server}))
 			}
 		default:
 			logrus.Warnf(`Translator::buildServerUpdateEvents: unknown event type: %d`, event.Type)
@@ -62,7 +62,7 @@ func buildServerUpdateEvents(ports []v1.ServicePort, event *core.Event) (core.Se
 
 	}
 
-	return updateEvents, nil
+	return events, nil
 }
 
 func buildServers(nodeIps []string, port v1.ServicePort) ([]nginxClient.StreamUpstreamServer, error) {
