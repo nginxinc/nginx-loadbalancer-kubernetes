@@ -6,6 +6,7 @@ package translation
 
 import (
 	"fmt"
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	v1 "k8s.io/api/core/v1"
 	"math/rand"
@@ -653,7 +654,7 @@ func generateUpdatablePorts(portCount int, updatableCount int) []v1.ServicePort 
 	nonupdatable := make([]string, portCount-updatableCount)
 
 	for i := range updatable {
-		updatable[i] = NklPrefix
+		updatable[i] = configuration.NklPrefix
 	}
 
 	for j := range nonupdatable {

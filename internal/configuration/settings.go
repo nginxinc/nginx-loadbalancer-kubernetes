@@ -20,6 +20,7 @@ import (
 const (
 	ConfigMapsNamespace = "nkl"
 	ResyncPeriod        = 0
+	NklPrefix           = ConfigMapsNamespace + "-"
 )
 
 type WorkQueueSettings struct {

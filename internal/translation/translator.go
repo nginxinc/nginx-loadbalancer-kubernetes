@@ -6,14 +6,13 @@ package translation
 
 import (
 	"fmt"
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	nginxClient "github.com/nginxinc/nginx-plus-go-client/client"
 	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	"strings"
 )
-
-const NklPrefix = "nkl-"
 
 func Translate(event *core.Event) (core.ServerUpdateEvents, error) {
 	logrus.Debug("Translate::Translate")
@@ -27,7 +26,7 @@ func filterPorts(ports []v1.ServicePort) []v1.ServicePort {
 	var portsOfInterest []v1.ServicePort
 
 	for _, port := range ports {
-		if strings.HasPrefix(port.Name, NklPrefix) {
+		if strings.HasPrefix(port.Name, configuration.NklPrefix) {
 			portsOfInterest = append(portsOfInterest, port)
 		}
 	}
