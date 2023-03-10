@@ -12,12 +12,12 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o nginx-k8s-edge-controller ./cmd/nginx-k8s-edge-controller/main.go
+RUN go build -o nginx-k8s-loadbalancer ./cmd/nginx-k8s-loadbalancer/main.go
 
 FROM alpine:3.16
 
-WORKDIR /opt/nginx-k8s-edge-controller
+WORKDIR /opt/nginx-k8s-loadbalancer
 
-COPY --from=builder /app/nginx-k8s-edge-controller .
+COPY --from=builder /app/nginx-k8s-loadbalancer .
 
-ENTRYPOINT ["/opt/nginx-k8s-edge-controller/nginx-k8s-edge-controller"]
+ENTRYPOINT ["/opt/nginx-k8s-loadbalancer/nginx-k8s-loadbalancer"]

@@ -16,8 +16,8 @@ spec:
         app: nkl
     spec:
       containers:
-        - name: nginx-k8s-edge-controller
-          image: ciroque/nginx-k8s-edge-controller:latest
+        - name: nginx-k8s-loadbalancer
+          image: ciroque/nginx-k8s-loadbalancer:latest
           imagePullPolicy: Always
           ports:
             - name: http
@@ -26,13 +26,13 @@ spec:
           livenessProbe:
             httpGet:
               path: /livez
-              port: http
+              port: 51031
             initialDelaySeconds: 5
             periodSeconds: 2
           readinessProbe:
             httpGet:
               path: /readyz
-              port: http
+              port: 51031
             initialDelaySeconds: 5
             periodSeconds: 2
-      serviceAccountName: nginx-k8s-edge-controller
+      serviceAccountName: nginx-k8s-loadbalancer

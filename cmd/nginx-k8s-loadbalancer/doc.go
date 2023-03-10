@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 /*
-Package main includes the entrypoint for the nginx-k8s-edge-controller.
+Package main includes the entrypoint for the nginx-k8s-loadbalancer.
 */
 
 package main
