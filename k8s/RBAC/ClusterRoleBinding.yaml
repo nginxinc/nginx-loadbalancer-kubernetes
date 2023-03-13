@@ -1,11 +1,11 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: "nginx-k8s-edge-controller:ingress-resource-get-watch-list"
+  name: "nginx-k8s-loadbalancer:ingress-resource-get-watch-list"
   namespace: nkl
 subjects:
   - kind: ServiceAccount
-    name: nginx-k8s-edge-controller
+    name: nginx-k8s-loadbalancer
     namespace: nkl
 roleRef:
   kind: ClusterRole

@@ -1,4 +1,4 @@
-# nginx-k8s-edge-controller
+# nginx-k8s-loadbalancer
 
 ## Welcome to the Nginx Kubernetes Load Balancer project !
 
@@ -69,12 +69,12 @@ Please see the /docs folder for Installation Guide.
 ## Development
 
 Contributions are being accepted at this time.
-Read the [`CONTRIBUTING.md`](https://github.com/nginxinc/nginx-k8s-edge-controller/blob/main/CONTRIBUTING.md) file.
+Read the [`CONTRIBUTING.md`](https://github.com/nginxinc/nginx-k8s-loadbalancer/blob/main/CONTRIBUTING.md) file.
 
 <br/>
 
 ## License
 
-[Apache License, Version 2.0](https://github.com/nginxinc/nginx-k8s-edge-controller/blob/main/LICENSE)
+[Apache License, Version 2.0](https://github.com/nginxinc/nginx-k8s-loadbalancer/blob/main/LICENSE)
 
 &copy; [F5 Networks, Inc.](https://www.f5.com/) 2023

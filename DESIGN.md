@@ -1,6 +1,6 @@
 # Overview
 
-The nginx-k8s-edge-controller runs in a Kubernetes Cluster and responds to changes in resources of interest, updating designated NGINX Plus hosts with the appropriate configuration.
+The nginx-k8s-loadbalancer runs in a Kubernetes Cluster and responds to changes in resources of interest, updating designated NGINX Plus hosts with the appropriate configuration.
 
 ## Basic Architecture
 
