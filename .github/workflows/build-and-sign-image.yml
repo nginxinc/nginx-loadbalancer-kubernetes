@@ -14,7 +14,7 @@ on:
 #      - closed   ## This needs to be uncommented after testing
 
 env:
-  REGISTRY: hub.docker.com
+  REGISTRY: docker.io
   IMAGE_NAME: "ciroque/nginx-k8s-loadbalancer" # ${{ github.repository }}
 
 jobs:
