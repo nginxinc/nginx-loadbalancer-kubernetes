@@ -4,9 +4,7 @@ name: Build and sign image
 
 on:
   # THIS BLOCK IS FOR TESTING
-  branch_protection_rule:
-    types:
-      - created
+  create:
 
 # THIS BLOCK IS THE ACTUAL DESIRED EVENT TRIGGER
 #  pull_request:
