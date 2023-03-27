@@ -15,7 +15,7 @@ This repo contains source code and documents for a new Kubernetes Controller, th
 ## Overview
 
 - Create a new K8s Controller, that will monitor specified k8s Services, and then send API calls to an external Nginx Plus server to manage Nginx Upstream servers automatically.  
-- This is will `synchronize` the K8s Service Endpoint list, with the Nginx LB server's Upstream server list.  
+- This will `synchronize` the K8s Service Endpoint list, with the Nginx LB server's Upstream server list.  
 - The primary use case is for tracking the NodePort IP:Port definitions for the Nginx Ingress Controller's `nginx-ingress Service`.  
 - With the Nginx Plus Server located external to the K8s cluster, this new controller LB function would provide an alternative TCP "Load Balancer Service" for On Premises K8s clusters, which do not have access to a Cloud providers "Service Type LoadBalancer".
 - Make the solution a native Kubernetes Component, running, configured and managed with standard K8s commands.
@@ -68,7 +68,6 @@ Please see the /docs folder for Installation Guide.
 
 ## Development
 
-Contributions are being accepted at this time.
 Read the [`CONTRIBUTING.md`](https://github.com/nginxinc/nginx-k8s-loadbalancer/blob/main/CONTRIBUTING.md) file.
 
 <br/>
