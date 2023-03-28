@@ -20,6 +20,8 @@ Follow our [Installation Guide](https://github.com/nginxinc/nginx-k8s-loadbalanc
 
 ## Contributing
 
+We are not currently accepting contributions to this project. Please create an issue on GitHub with the label `feature` or `enhancement` using the available feature request issue template. Please ensure the feature or enhancement has not already been suggested.
+
 ### Report a Bug
 
 To report a bug, open an issue on GitHub with the label `bug` using the available bug report issue template. Please ensure the bug has not already been reported. **If the bug is a potential security vulnerability, please report using our security policy.**
@@ -27,13 +29,6 @@ To report a bug, open an issue on GitHub with the label `bug` using the availabl
 ### Suggest a Feature or Enhancement
 
 To suggest a feature or enhancement, please create an issue on GitHub with the label `feature` or `enhancement` using the available feature request issue template. Please ensure the feature or enhancement has not already been suggested.
-
-### Open a Pull Request
-
-* Fork the repo, create a branch, implement your changes, add any relevant tests, submit a PR when your changes are **tested** and ready for review.
-* Fill in [our pull request template](https://github.com/nginxinc/nginx-k8s-loadbalancer/blob/main/.github/pull_request_template.md).
-
-Note: if you'd like to implement a new feature, please consider creating a feature request issue first to start a discussion about the feature.
 
 ## Code Guidelines
 
