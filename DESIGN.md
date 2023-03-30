@@ -17,10 +17,11 @@ stateDiagram-v2
     Handler --> Translator
     Translator --> Handler
     Handler --> Synchronizer : "nkl-synchronizer queue"
-    Synchronizer --> NGINXPlusLB1
-    Synchronizer --> NGINXPlusLB2
-    Synchronizer --> NGINXPlusLB...
-    Synchronizer --> NGINXPlusLBn
+    Synchronizer --> BorderClient : "HttpBorderClient | TcpBorderClient"
+    BorderClient --> NGINXPlusLB1
+    BorderClient --> NGINXPlusLB2
+    BorderClient --> NGINXPlusLB...
+    BorderClient --> NGINXPlusLBn
 ```
 
 ### Settings
