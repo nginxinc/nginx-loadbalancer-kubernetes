@@ -27,7 +27,7 @@ func NewTcpBorderClient(client interface{}) (Interface, error) {
 }
 
 func (tbc *TcpBorderClient) Update(event *core.ServerUpdateEvent) error {
-	_, _, _, err := tbc.nginxClient.UpdateHTTPServers(event.NginxHost, nil)
+	_, _, _, err := tbc.nginxClient.UpdateStreamServers(event.NginxHost, nil)
 	if err != nil {
 		return fmt.Errorf(`error occurred updating the nginx+ upstream server: %w`, err)
 	}

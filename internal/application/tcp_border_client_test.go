@@ -38,8 +38,8 @@ func TestTcpBorderClient_Update(t *testing.T) {
 		t.Fatalf(`error occurred deleting the nginx+ upstream server: %v`, err)
 	}
 
-	if !nginxClient.CalledFunctions["UpdateHTTPServers"] {
-		t.Fatalf(`expected UpdateHTTPServers to be called`)
+	if !nginxClient.CalledFunctions["UpdateStreamServers"] {
+		t.Fatalf(`expected UpdateStreamServers to be called`)
 	}
 }
 
