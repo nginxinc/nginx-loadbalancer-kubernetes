@@ -37,12 +37,16 @@ func TestBorderClient_CreatesTcpBorderClient(t *testing.T) {
 func TestBorderClient_UnknownClientType(t *testing.T) {
 	unknownClientType := "unknown"
 	borderClient := mocks.MockNginxClient{}
-	_, err := NewBorderClient(unknownClientType, borderClient)
+	client, err := NewBorderClient(unknownClientType, borderClient)
 	if err == nil {
 		t.Errorf(`expected error creating border client`)
 	}
 
 	if err.Error() != `unknown border client type: unknown` {
 		t.Errorf(`expected error to be 'unknown border client type: unknown', got: %v`, err)
+	}
+
+	if _, ok := client.(*NullBorderClient); !ok {
+		t.Errorf(`expected client to be of type NullBorderClient`)
 	}
 }

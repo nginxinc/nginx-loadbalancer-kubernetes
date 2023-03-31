@@ -26,6 +26,7 @@ type Event struct {
 }
 
 type ServerUpdateEvent struct {
+	ClientType   string
 	Id           string
 	NginxHost    string
 	Type         EventType
@@ -47,6 +48,7 @@ func NewEvent(eventType EventType, service *v1.Service, previousService *v1.Serv
 
 func NewServerUpdateEvent(eventType EventType, upstreamName string, tcpServers []nginxClient.StreamUpstreamServer, httpServers []nginxClient.UpstreamServer) *ServerUpdateEvent {
 	return &ServerUpdateEvent{
+		ClientType:   "http",
 		Type:         eventType,
 		UpstreamName: upstreamName,
 		TcpServers:   tcpServers,
@@ -56,6 +58,7 @@ func NewServerUpdateEvent(eventType EventType, upstreamName string, tcpServers [
 
 func ServerUpdateEventWithIdAndHost(event *ServerUpdateEvent, id string, nginxHost string) *ServerUpdateEvent {
 	return &ServerUpdateEvent{
+		ClientType:   event.ClientType,
 		Id:           id,
 		NginxHost:    nginxHost,
 		Type:         event.Type,

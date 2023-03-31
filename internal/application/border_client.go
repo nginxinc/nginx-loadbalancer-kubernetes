@@ -19,10 +19,11 @@ type Interface interface {
 type BorderClient struct {
 }
 
-func NewBorderClient(whichType string, borderClient interface{}) (Interface, error) {
-	logrus.Debugf(`NewBorderClient for type: %s`, whichType)
+// NewBorderClient Returns a NullBorderClient if the type is unknown, this avoids panics due to nil pointer dereferences.
+func NewBorderClient(clientType string, borderClient interface{}) (Interface, error) {
+	logrus.Debugf(`NewBorderClient for type: %s`, clientType)
 
-	switch whichType {
+	switch clientType {
 	case "tcp":
 		return NewTcpBorderClient(borderClient)
 
@@ -30,6 +31,7 @@ func NewBorderClient(whichType string, borderClient interface{}) (Interface, err
 		return NewHttpBorderClient(borderClient)
 
 	default:
-		return nil, fmt.Errorf(`unknown border client type: %s`, whichType)
+		borderClient, _ := NewNullBorderClient()
+		return borderClient, fmt.Errorf(`unknown border client type: %s`, clientType)
 	}
 }
