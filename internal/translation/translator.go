@@ -47,21 +47,23 @@ func buildServerUpdateEvents(ports []v1.ServicePort, event *core.Event) (core.Se
 		ingressName := fixIngressName(port.Name)
 		tcpServers, _ := buildTcpServers(event.NodeIps, port)
 		httpServers, _ := buildHttpServers(event.NodeIps, port)
+		clientType := getClientType(port.Name, event.Service.Annotations)
 
 		switch event.Type {
 		case core.Created:
 			fallthrough
 
 		case core.Updated:
-			events = append(events, core.NewServerUpdateEvent(event.Type, ingressName, tcpServers, httpServers))
+			events = append(events, core.NewServerUpdateEvent(event.Type, ingressName, clientType, tcpServers, httpServers))
 
-		case core.Deleted: // TODO: SW: This will be interesting, need to distinguish between a TCP and HTTP target
+		case core.Deleted:
 			for _, server := range tcpServers {
-				events = append(events, core.NewServerUpdateEvent(event.Type, ingressName, []nginxClient.StreamUpstreamServer{server}, httpServers))
+				events = append(events, core.NewServerUpdateEvent(event.Type, ingressName, clientType, []nginxClient.StreamUpstreamServer{server}, httpServers))
 			}
-			for _, server := range httpServers {
-				events = append(events, core.NewServerUpdateEvent(event.Type, ingressName, tcpServers, []nginxClient.UpstreamServer{server}))
-			}
+			// TODO: SW: This will be interesting, need to distinguish between a TCP and HTTP target
+			//for _, server := range httpServers {
+			//	events = append(events, core.NewServerUpdateEvent(event.Type, ingressName, clientType, tcpServers, []nginxClient.UpstreamServer{server}))
+			//}
 
 		default:
 			logrus.Warnf(`Translator::buildServerUpdateEvents: unknown event type: %d`, event.Type)
@@ -72,8 +74,17 @@ func buildServerUpdateEvents(ports []v1.ServicePort, event *core.Event) (core.Se
 	return events, nil
 }
 
-func buildHttpServers(_ []string, _ v1.ServicePort) ([]nginxClient.UpstreamServer, error) {
-	return []nginxClient.UpstreamServer{}, nil
+func buildHttpServers(nodeIps []string, port v1.ServicePort) ([]nginxClient.UpstreamServer, error) {
+	var servers []nginxClient.UpstreamServer
+
+	for _, nodeIp := range nodeIps {
+		server := nginxClient.UpstreamServer{
+			Server: fmt.Sprintf("%s:%d", nodeIp, port.NodePort),
+		}
+		servers = append(servers, server)
+	}
+
+	return servers, nil
 }
 
 func buildTcpServers(nodeIps []string, port v1.ServicePort) ([]nginxClient.StreamUpstreamServer, error) {
@@ -91,4 +102,14 @@ func buildTcpServers(nodeIps []string, port v1.ServicePort) ([]nginxClient.Strea
 
 func fixIngressName(name string) string {
 	return name[4:]
+}
+
+func getClientType(portName string, annotations map[string]string) string {
+	if annotations != nil {
+		if clientType, ok := annotations[portName]; ok {
+			return clientType
+		}
+	}
+
+	return "http"
 }

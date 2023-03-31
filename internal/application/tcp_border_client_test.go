@@ -10,8 +10,8 @@ import (
 )
 
 func TestTcpBorderClient_Delete(t *testing.T) {
-	event := buildServerUpdateEvent(deletedEventType)
-	borderClient, nginxClient, err := buildBorderClient(clientTypeTcp)
+	event := buildServerUpdateEvent(deletedEventType, ClientTypeTcp)
+	borderClient, nginxClient, err := buildBorderClient(ClientTypeTcp)
 	if err != nil {
 		t.Fatalf(`error occurred creating a new border client: %v`, err)
 	}
@@ -27,8 +27,8 @@ func TestTcpBorderClient_Delete(t *testing.T) {
 }
 
 func TestTcpBorderClient_Update(t *testing.T) {
-	event := buildServerUpdateEvent(createEventType)
-	borderClient, nginxClient, err := buildBorderClient(clientTypeTcp)
+	event := buildServerUpdateEvent(createEventType, ClientTypeTcp)
+	borderClient, nginxClient, err := buildBorderClient(ClientTypeTcp)
 	if err != nil {
 		t.Fatalf(`error occurred creating a new border client: %v`, err)
 	}
@@ -45,15 +45,15 @@ func TestTcpBorderClient_Update(t *testing.T) {
 
 func TestTcpBorderClient_BadNginxClient(t *testing.T) {
 	var emptyInterface interface{}
-	_, err := NewBorderClient(clientTypeTcp, emptyInterface)
+	_, err := NewBorderClient(ClientTypeTcp, emptyInterface)
 	if err == nil {
 		t.Fatalf(`expected an error to occur when creating a new border client`)
 	}
 }
 
 func TestTcpBorderClient_DeleteReturnsError(t *testing.T) {
-	event := buildServerUpdateEvent(deletedEventType)
-	borderClient, _, err := buildTerrorizingBorderClient(clientTypeTcp)
+	event := buildServerUpdateEvent(deletedEventType, ClientTypeTcp)
+	borderClient, _, err := buildTerrorizingBorderClient(ClientTypeTcp)
 	if err != nil {
 		t.Fatalf(`error occurred creating a new border client: %v`, err)
 	}
@@ -66,8 +66,8 @@ func TestTcpBorderClient_DeleteReturnsError(t *testing.T) {
 }
 
 func TestTcpBorderClient_UpdateReturnsError(t *testing.T) {
-	event := buildServerUpdateEvent(createEventType)
-	borderClient, _, err := buildTerrorizingBorderClient(clientTypeTcp)
+	event := buildServerUpdateEvent(createEventType, ClientTypeTcp)
+	borderClient, _, err := buildTerrorizingBorderClient(ClientTypeTcp)
 	if err != nil {
 		t.Fatalf(`error occurred creating a new border client: %v`, err)
 	}

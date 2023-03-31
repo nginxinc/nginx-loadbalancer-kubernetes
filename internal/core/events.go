@@ -46,9 +46,9 @@ func NewEvent(eventType EventType, service *v1.Service, previousService *v1.Serv
 	}
 }
 
-func NewServerUpdateEvent(eventType EventType, upstreamName string, tcpServers []nginxClient.StreamUpstreamServer, httpServers []nginxClient.UpstreamServer) *ServerUpdateEvent {
+func NewServerUpdateEvent(eventType EventType, upstreamName string, clientType string, tcpServers []nginxClient.StreamUpstreamServer, httpServers []nginxClient.UpstreamServer) *ServerUpdateEvent {
 	return &ServerUpdateEvent{
-		ClientType:   "http",
+		ClientType:   clientType,
 		Type:         eventType,
 		UpstreamName: upstreamName,
 		TcpServers:   tcpServers,

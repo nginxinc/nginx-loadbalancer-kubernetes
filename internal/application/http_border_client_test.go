@@ -10,8 +10,8 @@ import (
 )
 
 func TestHttpBorderClient_Delete(t *testing.T) {
-	event := buildServerUpdateEvent(deletedEventType)
-	borderClient, nginxClient, err := buildBorderClient(clientTypeHttp)
+	event := buildServerUpdateEvent(deletedEventType, ClientTypeHttp)
+	borderClient, nginxClient, err := buildBorderClient(ClientTypeHttp)
 	if err != nil {
 		t.Fatalf(`error occurred creating a new border client: %v`, err)
 	}
@@ -27,8 +27,8 @@ func TestHttpBorderClient_Delete(t *testing.T) {
 }
 
 func TestHttpBorderClient_Update(t *testing.T) {
-	event := buildServerUpdateEvent(createEventType)
-	borderClient, nginxClient, err := buildBorderClient(clientTypeHttp)
+	event := buildServerUpdateEvent(createEventType, ClientTypeHttp)
+	borderClient, nginxClient, err := buildBorderClient(ClientTypeHttp)
 	if err != nil {
 		t.Fatalf(`error occurred creating a new border client: %v`, err)
 	}
@@ -45,15 +45,15 @@ func TestHttpBorderClient_Update(t *testing.T) {
 
 func TestHttpBorderClient_BadNginxClient(t *testing.T) {
 	var emptyInterface interface{}
-	_, err := NewBorderClient(clientTypeHttp, emptyInterface)
+	_, err := NewBorderClient(ClientTypeHttp, emptyInterface)
 	if err == nil {
 		t.Fatalf(`expected an error to occur when creating a new border client`)
 	}
 }
 
 func TestHttpBorderClient_DeleteReturnsError(t *testing.T) {
-	event := buildServerUpdateEvent(deletedEventType)
-	borderClient, _, err := buildTerrorizingBorderClient(clientTypeHttp)
+	event := buildServerUpdateEvent(deletedEventType, ClientTypeHttp)
+	borderClient, _, err := buildTerrorizingBorderClient(ClientTypeHttp)
 	if err != nil {
 		t.Fatalf(`error occurred creating a new border client: %v`, err)
 	}
@@ -66,8 +66,8 @@ func TestHttpBorderClient_DeleteReturnsError(t *testing.T) {
 }
 
 func TestHttpBorderClient_UpdateReturnsError(t *testing.T) {
-	event := buildServerUpdateEvent(createEventType)
-	borderClient, _, err := buildTerrorizingBorderClient(clientTypeHttp)
+	event := buildServerUpdateEvent(createEventType, ClientTypeHttp)
+	borderClient, _, err := buildTerrorizingBorderClient(ClientTypeHttp)
 	if err != nil {
 		t.Fatalf(`error occurred creating a new border client: %v`, err)
 	}
