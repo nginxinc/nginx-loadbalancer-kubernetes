@@ -150,7 +150,7 @@ func (s *Synchronizer) handleCreatedUpdatedEvent(serverUpdateEvent *core.ServerU
 		return fmt.Errorf(`error occurred building the nginx+ client: %w`, err)
 	}
 
-	_, _, _, err = client.UpdateStreamServers(serverUpdateEvent.UpstreamName, serverUpdateEvent.Servers)
+	_, _, _, err = client.UpdateStreamServers(serverUpdateEvent.UpstreamName, serverUpdateEvent.TcpServers)
 	if err != nil {
 		return fmt.Errorf(`error occurred updating the nginx+ upstream servers: %w`, err)
 	}
@@ -168,7 +168,7 @@ func (s *Synchronizer) handleDeletedEvent(serverUpdateEvent *core.ServerUpdateEv
 		return fmt.Errorf(`error occurred building the nginx+ client: %w`, err)
 	}
 
-	err = client.DeleteStreamServer(serverUpdateEvent.UpstreamName, serverUpdateEvent.Servers[0].Server)
+	err = client.DeleteStreamServer(serverUpdateEvent.UpstreamName, serverUpdateEvent.TcpServers[0].Server)
 	if err != nil {
 		return fmt.Errorf(`error occurred deleting the nginx+ upstream server: %w`, err)
 	}

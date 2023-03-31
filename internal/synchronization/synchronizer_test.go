@@ -36,7 +36,7 @@ func TestSynchronizer_AddEventNoHosts(t *testing.T) {
 		NginxHost:    "",
 		Type:         0,
 		UpstreamName: "",
-		Servers:      nil,
+		TcpServers:   nil,
 	}
 	settings, err := configuration.NewSettings(context.Background(), nil)
 	rateLimiter := &mocks.MockRateLimiter{}
@@ -192,7 +192,7 @@ func buildEvents(count int) core.ServerUpdateEvents {
 			NginxHost:    "https://localhost:8080",
 			Type:         0,
 			UpstreamName: "",
-			Servers:      nil,
+			TcpServers:   nil,
 		}
 	}
 	return events

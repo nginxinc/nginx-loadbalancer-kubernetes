@@ -6,8 +6,8 @@
 /*
 Package application includes support for applying updates to the Border servers.
 
-"Border Servers" are the servers that are exposed to the outside world and direct traffic into the cluster.
-At this time the only supported Border Servers are NGINX Plus servers. The BorderClient module defines
+"Border TcpServers" are the servers that are exposed to the outside world and direct traffic into the cluster.
+At this time the only supported Border TcpServers are NGINX Plus servers. The BorderClient module defines
 an interface that can be implemented to support other Border Server types.
 
 - HttpBorderClient: updates NGINX Plus servers using HTTP Upstream methods on the NGINX Plus API.
