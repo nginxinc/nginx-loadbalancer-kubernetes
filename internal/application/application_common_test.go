@@ -35,7 +35,7 @@ func buildBorderClient(clientType string) (Interface, *mocks.MockNginxClient, er
 	return bc, nginxClient, err
 }
 
-func buildServerUpdateEvent(eventType core.EventType) core.ServerUpdateEvent {
+func buildServerUpdateEvent(eventType core.EventType) *core.ServerUpdateEvent {
 	httpServers := []nginxClient2.UpstreamServer{
 		{
 			Server: server,
@@ -47,5 +47,5 @@ func buildServerUpdateEvent(eventType core.EventType) core.ServerUpdateEvent {
 			Server: server,
 		},
 	}
-	return *core.NewServerUpdateEvent(eventType, upstreamName, tcpServers, httpServers)
+	return core.NewServerUpdateEvent(eventType, upstreamName, tcpServers, httpServers)
 }

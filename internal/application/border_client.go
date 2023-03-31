@@ -12,8 +12,8 @@ import (
 )
 
 type Interface interface {
-	Update(core.ServerUpdateEvent) error
-	Delete(core.ServerUpdateEvent) error
+	Update(*core.ServerUpdateEvent) error
+	Delete(*core.ServerUpdateEvent) error
 }
 
 type BorderClient struct {

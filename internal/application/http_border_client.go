@@ -26,7 +26,7 @@ func NewHttpBorderClient(client interface{}) (Interface, error) {
 	}, nil
 }
 
-func (hbc *HttpBorderClient) Update(event core.ServerUpdateEvent) error {
+func (hbc *HttpBorderClient) Update(event *core.ServerUpdateEvent) error {
 	_, _, _, err := hbc.nginxClient.UpdateHTTPServers(event.NginxHost, nil)
 	if err != nil {
 		return fmt.Errorf(`error occurred updating the nginx+ upstream server: %w`, err)
@@ -35,7 +35,7 @@ func (hbc *HttpBorderClient) Update(event core.ServerUpdateEvent) error {
 	return nil
 }
 
-func (hbc *HttpBorderClient) Delete(event core.ServerUpdateEvent) error {
+func (hbc *HttpBorderClient) Delete(event *core.ServerUpdateEvent) error {
 	err := hbc.nginxClient.DeleteHTTPServer(event.NginxHost, event.HttpServers[0].Server)
 	if err != nil {
 		return fmt.Errorf(`error occurred deleting the nginx+ upstream server: %w`, err)
