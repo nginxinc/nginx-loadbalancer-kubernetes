@@ -45,17 +45,24 @@ func buildServerUpdateEvents(ports []v1.ServicePort, event *core.Event) (core.Se
 	events := core.ServerUpdateEvents{}
 	for _, port := range ports {
 		ingressName := fixIngressName(port.Name)
-		servers, _ := buildServers(event.NodeIps, port)
+		tcpServers, _ := buildTcpServers(event.NodeIps, port)
+		httpServers, _ := buildHttpServers(event.NodeIps, port)
 
 		switch event.Type {
 		case core.Created:
 			fallthrough
+
 		case core.Updated:
-			events = append(events, core.NewServerUpdateEvent(event.Type, ingressName, servers))
-		case core.Deleted:
-			for _, server := range servers {
-				events = append(events, core.NewServerUpdateEvent(event.Type, ingressName, []nginxClient.StreamUpstreamServer{server}))
+			events = append(events, core.NewServerUpdateEvent(event.Type, ingressName, tcpServers, httpServers))
+
+		case core.Deleted: // TODO: SW: This will be interesting, need to distinguish between a TCP and HTTP target
+			for _, server := range tcpServers {
+				events = append(events, core.NewServerUpdateEvent(event.Type, ingressName, []nginxClient.StreamUpstreamServer{server}, httpServers))
 			}
+			for _, server := range httpServers {
+				events = append(events, core.NewServerUpdateEvent(event.Type, ingressName, tcpServers, []nginxClient.UpstreamServer{server}))
+			}
+
 		default:
 			logrus.Warnf(`Translator::buildServerUpdateEvents: unknown event type: %d`, event.Type)
 		}
@@ -65,7 +72,11 @@ func buildServerUpdateEvents(ports []v1.ServicePort, event *core.Event) (core.Se
 	return events, nil
 }
 
-func buildServers(nodeIps []string, port v1.ServicePort) ([]nginxClient.StreamUpstreamServer, error) {
+func buildHttpServers(_ []string, _ v1.ServicePort) ([]nginxClient.UpstreamServer, error) {
+	return []nginxClient.UpstreamServer{}, nil
+}
+
+func buildTcpServers(nodeIps []string, port v1.ServicePort) ([]nginxClient.StreamUpstreamServer, error) {
 	var servers []nginxClient.StreamUpstreamServer
 
 	for _, nodeIp := range nodeIps {
