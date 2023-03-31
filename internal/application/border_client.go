@@ -7,35 +7,29 @@ package application
 
 import (
 	"fmt"
-	nginxClient "github.com/nginxinc/nginx-plus-go-client/client"
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	"github.com/sirupsen/logrus"
 )
 
 type Interface interface {
-	Update()
-	Delete()
+	Update(core.ServerUpdateEvent) error
+	Delete(core.ServerUpdateEvent) error
 }
 
 type BorderClient struct {
-	NginxPlusClient *nginxClient.NginxClient
 }
 
-func NewBorderClient(whichType string, nginxClient *nginxClient.NginxClient) (Interface, error) {
+func NewBorderClient(whichType string, borderClient interface{}) (Interface, error) {
 	logrus.Debugf(`NewBorderClient for type: %s`, whichType)
 
 	switch whichType {
 	case "tcp":
 		return &TcpBorderClient{
-			BorderClient: BorderClient{
-				NginxPlusClient: nginxClient,
-			},
+			BorderClient: BorderClient{},
 		}, nil
 	case "http":
-		return &HttpBorderClient{
-			BorderClient: BorderClient{
-				NginxPlusClient: nginxClient,
-			},
-		}, nil
+		return NewHttpBorderClient(borderClient)
+
 	default:
 		return nil, fmt.Errorf(`unknown border client type: %s`, whichType)
 	}

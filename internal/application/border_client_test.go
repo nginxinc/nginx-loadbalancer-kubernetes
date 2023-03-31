@@ -5,10 +5,14 @@
 
 package application
 
-import "testing"
+import (
+	"github.com/nginxinc/kubernetes-nginx-ingress/test/mocks"
+	"testing"
+)
 
 func TestBorderClient_CreatesHttpBorderClient(t *testing.T) {
-	client, err := NewBorderClient("http", nil)
+	borderClient := mocks.MockNginxClient{}
+	client, err := NewBorderClient("http", borderClient)
 	if err != nil {
 		t.Errorf(`error creating border client: %v`, err)
 	}

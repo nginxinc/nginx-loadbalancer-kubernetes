@@ -31,6 +31,7 @@ type ServerUpdateEvent struct {
 	Type         EventType
 	UpstreamName string
 	Servers      []nginxClient.StreamUpstreamServer
+	HttpServers  []nginxClient.UpstreamServer
 }
 
 type ServerUpdateEvents = []*ServerUpdateEvent

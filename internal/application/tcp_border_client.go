@@ -5,12 +5,16 @@
 
 package application
 
+import "github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
+
 type TcpBorderClient struct {
 	BorderClient
 }
 
-func (client *TcpBorderClient) Update() {
+func (client *TcpBorderClient) Update(_ core.ServerUpdateEvent) error {
+	return nil
 }
 
-func (client *TcpBorderClient) Delete() {
+func (client *TcpBorderClient) Delete(_ core.ServerUpdateEvent) error {
+	return nil
 }
