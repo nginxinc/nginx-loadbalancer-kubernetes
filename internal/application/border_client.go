@@ -24,9 +24,8 @@ func NewBorderClient(whichType string, borderClient interface{}) (Interface, err
 
 	switch whichType {
 	case "tcp":
-		return &TcpBorderClient{
-			BorderClient: BorderClient{},
-		}, nil
+		return NewTcpBorderClient(borderClient)
+
 	case "http":
 		return NewHttpBorderClient(borderClient)
 

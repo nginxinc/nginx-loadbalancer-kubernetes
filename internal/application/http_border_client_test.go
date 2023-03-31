@@ -6,26 +6,12 @@
 package application
 
 import (
-	"errors"
-	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
-	"github.com/nginxinc/kubernetes-nginx-ingress/test/mocks"
-	nginxClient2 "github.com/nginxinc/nginx-plus-go-client/client"
 	"testing"
 )
 
-const (
-	clientType       = "http"
-	deletedEventType = core.Deleted
-	createEventType  = core.Created
-	upstreamName     = "upstreamName"
-	server           = "server"
-)
-
-var emptyStreamServers = []nginxClient2.StreamUpstreamServer{}
-
 func TestHttpBorderClient_Delete(t *testing.T) {
 	event := buildServerUpdateEvent(deletedEventType)
-	borderClient, nginxClient, err := buildBorderClient()
+	borderClient, nginxClient, err := buildBorderClient(clientTypeHttp)
 	if err != nil {
 		t.Fatalf(`error occurred creating a new border client: %v`, err)
 	}
@@ -42,7 +28,7 @@ func TestHttpBorderClient_Delete(t *testing.T) {
 
 func TestHttpBorderClient_Update(t *testing.T) {
 	event := buildServerUpdateEvent(createEventType)
-	borderClient, nginxClient, err := buildBorderClient()
+	borderClient, nginxClient, err := buildBorderClient(clientTypeHttp)
 	if err != nil {
 		t.Fatalf(`error occurred creating a new border client: %v`, err)
 	}
@@ -59,7 +45,7 @@ func TestHttpBorderClient_Update(t *testing.T) {
 
 func TestHttpBorderClient_BadNginxClient(t *testing.T) {
 	var emptyInterface interface{}
-	_, err := NewBorderClient(clientType, emptyInterface)
+	_, err := NewBorderClient(clientTypeHttp, emptyInterface)
 	if err == nil {
 		t.Fatalf(`expected an error to occur when creating a new border client`)
 	}
@@ -67,7 +53,7 @@ func TestHttpBorderClient_BadNginxClient(t *testing.T) {
 
 func TestHttpBorderClient_DeleteReturnsError(t *testing.T) {
 	event := buildServerUpdateEvent(deletedEventType)
-	borderClient, _, err := buildTerrorizingBorderClient()
+	borderClient, _, err := buildTerrorizingBorderClient(clientTypeHttp)
 	if err != nil {
 		t.Fatalf(`error occurred creating a new border client: %v`, err)
 	}
@@ -81,7 +67,7 @@ func TestHttpBorderClient_DeleteReturnsError(t *testing.T) {
 
 func TestHttpBorderClient_UpdateReturnsError(t *testing.T) {
 	event := buildServerUpdateEvent(createEventType)
-	borderClient, _, err := buildTerrorizingBorderClient()
+	borderClient, _, err := buildTerrorizingBorderClient(clientTypeHttp)
 	if err != nil {
 		t.Fatalf(`error occurred creating a new border client: %v`, err)
 	}
@@ -91,27 +77,4 @@ func TestHttpBorderClient_UpdateReturnsError(t *testing.T) {
 	if err == nil {
 		t.Fatalf(`expected an error to occur when deleting the nginx+ upstream server`)
 	}
-}
-
-func buildTerrorizingBorderClient() (Interface, *mocks.MockNginxClient, error) {
-	nginxClient := mocks.NewErroringMockClient(errors.New(`something went horribly horribly wrong`))
-	bc, err := NewBorderClient(clientType, nginxClient)
-
-	return bc, nginxClient, err
-}
-
-func buildBorderClient() (Interface, *mocks.MockNginxClient, error) {
-	nginxClient := mocks.NewMockNginxClient()
-	bc, err := NewBorderClient(clientType, nginxClient)
-
-	return bc, nginxClient, err
-}
-
-func buildServerUpdateEvent(eventType core.EventType) core.ServerUpdateEvent {
-	servers := []nginxClient2.UpstreamServer{
-		{
-			Server: server,
-		},
-	}
-	return *core.NewServerUpdateEvent(eventType, upstreamName, emptyStreamServers, servers)
 }

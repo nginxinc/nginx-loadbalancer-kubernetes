@@ -23,7 +23,8 @@ func TestBorderClient_CreatesHttpBorderClient(t *testing.T) {
 }
 
 func TestBorderClient_CreatesTcpBorderClient(t *testing.T) {
-	client, err := NewBorderClient("tcp", nil)
+	borderClient := mocks.MockNginxClient{}
+	client, err := NewBorderClient("tcp", borderClient)
 	if err != nil {
 		t.Errorf(`error creating border client: %v`, err)
 	}
@@ -34,7 +35,9 @@ func TestBorderClient_CreatesTcpBorderClient(t *testing.T) {
 }
 
 func TestBorderClient_UnknownClientType(t *testing.T) {
-	_, err := NewBorderClient("unknown", nil)
+	unknownClientType := "unknown"
+	borderClient := mocks.MockNginxClient{}
+	_, err := NewBorderClient(unknownClientType, borderClient)
 	if err == nil {
 		t.Errorf(`expected error creating border client`)
 	}

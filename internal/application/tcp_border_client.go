@@ -5,16 +5,41 @@
 
 package application
 
-import "github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
+import (
+	"fmt"
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
+)
 
 type TcpBorderClient struct {
 	BorderClient
+	nginxClient NginxClientInterface
 }
 
-func (client *TcpBorderClient) Update(_ core.ServerUpdateEvent) error {
+func NewTcpBorderClient(client interface{}) (Interface, error) {
+	nginxClient, ok := client.(NginxClientInterface)
+	if !ok {
+		return nil, fmt.Errorf(`expected a NginxClientInterface, got a %v`, client)
+	}
+
+	return &TcpBorderClient{
+		nginxClient: nginxClient,
+	}, nil
+}
+
+func (tbc *TcpBorderClient) Update(event core.ServerUpdateEvent) error {
+	_, _, _, err := tbc.nginxClient.UpdateHTTPServers(event.NginxHost, nil)
+	if err != nil {
+		return fmt.Errorf(`error occurred updating the nginx+ upstream server: %w`, err)
+	}
+
 	return nil
 }
 
-func (client *TcpBorderClient) Delete(_ core.ServerUpdateEvent) error {
+func (tbc *TcpBorderClient) Delete(event core.ServerUpdateEvent) error {
+	err := tbc.nginxClient.DeleteStreamServer(event.NginxHost, event.TcpServers[0].Server)
+	if err != nil {
+		return fmt.Errorf(`error occurred deleting the nginx+ upstream server: %w`, err)
+	}
+
 	return nil
 }
