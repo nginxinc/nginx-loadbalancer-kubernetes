@@ -5,7 +5,10 @@
 
 package application
 
-import "github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
+import (
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
+	"github.com/sirupsen/logrus"
+)
 
 type NullBorderClient struct {
 }
@@ -15,9 +18,11 @@ func NewNullBorderClient() (Interface, error) {
 }
 
 func (nbc *NullBorderClient) Update(_ *core.ServerUpdateEvent) error {
+	logrus.Warn("NullBorderClient.Update called")
 	return nil
 }
 
 func (nbc *NullBorderClient) Delete(_ *core.ServerUpdateEvent) error {
+	logrus.Warn("NullBorderClient.Delete called")
 	return nil
 }

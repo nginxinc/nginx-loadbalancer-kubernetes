@@ -57,13 +57,17 @@ func buildServerUpdateEvents(ports []v1.ServicePort, event *core.Event) (core.Se
 			events = append(events, core.NewServerUpdateEvent(event.Type, ingressName, clientType, tcpServers, httpServers))
 
 		case core.Deleted:
-			for _, server := range tcpServers {
-				events = append(events, core.NewServerUpdateEvent(event.Type, ingressName, clientType, []nginxClient.StreamUpstreamServer{server}, httpServers))
+			// SW: This is kind of icky, look at making this better
+			switch clientType {
+			case "http":
+				for _, server := range httpServers {
+					events = append(events, core.NewServerUpdateEvent(event.Type, ingressName, clientType, tcpServers, []nginxClient.UpstreamServer{server}))
+				}
+			case "tcp":
+				for _, server := range tcpServers {
+					events = append(events, core.NewServerUpdateEvent(event.Type, ingressName, clientType, []nginxClient.StreamUpstreamServer{server}, httpServers))
+				}
 			}
-			// TODO: SW: This will be interesting, need to distinguish between a TCP and HTTP target
-			//for _, server := range httpServers {
-			//	events = append(events, core.NewServerUpdateEvent(event.Type, ingressName, clientType, tcpServers, []nginxClient.UpstreamServer{server}))
-			//}
 
 		default:
 			logrus.Warnf(`Translator::buildServerUpdateEvents: unknown event type: %d`, event.Type)
@@ -105,8 +109,10 @@ func fixIngressName(name string) string {
 }
 
 func getClientType(portName string, annotations map[string]string) string {
+	key := fmt.Sprintf("%s/%s", configuration.PortAnnotationPrefix, portName)
+	logrus.Infof("getClientType: key=%s", key)
 	if annotations != nil {
-		if clientType, ok := annotations[portName]; ok {
+		if clientType, ok := annotations[key]; ok {
 			return clientType
 		}
 	}
