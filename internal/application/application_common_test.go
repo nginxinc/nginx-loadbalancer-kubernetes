@@ -9,7 +9,6 @@ import (
 	"errors"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	"github.com/nginxinc/kubernetes-nginx-ingress/test/mocks"
-	nginxClient2 "github.com/nginxinc/nginx-plus-go-client/client"
 )
 
 const (
@@ -34,16 +33,11 @@ func buildBorderClient(clientType string) (Interface, *mocks.MockNginxClient, er
 }
 
 func buildServerUpdateEvent(eventType core.EventType, clientType string) *core.ServerUpdateEvent {
-	httpServers := []nginxClient2.UpstreamServer{
+	upstreamServers := core.UpstreamServers{
 		{
-			Server: server,
+			Host: server,
 		},
 	}
 
-	tcpServers := []nginxClient2.StreamUpstreamServer{
-		{
-			Server: server,
-		},
-	}
-	return core.NewServerUpdateEvent(eventType, upstreamName, clientType, tcpServers, httpServers)
+	return core.NewServerUpdateEvent(eventType, upstreamName, clientType, upstreamServers)
 }

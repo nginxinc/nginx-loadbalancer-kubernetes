@@ -6,17 +6,15 @@
 package core
 
 import (
-	nginxClient "github.com/nginxinc/nginx-plus-go-client/client"
 	"testing"
 )
 
 const clientType = "clientType"
 
-var emptyStreamServers []nginxClient.StreamUpstreamServer
-var emptyHttpServers []nginxClient.UpstreamServer
+var emptyUpstreamServers UpstreamServers
 
 func TestServerUpdateEventWithIdAndHost(t *testing.T) {
-	event := NewServerUpdateEvent(Created, "upstream", clientType, emptyStreamServers, emptyHttpServers)
+	event := NewServerUpdateEvent(Created, "upstream", clientType, emptyUpstreamServers)
 
 	if event.Id != "" {
 		t.Errorf("expected empty Id, got %s", event.Id)
@@ -42,7 +40,7 @@ func TestServerUpdateEventWithIdAndHost(t *testing.T) {
 }
 
 func TestTypeNameCreated(t *testing.T) {
-	event := NewServerUpdateEvent(Created, "upstream", clientType, emptyStreamServers, emptyHttpServers)
+	event := NewServerUpdateEvent(Created, "upstream", clientType, emptyUpstreamServers)
 
 	if event.TypeName() != "Created" {
 		t.Errorf("expected 'Created', got %s", event.TypeName())
@@ -50,7 +48,7 @@ func TestTypeNameCreated(t *testing.T) {
 }
 
 func TestTypeNameUpdated(t *testing.T) {
-	event := NewServerUpdateEvent(Updated, "upstream", clientType, emptyStreamServers, emptyHttpServers)
+	event := NewServerUpdateEvent(Updated, "upstream", clientType, emptyUpstreamServers)
 
 	if event.TypeName() != "Updated" {
 		t.Errorf("expected 'Updated', got %s", event.TypeName())
@@ -58,7 +56,7 @@ func TestTypeNameUpdated(t *testing.T) {
 }
 
 func TestTypeNameDeleted(t *testing.T) {
-	event := NewServerUpdateEvent(Deleted, "upstream", clientType, emptyStreamServers, emptyHttpServers)
+	event := NewServerUpdateEvent(Deleted, "upstream", clientType, emptyUpstreamServers)
 
 	if event.TypeName() != "Deleted" {
 		t.Errorf("expected 'Deleted', got %s", event.TypeName())
@@ -66,7 +64,7 @@ func TestTypeNameDeleted(t *testing.T) {
 }
 
 func TestTypeNameUnknown(t *testing.T) {
-	event := NewServerUpdateEvent(EventType(100), "upstream", clientType, emptyStreamServers, emptyHttpServers)
+	event := NewServerUpdateEvent(EventType(100), "upstream", clientType, emptyUpstreamServers)
 
 	if event.TypeName() != "Unknown" {
 		t.Errorf("expected 'Unknown', got %s", event.TypeName())

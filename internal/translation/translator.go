@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
-	nginxClient "github.com/nginxinc/nginx-plus-go-client/client"
 	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	"strings"
@@ -45,8 +44,7 @@ func buildServerUpdateEvents(ports []v1.ServicePort, event *core.Event) (core.Se
 	events := core.ServerUpdateEvents{}
 	for _, port := range ports {
 		ingressName := fixIngressName(port.Name)
-		tcpServers, _ := buildTcpServers(event.NodeIps, port)
-		httpServers, _ := buildHttpServers(event.NodeIps, port)
+		upstreamServers, _ := buildUpstreamServers(event.NodeIps, port)
 		clientType := getClientType(port.Name, event.Service.Annotations)
 
 		switch event.Type {
@@ -54,19 +52,11 @@ func buildServerUpdateEvents(ports []v1.ServicePort, event *core.Event) (core.Se
 			fallthrough
 
 		case core.Updated:
-			events = append(events, core.NewServerUpdateEvent(event.Type, ingressName, clientType, tcpServers, httpServers))
+			events = append(events, core.NewServerUpdateEvent(event.Type, ingressName, clientType, upstreamServers))
 
 		case core.Deleted:
-			// SW: This is kind of icky, look at making this better
-			switch clientType {
-			case "http":
-				for _, server := range httpServers {
-					events = append(events, core.NewServerUpdateEvent(event.Type, ingressName, clientType, tcpServers, []nginxClient.UpstreamServer{server}))
-				}
-			case "tcp":
-				for _, server := range tcpServers {
-					events = append(events, core.NewServerUpdateEvent(event.Type, ingressName, clientType, []nginxClient.StreamUpstreamServer{server}, httpServers))
-				}
+			for _, server := range upstreamServers {
+				events = append(events, core.NewServerUpdateEvent(event.Type, ingressName, clientType, core.UpstreamServers{server}))
 			}
 
 		default:
@@ -78,26 +68,12 @@ func buildServerUpdateEvents(ports []v1.ServicePort, event *core.Event) (core.Se
 	return events, nil
 }
 
-func buildHttpServers(nodeIps []string, port v1.ServicePort) ([]nginxClient.UpstreamServer, error) {
-	var servers []nginxClient.UpstreamServer
+func buildUpstreamServers(nodeIps []string, port v1.ServicePort) (core.UpstreamServers, error) {
+	var servers core.UpstreamServers
 
 	for _, nodeIp := range nodeIps {
-		server := nginxClient.UpstreamServer{
-			Server: fmt.Sprintf("%s:%d", nodeIp, port.NodePort),
-		}
-		servers = append(servers, server)
-	}
-
-	return servers, nil
-}
-
-func buildTcpServers(nodeIps []string, port v1.ServicePort) ([]nginxClient.StreamUpstreamServer, error) {
-	var servers []nginxClient.StreamUpstreamServer
-
-	for _, nodeIp := range nodeIps {
-		server := nginxClient.StreamUpstreamServer{
-			Server: fmt.Sprintf("%s:%d", nodeIp, port.NodePort),
-		}
+		host := fmt.Sprintf("%s:%d", nodeIp, port.NodePort)
+		server := core.NewUpstreamServer(host)
 		servers = append(servers, server)
 	}
 
