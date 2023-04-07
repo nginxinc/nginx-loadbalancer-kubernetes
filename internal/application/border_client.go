@@ -11,23 +11,30 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Interface defines the functions required to implement a Border Client.
 type Interface interface {
 	Update(*core.ServerUpdateEvent) error
 	Delete(*core.ServerUpdateEvent) error
 }
 
+// BorderClient defines any state need by the Border Client.
 type BorderClient struct {
 }
 
-// NewBorderClient Returns a NullBorderClient if the type is unknown, this avoids panics due to nil pointer dereferences.
+// NewBorderClient is the Factory function for creating a Border Client.
+//
+// Note, this is an extensibility point. To add a Border Server client...
+// 1. Create a module that implements the BorderClient interface;
+// 2. Add a new constant in application_constants.go that acts as a key for selecting the client;
+// 3. Update the NewBorderClient factory method in border_client.go that returns the client;
 func NewBorderClient(clientType string, borderClient interface{}) (Interface, error) {
 	logrus.Debugf(`NewBorderClient for type: %s`, clientType)
 
 	switch clientType {
-	case "tcp":
+	case "tcp": // ClientTypeTcp
 		return NewTcpBorderClient(borderClient)
 
-	case "http":
+	case "http": // ClientTypeHttp
 		return NewHttpBorderClient(borderClient)
 
 	default:
