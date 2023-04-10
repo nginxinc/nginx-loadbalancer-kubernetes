@@ -32,11 +32,11 @@ func TestSynchronizer_NewSynchronizer(t *testing.T) {
 func TestSynchronizer_AddEventNoHosts(t *testing.T) {
 	const expectedEventCount = 0
 	event := &core.ServerUpdateEvent{
-		Id:           "",
-		NginxHost:    "",
-		Type:         0,
-		UpstreamName: "",
-		Servers:      nil,
+		Id:              "",
+		NginxHost:       "",
+		Type:            0,
+		UpstreamName:    "",
+		UpstreamServers: nil,
 	}
 	settings, err := configuration.NewSettings(context.Background(), nil)
 	rateLimiter := &mocks.MockRateLimiter{}
@@ -188,11 +188,11 @@ func buildEvents(count int) core.ServerUpdateEvents {
 	events := make(core.ServerUpdateEvents, count)
 	for i := 0; i < count; i++ {
 		events[i] = &core.ServerUpdateEvent{
-			Id:           fmt.Sprintf("id-%v", i),
-			NginxHost:    "https://localhost:8080",
-			Type:         0,
-			UpstreamName: "",
-			Servers:      nil,
+			Id:              fmt.Sprintf("id-%v", i),
+			NginxHost:       "https://localhost:8080",
+			Type:            0,
+			UpstreamName:    "",
+			UpstreamServers: nil,
 		}
 	}
 	return events

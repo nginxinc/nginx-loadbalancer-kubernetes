@@ -7,6 +7,7 @@ package synchronization
 
 import (
 	"fmt"
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/application"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/communication"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
@@ -79,8 +80,8 @@ func (s *Synchronizer) ShutDown() {
 	s.eventQueue.ShutDownWithDrain()
 }
 
-func (s *Synchronizer) buildNginxPlusClient(nginxHost string) (*nginxClient.NginxClient, error) {
-	logrus.Debugf(`Synchronizer::buildNginxPlusClient for host: %s`, nginxHost)
+func (s *Synchronizer) buildBorderClient(event *core.ServerUpdateEvent) (application.Interface, error) {
+	logrus.Debugf(`Synchronizer::buildBorderClient`)
 
 	var err error
 
@@ -89,12 +90,12 @@ func (s *Synchronizer) buildNginxPlusClient(nginxHost string) (*nginxClient.Ngin
 		return nil, fmt.Errorf(`error creating HTTP client: %v`, err)
 	}
 
-	client, err := nginxClient.NewNginxClient(httpClient, nginxHost)
+	ngxClient, err := nginxClient.NewNginxClient(httpClient, event.NginxHost)
 	if err != nil {
 		return nil, fmt.Errorf(`error creating Nginx Plus client: %v`, err)
 	}
 
-	return client, nil
+	return application.NewBorderClient(event.ClientType, ngxClient)
 }
 
 func (s *Synchronizer) fanOutEventToHosts(event core.ServerUpdateEvents) core.ServerUpdateEvents {
@@ -145,14 +146,13 @@ func (s *Synchronizer) handleCreatedUpdatedEvent(serverUpdateEvent *core.ServerU
 
 	var err error
 
-	client, err := s.buildNginxPlusClient(serverUpdateEvent.NginxHost)
+	borderClient, err := s.buildBorderClient(serverUpdateEvent)
 	if err != nil {
-		return fmt.Errorf(`error occurred building the nginx+ client: %w`, err)
+		return fmt.Errorf(`error occurred creating the border client: %w`, err)
 	}
 
-	_, _, _, err = client.UpdateStreamServers(serverUpdateEvent.UpstreamName, serverUpdateEvent.Servers)
-	if err != nil {
-		return fmt.Errorf(`error occurred updating the nginx+ upstream servers: %w`, err)
+	if err = borderClient.Update(serverUpdateEvent); err != nil {
+		return fmt.Errorf(`error occurred updating the %s upstream servers: %w`, serverUpdateEvent.ClientType, err)
 	}
 
 	return nil
@@ -163,14 +163,13 @@ func (s *Synchronizer) handleDeletedEvent(serverUpdateEvent *core.ServerUpdateEv
 
 	var err error
 
-	client, err := s.buildNginxPlusClient(serverUpdateEvent.NginxHost)
+	borderClient, err := s.buildBorderClient(serverUpdateEvent)
 	if err != nil {
-		return fmt.Errorf(`error occurred building the nginx+ client: %w`, err)
+		return fmt.Errorf(`error occurred creating the border client: %w`, err)
 	}
 
-	err = client.DeleteStreamServer(serverUpdateEvent.UpstreamName, serverUpdateEvent.Servers[0].Server)
-	if err != nil {
-		return fmt.Errorf(`error occurred deleting the nginx+ upstream server: %w`, err)
+	if err = borderClient.Delete(serverUpdateEvent); err != nil {
+		return fmt.Errorf(`error occurred deleting the %s upstream servers: %w`, serverUpdateEvent.ClientType, err)
 	}
 
 	return nil

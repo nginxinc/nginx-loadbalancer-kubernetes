@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
-	nginxClient "github.com/nginxinc/nginx-plus-go-client/client"
 	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	"strings"
@@ -45,17 +44,21 @@ func buildServerUpdateEvents(ports []v1.ServicePort, event *core.Event) (core.Se
 	events := core.ServerUpdateEvents{}
 	for _, port := range ports {
 		ingressName := fixIngressName(port.Name)
-		servers, _ := buildServers(event.NodeIps, port)
+		upstreamServers, _ := buildUpstreamServers(event.NodeIps, port)
+		clientType := getClientType(port.Name, event.Service.Annotations)
 
 		switch event.Type {
 		case core.Created:
 			fallthrough
+
 		case core.Updated:
-			events = append(events, core.NewServerUpdateEvent(event.Type, ingressName, servers))
+			events = append(events, core.NewServerUpdateEvent(event.Type, ingressName, clientType, upstreamServers))
+
 		case core.Deleted:
-			for _, server := range servers {
-				events = append(events, core.NewServerUpdateEvent(event.Type, ingressName, []nginxClient.StreamUpstreamServer{server}))
+			for _, server := range upstreamServers {
+				events = append(events, core.NewServerUpdateEvent(event.Type, ingressName, clientType, core.UpstreamServers{server}))
 			}
+
 		default:
 			logrus.Warnf(`Translator::buildServerUpdateEvents: unknown event type: %d`, event.Type)
 		}
@@ -65,13 +68,12 @@ func buildServerUpdateEvents(ports []v1.ServicePort, event *core.Event) (core.Se
 	return events, nil
 }
 
-func buildServers(nodeIps []string, port v1.ServicePort) ([]nginxClient.StreamUpstreamServer, error) {
-	var servers []nginxClient.StreamUpstreamServer
+func buildUpstreamServers(nodeIps []string, port v1.ServicePort) (core.UpstreamServers, error) {
+	var servers core.UpstreamServers
 
 	for _, nodeIp := range nodeIps {
-		server := nginxClient.StreamUpstreamServer{
-			Server: fmt.Sprintf("%s:%d", nodeIp, port.NodePort),
-		}
+		host := fmt.Sprintf("%s:%d", nodeIp, port.NodePort)
+		server := core.NewUpstreamServer(host)
 		servers = append(servers, server)
 	}
 
@@ -80,4 +82,16 @@ func buildServers(nodeIps []string, port v1.ServicePort) ([]nginxClient.StreamUp
 
 func fixIngressName(name string) string {
 	return name[4:]
+}
+
+func getClientType(portName string, annotations map[string]string) string {
+	key := fmt.Sprintf("%s/%s", configuration.PortAnnotationPrefix, portName)
+	logrus.Infof("getClientType: key=%s", key)
+	if annotations != nil {
+		if clientType, ok := annotations[key]; ok {
+			return clientType
+		}
+	}
+
+	return "http"
 }

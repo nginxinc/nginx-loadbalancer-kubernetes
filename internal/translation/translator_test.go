@@ -594,7 +594,7 @@ func TestDeletedTranslateManyMixedPortsAndManyNodes(t *testing.T) {
 
 func assertExpectedServerCount(t *testing.T, expectedCount int, events core.ServerUpdateEvents) {
 	for _, translatedEvent := range events {
-		serverCount := len(translatedEvent.Servers)
+		serverCount := len(translatedEvent.UpstreamServers)
 		if serverCount != expectedCount {
 			t.Fatalf("expected %d servers, got %d", expectedCount, serverCount)
 		}

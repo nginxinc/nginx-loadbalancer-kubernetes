@@ -19,9 +19,10 @@ import (
 )
 
 const (
-	ConfigMapsNamespace = "nkl"
-	ResyncPeriod        = 0
-	NklPrefix           = ConfigMapsNamespace + "-"
+	ConfigMapsNamespace  = "nkl"
+	ResyncPeriod         = 0
+	NklPrefix            = ConfigMapsNamespace + "-"
+	PortAnnotationPrefix = "nginxinc.io"
 )
 
 type WorkQueueSettings struct {
