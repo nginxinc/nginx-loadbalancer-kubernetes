@@ -2,7 +2,7 @@
 
 <br/>
 
-## This is the `Installation Guide` for the Nginx Kubernetes Loadbalancer Controller Solution.  It contains detailed instructions for implementing the different components for the Solution.
+## This is the `TCP Installation Guide` for the Nginx Kubernetes Loadbalancer Controller Solution.  It contains detailed instructions for implementing the different components for the Solution.
 
 <br/>
 

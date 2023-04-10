@@ -1,0 +1,20 @@
+# NKL Nodeport Service file
+# NodePort -ports name must be in the format of
+# nkl-<upstream-block-name>
+# Chris Akker, Apr 2023
+#
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-ingress
+  namespace: nginx-ingress
+spec:
+  type: NodePort 
+  ports:
+  - port: 443
+    targetPort: 443
+    protocol: TCP
+    name: nkl-cluster1-https
+  selector:
+    app: nginx-ingress
+    
