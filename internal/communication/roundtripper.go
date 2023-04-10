@@ -11,11 +11,13 @@ import (
 	"strings"
 )
 
+// RoundTripper is a simple type that wraps the default net/communication RoundTripper to add additional headers.
 type RoundTripper struct {
 	Headers      []string
 	RoundTripper http.RoundTripper
 }
 
+// NewRoundTripper is a factory method to create a new RoundTripper.
 func NewRoundTripper(headers []string, transport *netHttp.Transport) *RoundTripper {
 	return &RoundTripper{
 		Headers:      headers,
@@ -23,7 +25,7 @@ func NewRoundTripper(headers []string, transport *netHttp.Transport) *RoundTripp
 	}
 }
 
-// RoundTrip Merge Headers
+// RoundTrip This simply adds our default headers to the request before passing it on to the default RoundTripper.
 func (roundTripper *RoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	newRequest := new(http.Request)
 	*newRequest = *req
