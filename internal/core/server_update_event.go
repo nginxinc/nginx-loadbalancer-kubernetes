@@ -5,17 +5,35 @@
 
 package core
 
+// ServerUpdateEvent is an internal representation of an event. The Translator produces these events
+// from Events received from the Handler. These are then consumed by the Synchronizer and passed along to
+// the appropriate BorderClient.
 type ServerUpdateEvent struct {
-	ClientType      string
-	Id              string
-	NginxHost       string
-	Type            EventType
-	UpstreamName    string
+
+	// ClientType is the type of BorderClient that should handle this event. This is configured via Service Annotations.
+	// See application_constants.go for the list of supported types.
+	ClientType string
+
+	// Id is the unique identifier for this event.
+	Id string
+
+	// NginxHost is the host name of the NGINX Plus instance that should handle this event.
+	NginxHost string
+
+	// Type is the type of event. See EventType for the list of supported types.
+	Type EventType
+
+	// UpstreamName is the name of the upstream in the Border Server.
+	UpstreamName string
+
+	// UpstreamServers is the list of servers in the Upstream.
 	UpstreamServers UpstreamServers
 }
 
+// ServerUpdateEvents is a list of ServerUpdateEvent.
 type ServerUpdateEvents = []*ServerUpdateEvent
 
+// NewServerUpdateEvent creates a new ServerUpdateEvent.
 func NewServerUpdateEvent(eventType EventType, upstreamName string, clientType string, upstreamServers UpstreamServers) *ServerUpdateEvent {
 	return &ServerUpdateEvent{
 		ClientType:      clientType,
@@ -25,6 +43,7 @@ func NewServerUpdateEvent(eventType EventType, upstreamName string, clientType s
 	}
 }
 
+// ServerUpdateEventWithIdAndHost creates a new ServerUpdateEvent with the specified Id and Host.
 func ServerUpdateEventWithIdAndHost(event *ServerUpdateEvent, id string, nginxHost string) *ServerUpdateEvent {
 	return &ServerUpdateEvent{
 		ClientType:      event.ClientType,
@@ -36,6 +55,7 @@ func ServerUpdateEventWithIdAndHost(event *ServerUpdateEvent, id string, nginxHo
 	}
 }
 
+// TypeName returns the string representation of the EventType.
 func (e *ServerUpdateEvent) TypeName() string {
 	switch e.Type {
 	case Created:
