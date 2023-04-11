@@ -42,7 +42,7 @@ const (
 // 2. nkl-synchronizer queue, used to move message between the Handler and the Synchronizer.
 // The queues are NamedDelayingQueue objects that use an ItemExponentialFailureRateLimiter as the underlying rate limiter.
 type WorkQueueSettings struct {
-	// Name is the name of the work queue.
+	// Name is the name of the queue.
 	Name string
 
 	// RateLimiterBase is the value used to calculate the exponential backoff rate limiter.
@@ -62,14 +62,14 @@ type HandlerSettings struct {
 	// Threads is the number of threads that will be used to process messages.
 	Threads int
 
-	// WorkQueueSettings is the configuration for the Handler's work queue.
+	// WorkQueueSettings is the configuration for the Handler's queue.
 	WorkQueueSettings WorkQueueSettings
 }
 
 // WatcherSettings contains the configuration values needed by the Watcher.
 type WatcherSettings struct {
 
-	// NginxIngressNamespace is the namespace used to filter Services in the Informer.
+	// NginxIngressNamespace is the namespace used to filter Services in the Watcher.
 	NginxIngressNamespace string
 
 	// ResyncPeriod is the value used to set the resync period for the underlying SharedInformer.
@@ -79,10 +79,10 @@ type WatcherSettings struct {
 // SynchronizerSettings contains the configuration values needed by the Synchronizer.
 type SynchronizerSettings struct {
 
-	// MaxMillisecondsJitter is the maximum number of milliseconds that will be applied when adding an event to the work queue.
+	// MaxMillisecondsJitter is the maximum number of milliseconds that will be applied when adding an event to the queue.
 	MaxMillisecondsJitter int
 
-	// MinMillisecondsJitter is the minimum number of milliseconds that will be applied when adding an event to the work queue.
+	// MinMillisecondsJitter is the minimum number of milliseconds that will be applied when adding an event to the queue.
 	MinMillisecondsJitter int
 
 	// RetryCount is the number of times the Synchronizer will attempt to process a message before giving up.
@@ -91,7 +91,7 @@ type SynchronizerSettings struct {
 	// Threads is the number of threads that will be used to process messages.
 	Threads int
 
-	// WorkQueueSettings is the configuration for the Synchronizer's work queue.
+	// WorkQueueSettings is the configuration for the Synchronizer's queue.
 	WorkQueueSettings WorkQueueSettings
 }
 
