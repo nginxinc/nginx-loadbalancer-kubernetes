@@ -31,10 +31,10 @@ func NewBorderClient(clientType string, borderClient interface{}) (Interface, er
 	logrus.Debugf(`NewBorderClient for type: %s`, clientType)
 
 	switch clientType {
-	case "tcp": // ClientTypeTcp
+	case ClientTypeTcp:
 		return NewTcpBorderClient(borderClient)
 
-	case "http": // ClientTypeHttp
+	case ClientTypeHttp:
 		return NewHttpBorderClient(borderClient)
 
 	default:
