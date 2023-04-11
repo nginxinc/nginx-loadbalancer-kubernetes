@@ -19,49 +19,111 @@ import (
 )
 
 const (
-	ConfigMapsNamespace  = "nkl"
-	ResyncPeriod         = 0
-	NklPrefix            = ConfigMapsNamespace + "-"
+	// ConfigMapsNamespace is the value used to filter the ConfigMaps Resource in the Informer.
+	ConfigMapsNamespace = "nkl"
+
+	// ResyncPeriod is the value used to set the resync period for the Informer.
+	ResyncPeriod = 0
+
+	// NklPrefix is used to determine if a Port definition should be handled and used to update a Border Server.
+	// The Port name () must start with this prefix, e.g.:
+	//   nkl-<my-upstream-name>
+	NklPrefix = ConfigMapsNamespace + "-"
+
+	// PortAnnotationPrefix defines the prefix used when looking up a Port in the Service Annotations.
+	// The value of the annotation determines which BorderServer implementation will be used.
+	// See the documentation in the `application/application_constants.go` file for details.
 	PortAnnotationPrefix = "nginxinc.io"
 )
 
+// WorkQueueSettings contains the configuration values needed by the Work Queues.
+// There are two work queues in the application:
+// 1. nkl-handler queue, used to move messages between the Watcher and the Handler.
+// 2. nkl-synchronizer queue, used to move message between the Handler and the Synchronizer.
+// The queues are NamedDelayingQueue objects that use an ItemExponentialFailureRateLimiter as the underlying rate limiter.
 type WorkQueueSettings struct {
-	Name            string
+	// Name is the name of the queue.
+	Name string
+
+	// RateLimiterBase is the value used to calculate the exponential backoff rate limiter.
+	// The formula is: RateLimiterBase * 2 ^ (num_retries - 1)
 	RateLimiterBase time.Duration
-	RateLimiterMax  time.Duration
+
+	// RateLimiterMax limits the amount of time retries are allowed to be attempted.
+	RateLimiterMax time.Duration
 }
 
+// HandlerSettings contains the configuration values needed by the Handler.
 type HandlerSettings struct {
-	RetryCount        int
-	Threads           int
+
+	// RetryCount is the number of times the Handler will attempt to process a message before giving up.
+	RetryCount int
+
+	// Threads is the number of threads that will be used to process messages.
+	Threads int
+
+	// WorkQueueSettings is the configuration for the Handler's queue.
 	WorkQueueSettings WorkQueueSettings
 }
 
+// WatcherSettings contains the configuration values needed by the Watcher.
 type WatcherSettings struct {
+
+	// NginxIngressNamespace is the namespace used to filter Services in the Watcher.
 	NginxIngressNamespace string
-	ResyncPeriod          time.Duration
+
+	// ResyncPeriod is the value used to set the resync period for the underlying SharedInformer.
+	ResyncPeriod time.Duration
 }
 
+// SynchronizerSettings contains the configuration values needed by the Synchronizer.
 type SynchronizerSettings struct {
+
+	// MaxMillisecondsJitter is the maximum number of milliseconds that will be applied when adding an event to the queue.
 	MaxMillisecondsJitter int
+
+	// MinMillisecondsJitter is the minimum number of milliseconds that will be applied when adding an event to the queue.
 	MinMillisecondsJitter int
-	RetryCount            int
-	Threads               int
-	WorkQueueSettings     WorkQueueSettings
+
+	// RetryCount is the number of times the Synchronizer will attempt to process a message before giving up.
+	RetryCount int
+
+	// Threads is the number of threads that will be used to process messages.
+	Threads int
+
+	// WorkQueueSettings is the configuration for the Synchronizer's queue.
+	WorkQueueSettings WorkQueueSettings
 }
 
+// Settings contains the configuration values needed by the application.
 type Settings struct {
-	Context                  context.Context
-	NginxPlusHosts           []string
-	K8sClient                *kubernetes.Clientset
-	informer                 cache.SharedInformer
+
+	// Context is the context used to control the application.
+	Context context.Context
+
+	// NginxPlusHosts is a list of Nginx Plus hosts that will be used to update the Border Servers.
+	NginxPlusHosts []string
+
+	// K8sClient is the Kubernetes client used to communicate with the Kubernetes API.
+	K8sClient *kubernetes.Clientset
+
+	// informer is the SharedInformer used to watch for changes to the ConfigMap .
+	informer cache.SharedInformer
+
+	// eventHandlerRegistration is the object used to track the event handlers with the SharedInformer.
 	eventHandlerRegistration cache.ResourceEventHandlerRegistration
 
-	Handler      HandlerSettings
+	// Handler contains the configuration values needed by the Handler.
+	Handler HandlerSettings
+
+	// Synchronizer contains the configuration values needed by the Synchronizer.
 	Synchronizer SynchronizerSettings
-	Watcher      WatcherSettings
+
+	// Watcher contains the configuration values needed by the Watcher.
+	Watcher WatcherSettings
 }
 
+// NewSettings creates a new Settings object with default values.
 func NewSettings(ctx context.Context, k8sClient *kubernetes.Clientset) (*Settings, error) {
 	settings := &Settings{
 		Context:   ctx,
@@ -95,6 +157,8 @@ func NewSettings(ctx context.Context, k8sClient *kubernetes.Clientset) (*Setting
 	return settings, nil
 }
 
+// Initialize initializes the Settings object. Sets up a SharedInformer to watch for changes to the ConfigMap.
+// This method must be called before the Run method.
 func (s *Settings) Initialize() error {
 	logrus.Info("Settings::Initialize")
 
@@ -115,6 +179,7 @@ func (s *Settings) Initialize() error {
 	return nil
 }
 
+// Run starts the SharedInformer and waits for the Context to be cancelled.
 func (s *Settings) Run() {
 	logrus.Debug("Settings::Run")
 

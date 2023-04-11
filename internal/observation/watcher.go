@@ -19,13 +19,25 @@ import (
 	"time"
 )
 
+// Watcher is responsible for watching for changes to Kubernetes resources.
+// Particularly, Services in the namespace defined in the WatcherSettings::NginxIngressNamespace setting.
+// When a change is detected, an Event is generated and added to the Handler's queue.
 type Watcher struct {
+
+	// eventHandlerRegistration is used to track the event handlers
 	eventHandlerRegistration interface{}
-	handler                  HandlerInterface
-	informer                 cache.SharedIndexInformer
-	settings                 *configuration.Settings
+
+	// handler is the event handler
+	handler HandlerInterface
+
+	// informer is the informer used to watch for changes to Kubernetes resources
+	informer cache.SharedIndexInformer
+
+	// settings is the configuration settings
+	settings *configuration.Settings
 }
 
+// NewWatcher creates a new Watcher
 func NewWatcher(settings *configuration.Settings, handler HandlerInterface) (*Watcher, error) {
 	return &Watcher{
 		handler:  handler,
@@ -33,6 +45,7 @@ func NewWatcher(settings *configuration.Settings, handler HandlerInterface) (*Wa
 	}, nil
 }
 
+// Initialize initializes the Watcher, must be called before Watch
 func (w *Watcher) Initialize() error {
 	logrus.Debug("Watcher::Initialize")
 	var err error
@@ -50,6 +63,8 @@ func (w *Watcher) Initialize() error {
 	return nil
 }
 
+// Watch starts the process of watching for changes to Kubernetes resources.
+// Initialize must be called before Watch.
 func (w *Watcher) Watch() error {
 	logrus.Debug("Watcher::Watch")
 
@@ -70,6 +85,7 @@ func (w *Watcher) Watch() error {
 	return nil
 }
 
+// buildEventHandlerForAdd creates a function that is used as an event handler for the informer when Add events are raised.
 func (w *Watcher) buildEventHandlerForAdd() func(interface{}) {
 	logrus.Info("Watcher::buildEventHandlerForAdd")
 	return func(obj interface{}) {
@@ -85,6 +101,7 @@ func (w *Watcher) buildEventHandlerForAdd() func(interface{}) {
 	}
 }
 
+// buildEventHandlerForDelete creates a function that is used as an event handler for the informer when Delete events are raised.
 func (w *Watcher) buildEventHandlerForDelete() func(interface{}) {
 	logrus.Info("Watcher::buildEventHandlerForDelete")
 	return func(obj interface{}) {
@@ -100,6 +117,7 @@ func (w *Watcher) buildEventHandlerForDelete() func(interface{}) {
 	}
 }
 
+// buildEventHandlerForUpdate creates a function that is used as an event handler for the informer when Update events are raised.
 func (w *Watcher) buildEventHandlerForUpdate() func(interface{}, interface{}) {
 	logrus.Info("Watcher::buildEventHandlerForUpdate")
 	return func(previous, updated interface{}) {
@@ -115,6 +133,7 @@ func (w *Watcher) buildEventHandlerForUpdate() func(interface{}, interface{}) {
 	}
 }
 
+// buildInformer creates the informer used to watch for changes to Kubernetes resources.
 func (w *Watcher) buildInformer() (cache.SharedIndexInformer, error) {
 	logrus.Debug("Watcher::buildInformer")
 
@@ -125,6 +144,7 @@ func (w *Watcher) buildInformer() (cache.SharedIndexInformer, error) {
 	return informer, nil
 }
 
+// initializeEventListeners initializes the event listeners for the informer.
 func (w *Watcher) initializeEventListeners() error {
 	logrus.Debug("Watcher::initializeEventListeners")
 	var err error
@@ -143,6 +163,8 @@ func (w *Watcher) initializeEventListeners() error {
 	return nil
 }
 
+// notMasterNode retrieves the IP Addresses of the nodes in the cluster. Currently, the master node is excluded. This is
+// because the master node may or may not be a worker node and thus may not be able to route traffic.
 func (w *Watcher) retrieveNodeIps() ([]string, error) {
 	started := time.Now()
 	logrus.Debug("Watcher::retrieveNodeIps")
@@ -156,6 +178,8 @@ func (w *Watcher) retrieveNodeIps() ([]string, error) {
 	}
 
 	for _, node := range nodes.Items {
+
+		// this is kind of a broad assumption, should probably make this a configurable option
 		if w.notMasterNode(node) {
 			for _, address := range node.Status.Addresses {
 				if address.Type == v1.NodeInternalIP {
@@ -170,6 +194,7 @@ func (w *Watcher) retrieveNodeIps() ([]string, error) {
 	return nodeIps, nil
 }
 
+// notMasterNode determines if the node is a master node.
 func (w *Watcher) notMasterNode(node v1.Node) bool {
 	logrus.Debug("Watcher::notMasterNode")
 

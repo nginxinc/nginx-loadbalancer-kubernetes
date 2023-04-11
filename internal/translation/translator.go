@@ -7,6 +7,7 @@ package translation
 
 import (
 	"fmt"
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/application"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	"github.com/sirupsen/logrus"
@@ -14,6 +15,8 @@ import (
 	"strings"
 )
 
+// Translate transforms event data into an intermediate format that can be consumed by the BorderClient implementations
+// and used to update the Border Servers.
 func Translate(event *core.Event) (core.ServerUpdateEvents, error) {
 	logrus.Debug("Translate::Translate")
 
@@ -22,6 +25,7 @@ func Translate(event *core.Event) (core.ServerUpdateEvents, error) {
 	return buildServerUpdateEvents(portsOfInterest, event)
 }
 
+// filterPorts returns a list of ports that have the NklPrefix in the port name.
 func filterPorts(ports []v1.ServicePort) []v1.ServicePort {
 	var portsOfInterest []v1.ServicePort
 
@@ -80,10 +84,12 @@ func buildUpstreamServers(nodeIps []string, port v1.ServicePort) (core.UpstreamS
 	return servers, nil
 }
 
+// fixIngressName removes the NklPrefix from the port name
 func fixIngressName(name string) string {
 	return name[4:]
 }
 
+// getClientType returns the client type for the port, defaults to ClientTypeHttp if no Annotation is found.
 func getClientType(portName string, annotations map[string]string) string {
 	key := fmt.Sprintf("%s/%s", configuration.PortAnnotationPrefix, portName)
 	logrus.Infof("getClientType: key=%s", key)
@@ -93,5 +99,5 @@ func getClientType(portName string, annotations map[string]string) string {
 		}
 	}
 
-	return "http"
+	return application.ClientTypeHttp
 }

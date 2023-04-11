@@ -12,18 +12,34 @@ import (
 )
 
 const (
-	Ok                  = "OK"
+
+	// Ok is the message returned when a check passes.
+	Ok = "OK"
+
+	// ServiceNotAvailable is the message returned when a check fails.
 	ServiceNotAvailable = "Service Not Available"
-	ListenPort          = 51031
+
+	// ListenPort is the port on which the health server will listen.
+	ListenPort = 51031
 )
 
+// HealthServer is a server that spins up endpoints for the various k8s health checks.
 type HealthServer struct {
-	httpServer   *http.Server
-	LiveCheck    LiveCheck
-	ReadyCheck   ReadyCheck
+
+	// The underlying HTTP server.
+	httpServer *http.Server
+
+	// Support for the "livez" endpoint.
+	LiveCheck LiveCheck
+
+	// Support for the "readyz" endpoint.
+	ReadyCheck ReadyCheck
+
+	// Support for the "startupz" endpoint.
 	StartupCheck StartupCheck
 }
 
+// NewHealthServer creates a new HealthServer.
 func NewHealthServer() *HealthServer {
 	return &HealthServer{
 		LiveCheck:    LiveCheck{},
@@ -32,6 +48,7 @@ func NewHealthServer() *HealthServer {
 	}
 }
 
+// Start spins up the health server.
 func (hs *HealthServer) Start() {
 	logrus.Debugf("Starting probe listener on port %d", ListenPort)
 
@@ -52,24 +69,29 @@ func (hs *HealthServer) Start() {
 	logrus.Info("Started probe listener on", hs.httpServer.Addr)
 }
 
+// Stop shuts down the health server.
 func (hs *HealthServer) Stop() {
 	if err := hs.httpServer.Close(); err != nil {
 		logrus.Errorf("unable to stop probe listener on %s: %v", hs.httpServer.Addr, err)
 	}
 }
 
+// HandleLive is the handler for the "livez" endpoint.
 func (hs *HealthServer) HandleLive(writer http.ResponseWriter, request *http.Request) {
 	hs.handleProbe(writer, request, &hs.LiveCheck)
 }
 
+// HandleReady is the handler for the "readyz" endpoint.
 func (hs *HealthServer) HandleReady(writer http.ResponseWriter, request *http.Request) {
 	hs.handleProbe(writer, request, &hs.ReadyCheck)
 }
 
+// HandleStartup is the handler for the "startupz" endpoint.
 func (hs *HealthServer) HandleStartup(writer http.ResponseWriter, request *http.Request) {
 	hs.handleProbe(writer, request, &hs.StartupCheck)
 }
 
+// handleProbe handles calling the appropriate Check method and writes the result to the client.
 func (hs *HealthServer) handleProbe(writer http.ResponseWriter, _ *http.Request, check Check) {
 	if check.Check() {
 		writer.WriteHeader(http.StatusOK)
