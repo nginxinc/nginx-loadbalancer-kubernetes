@@ -6,8 +6,27 @@
 
 <br/>
 
-![Kubernetes](media/kubernetes-icon.png) | ![Nginx Plus](media/nginx-plus-icon.png) | ![NIC](media/nginx-ingress-icon.png)
+![Kubernetes](../media/kubernetes-icon.png) | ![Nginx Plus](../media/nginx-plus-icon.png) | ![NIC](../media/nginx-ingress-icon.png)
 --- | --- | ---
+
+<br/>
+
+## Solution Overview
+
+This Solution from Nginx provides Enterprise class features which address common challenges with networking, traffic management, and High Availability for On-Premises Kubernetes Clusters.
+
+1. Provides a `replacement Loadbalancer Service.`  The Loadbalancer Service is a key component provided by most Cloud Providers.  However, when running a cluster On Premises, the `Loadbalancer Service is not available`.  This Solution provides a replacement, using an Nginx Server, and a new K8s Controller.  These two components work together to watch the NodePort Service in the cluster, and immediately update the Nginx LB Server when changes occur.  No more static `ExternalIP` needed in your `loadbalancer.yaml` Manifests!
+2. Provides automatic Nginx upstream config updates, application health checks, advanced LB algorithms, and enhanced metrics.
+3. Provides an upgrade option to Nginx's powerful HTTP processing - `dynamic, ratio-based Load Balancing for Multiple Clusters.`  This allows for advanced traffic steering, and operation efficiency with no Reloads or downtime.  See the HTTP Install Guide for additional details on the advanced HTTP Solution, which can provide:
+  - MultiCluster Loadbalancing and High Availability
+  - Horizontal Cluster scaling
+  - Non-stop seemless K8s Cluster upgrades, migrations, patching
+  - HTTP Split clients for `A/B, Blue/Green, and Canary testing` and production traffic
+  - Additional security features like App Protect Firewall, JWT auth, Rate Limiting, Service and Bandwidth controls, FIPS, advanced TLS features.
+
+<br/>
+
+![NKL Solution Overview](../media/nginxlb-nklv2.png)
 
 <br/>
 
@@ -26,11 +45,11 @@
 
 <br/>
 
-![Kubernetes](media/kubernetes-icon.png)
+![Kubernetes](../media/kubernetes-icon.png)
 
 <br/>
 
-A standard K8s cluster is all that is required.  There must be enough resources available to run the Nginx Ingress Controller, and the Nginx Kubernetes Loadbalancer Controller.  You must have administrative access to be able to create the namespace, services, and deployments for this Solution.  This Solution was tested on Kubernetes version 1.23.  Most recent versions => v1.21 should work just fine.
+A standard K8s cluster is all that is required.  There must be enough resources available to run the Nginx Ingress Controller, and the new Nginx Kubernetes Loadbalancer Controller.  You must have administrative access to be able to create the namespace, services, and deployments for this Solution.  This Solution was tested on Kubernetes version 1.23.  Most recent versions => v1.21 should work just fine.
 
 <br/>
 
@@ -38,7 +57,7 @@ A standard K8s cluster is all that is required.  There must be enough resources 
 
 <br/>
 
-![NIC](media/nginx-ingress-icon.png)
+![NIC](../media/nginx-ingress-icon.png)
 
 <br/>
 
@@ -58,7 +77,7 @@ Review the new `nkl-nodeport.yaml` Service defintion file:
 # NKL Nodeport Service file
 # NodePort port name must be in the format of
 # nkl-<upstream-block-name>
-# Chris Akker, Jan 2023
+# Chris Akker, Apr 2023
 #
 apiVersion: v1
 kind: Service
@@ -93,88 +112,37 @@ kubectl apply -f nodeport-nkl.yaml
 
 <br/>
 
-![Cafe Dashboard](media/cafe-dashboard.png)
+![Cafe Dashboard](../media/cafe-dashboard.png)
 
 <br/>
 
-This is not part of the actual Solution, but it is useful to have a well-known application running in the cluster, as a known-good target for test commands.  The example provided here is used by the Solution to demonstrate proper traffic flows, as well as application health check monitoring, to determine if the application is running in the cluster.  
+This is not part of the actual Solution, but it is useful to have a well-known application running in the cluster, as a known-good target for test commands.  The example provided here is used by the Solution to demonstrate proper traffic flows.  
 
-Note: If you choose a different Application to test with, `the Nginx health checks provided here will NOT work,` and will need to be modified to work correctly.
+Note: If you choose a different Application to test with, `the Nginx health checks provided here will likely NOT work,` and will need to be modified to work correctly.
 
-- Deploy the Nginx Cafe Demo application, found here:
+- Use the provided Cafe Demo manifests in the cafe-demo folder:
 
-https://github.com/nginxinc/kubernetes-ingress/tree/main/examples/ingress-resources/complete-example
+  ```bash
+  kubectl apply -f cafe-secret.yaml
+  kubectl apply -f cafe.yaml
+  kubectl apply -f cafe-virtualserver.yaml
+  ```
 
-- The Cafe Demo Docker image used is an upgraded one, with graphics and additional Request and Response variables added.
+- The Cafe Demo reference files are located here:
 
-https://hub.docker.com/r/nginxinc/ingress-demo
-You can use the `cafe.yaml` manifest included.
+  https://github.com/nginxinc/kubernetes-ingress/tree/main/examples/ingress-resources/complete-example
 
-- Do not use the `cafe-ingress.yaml` file.  Rather, use the `cafe-virtualserver.yaml` file that is provided here.  It uses the Nginx CRDs to define a VirtualServer, and the related Routes and Redirects needed.  The `redirects are required` for the LB Server's health checks to work correctly!
+- The Cafe Demo Docker image used is an upgraded one, with simple graphics and additional Request and Response variables added.
 
-```yaml
-#Example virtual server with routes for Cafe Demo
-#For NKL Solution, redirects required for LB Server health checks
-#Chris Akker, Jan 2023
-#
-apiVersion: k8s.nginx.org/v1
-kind: VirtualServer
-metadata:
-  name: cafe-vs
-spec:
-  host: cafe.example.com
-  tls:
-    secret: cafe-secret
-    redirect:
-      enable: true  #Redirect from http > https
-      code: 301
-  upstreams:
-  - name: tea
-    service: tea-svc
-    port: 80
-    lb-method: round_robin
-    slow-start: 20s
-    healthCheck:
-      enable: true
-      path: /tea
-      interval: 20s
-      jitter: 3s
-      fails: 5
-      passes: 2
-      connect-timeout: 30s
-      read-timeout: 20s
-  - name: coffee
-    service: coffee-svc
-    port: 80
-    lb-method: round_robin
-    healthCheck:
-      enable: true
-      path: /coffee
-      interval: 10s
-      jitter: 3s
-      fails: 3
-      passes: 2
-      connect-timeout: 30s
-      read-timeout: 20s
-  routes:
-  - path: /
-    action:
-      redirect:
-        url: https://cafe.example.com/coffee
-        code: 302  #Redirect from / > /coffee
-  - path: /tea
-    action:
-      pass: tea
-  - path: /coffee
-    action:
-      pass: coffee
-```
+  https://hub.docker.com/r/nginxinc/ingress-demo
+
+**IMPORTANT** - Do not use the `cafe-ingress.yaml` file.  Rather, use the `cafe-virtualserver.yaml` file that is provided here.  It uses the Nginx Plus CRDs to define a VirtualServer, and the related Virtual Server Routes needed.  If you are using Nginx OSS Ingress Controller, you will need to comment out the healthcheck parameters.
 
 <br/>
 
 ## Linux VM or bare-metal LB Server
 
-![Linux](media/linux-icon.png)
+![Linux](../media/linux-icon.png)
 
 
 This is any standard Linux OS system, based on the Linux Distro and Technical Specs required for Nginx Plus, which can be found here: https://docs.nginx.com/nginx/technical-specs/   
@@ -189,7 +157,7 @@ This Solution followed the "Installation of Nginx Plus on Centos/Redhat/Oracle" 
 
 <br/>
 
-![Nginx Red Plus](media/nginxredplus.png)
+![Nginx Red Plus](../media/nginxredplus.png)
 
 <br/>
 
@@ -208,7 +176,7 @@ After the new installation of Nginx Plus, make the following configuration chang
 ```bash
 cat /etc/nginx/conf.d/default.conf
 # Nginx K8s Loadbalancer Solution
-# Chris Akker, Jan 2023
+# Chris Akker, Apr 2023
 # Example default.conf
 # Change default_server to port 8080
 #
@@ -240,7 +208,7 @@ server {
 
 - Use the dashboard.conf file provided.  It will enable the /api endpoint, change the port to 9000, and provide access to the Plus Dashboard.  Place this file in the /etc/nginx/conf.d folder, and reload nginx.  The Plus dashboard is now accessible at http://nginx-lb-server-ip:9000/dashboard.html.  It should look similar to this:
 
-![NGINX Dashboard](media/nginxlb-dashboard.png)
+![NGINX Dashboard](../media/nginxlb-dashboard.png)
 
 - Create a new folder for the stream config .conf files.  /etc/nginx/stream is used in this Solution.
 
@@ -265,7 +233,7 @@ touch /var/lib/nginx/state/nginx-lp-https.state
 cat /etc/nginx/nginx.conf
 
 # Nginx K8s Loadbalancer Solution
-# Chris Akker, Jan 2023
+# Chris Akker, Apr 2023
 # Example nginx.conf
 # Enable Stream context, add /var/log/nginx/stream.log
 #
@@ -333,7 +301,7 @@ stream {
 
 ```bash
 # NginxK8sLB Stream configuration, for L4 load balancing
-# Chris Akker, Jan 2023
+# Chris Akker, Apr 2023
 # TCP Proxy and load balancing block
 # Nginx Kubernetes Loadbalancer
 # State File for persistent reloads/restarts
@@ -378,7 +346,7 @@ stream {
 
 <br/>
 
-![NIC](media/nginx-ingress-icon.png)
+![NIC](../media/nginx-ingress-icon.png)
 
 <br/>
 
@@ -439,7 +407,7 @@ kubectl describe cm nkl-config -n nkl
 
 The status should show "running", your nginx-hosts should have the LB Server IP:Port/api.
 
-![NKL Running](media/nkl-pod-configmap.png)
+![NKL Running](../media/nkl-pod-configmap.png)
 
 To make it easy to watch the NKL controller log messages, add the following bash alias:
 
@@ -467,7 +435,7 @@ Verify that the `nginx-ingress` NodePort Service is properly defined:
 kubectl get svc nginx-ingress -n nginx-ingress
 ```
 
-![Nginx Ingress NodePort Service](media/nkl-nodeport.png)
+![Nginx Ingress NodePort Service](../media/nkl-nodeport.png)
 
 
 <br/>
@@ -476,7 +444,7 @@ kubectl get svc nginx-ingress -n nginx-ingress
 
 When you are finished, the Nginx Plus Dashboard on the LB Server should look similar to the following image:
 
-![NGINX Upstreams Dashboard](media/nginxlb-upstreams.png)
+![NGINX Upstreams Dashboard](../media/nginxlb-upstreams.png)
 
 Important items for reference:
 - Orange are the upstream server blocks, from the `etc/nginx/stream/nginxk8slb.conf` file.
@@ -510,11 +478,11 @@ kubectl delete -f nodeport-nkl.yaml
 
 Now the `nginx-ingress` Service is gone, and the upstream list will be empty in the Dashboard.
 
-![NGINX No NodePort](media/nkl-no-nodeport.png)
+![NGINX No NodePort](../media/nkl-no-nodeport.png)
 
 The NKL log messages confirm the deletion of the NodePorts:
 
-![NGINX No NodePort](media/nkl-logs-deleted.png)
+![NGINX No NodePort](../media/nkl-logs-deleted.png)
 
 If you refresh the cafe.example.com browser page, it will Time Out.  There are NO upstreams for Nginx to send the request to!
 
@@ -528,7 +496,7 @@ Verify the nginx-ingress Service is re-created.  Notice the the Port Numbers hav
 
 The NKL Controller detects this change, and modifies the upstreams.  The Dashboard will show you the new Port numbers, matching the new NodePort definitions.  The NKL logs show these messages, confirming the changes:
 
-![NGINX No NodePort](media/nkl-logs-created.png)
+![NGINX No NodePort](../media/nkl-logs-created.png)
 
 <br/>
 
