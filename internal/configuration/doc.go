@@ -4,7 +4,7 @@
  */
 
 /*
-Package config, application configuration.
+Package config includes application configuration.
 */
 
 package configuration

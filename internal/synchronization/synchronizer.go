@@ -17,18 +17,31 @@ import (
 	"k8s.io/client-go/util/workqueue"
 )
 
+// Interface defines the interface needed to implement a synchronizer.
 type Interface interface {
+
+	// AddEvents adds a list of events to the queue.
 	AddEvents(events core.ServerUpdateEvents)
+
+	// AddEvent adds an event to the queue.
 	AddEvent(event *core.ServerUpdateEvent)
+
+	// Run starts the synchronizer.
 	Run(stopCh <-chan struct{})
+
+	// ShutDown shuts down the synchronizer.
 	ShutDown()
 }
 
+// Synchronizer is responsible for synchronizing the state of the Border Servers.
+// Operating against the "nkl-synchronizer", it handles events by creating a Border Client as specified in the
+// Service annotation for the Upstream. see application/border_client.go and application/application_constants.go for details.
 type Synchronizer struct {
 	eventQueue workqueue.RateLimitingInterface
 	settings   *configuration.Settings
 }
 
+// NewSynchronizer creates a new Synchronizer.
 func NewSynchronizer(settings *configuration.Settings, eventQueue workqueue.RateLimitingInterface) (*Synchronizer, error) {
 	synchronizer := Synchronizer{
 		eventQueue: eventQueue,
@@ -38,6 +51,8 @@ func NewSynchronizer(settings *configuration.Settings, eventQueue workqueue.Rate
 	return &synchronizer, nil
 }
 
+// AddEvents adds a list of events to the queue. If no hosts are specified this is a null operation.
+// Events will fan out to the number of hosts specified before being added to the queue.
 func (s *Synchronizer) AddEvents(events core.ServerUpdateEvents) {
 	logrus.Debugf(`Synchronizer::AddEvents adding %d events`, len(events))
 
@@ -53,6 +68,8 @@ func (s *Synchronizer) AddEvents(events core.ServerUpdateEvents) {
 	}
 }
 
+// AddEvent adds an event to the queue. If no hosts are specified this is a null operation.
+// Events will be added to the queue after a random delay between MinMillisecondsJitter and MaxMillisecondsJitter.
 func (s *Synchronizer) AddEvent(event *core.ServerUpdateEvent) {
 	logrus.Debugf(`Synchronizer::AddEvent: %#v`, event)
 
@@ -65,6 +82,7 @@ func (s *Synchronizer) AddEvent(event *core.ServerUpdateEvent) {
 	s.eventQueue.AddAfter(event, after)
 }
 
+// Run starts the Synchronizer, spins up Goroutines to process events, and waits for a stop signal.
 func (s *Synchronizer) Run(stopCh <-chan struct{}) {
 	logrus.Debug(`Synchronizer::Run`)
 
@@ -75,11 +93,15 @@ func (s *Synchronizer) Run(stopCh <-chan struct{}) {
 	<-stopCh
 }
 
+// ShutDown stops the Synchronizer and shuts down the event queue
 func (s *Synchronizer) ShutDown() {
 	logrus.Debugf(`Synchronizer::ShutDown`)
 	s.eventQueue.ShutDownWithDrain()
 }
 
+// buildBorderClient creates a Border Client for the specified event.
+// NOTE: There is an open issue (https://github.com/nginxinc/nginx-k8s-loadbalancer/issues/36) to move creation
+// of the underlying Border Server client to the NewBorderClient function.
 func (s *Synchronizer) buildBorderClient(event *core.ServerUpdateEvent) (application.Interface, error) {
 	logrus.Debugf(`Synchronizer::buildBorderClient`)
 
@@ -98,6 +120,7 @@ func (s *Synchronizer) buildBorderClient(event *core.ServerUpdateEvent) (applica
 	return application.NewBorderClient(event.ClientType, ngxClient)
 }
 
+// fanOutEventToHosts takes a list of events and returns a list of events, one for each Border Server.
 func (s *Synchronizer) fanOutEventToHosts(event core.ServerUpdateEvents) core.ServerUpdateEvents {
 	logrus.Debugf(`Synchronizer::fanOutEventToHosts: %#v`, event)
 
@@ -115,6 +138,7 @@ func (s *Synchronizer) fanOutEventToHosts(event core.ServerUpdateEvents) core.Se
 	return events
 }
 
+// handleEvent dispatches an event to the proper handler function.
 func (s *Synchronizer) handleEvent(event *core.ServerUpdateEvent) error {
 	logrus.Debugf(`Synchronizer::handleEvent: Id: %s`, event.Id)
 
@@ -141,6 +165,7 @@ func (s *Synchronizer) handleEvent(event *core.ServerUpdateEvent) error {
 	return err
 }
 
+// handleCreatedUpdatedEvent handles events of type Created or Updated.
 func (s *Synchronizer) handleCreatedUpdatedEvent(serverUpdateEvent *core.ServerUpdateEvent) error {
 	logrus.Debugf(`Synchronizer::handleCreatedUpdatedEvent: Id: %s`, serverUpdateEvent.Id)
 
@@ -158,6 +183,7 @@ func (s *Synchronizer) handleCreatedUpdatedEvent(serverUpdateEvent *core.ServerU
 	return nil
 }
 
+// handleDeletedEvent handles events of type Deleted.
 func (s *Synchronizer) handleDeletedEvent(serverUpdateEvent *core.ServerUpdateEvent) error {
 	logrus.Debugf(`Synchronizer::handleDeletedEvent: Id: %s`, serverUpdateEvent.Id)
 
@@ -175,6 +201,7 @@ func (s *Synchronizer) handleDeletedEvent(serverUpdateEvent *core.ServerUpdateEv
 	return nil
 }
 
+// handleNextEvent pulls an event from the event queue and feeds it to the event handler with retry logic
 func (s *Synchronizer) handleNextEvent() bool {
 	logrus.Debug(`Synchronizer::handleNextEvent`)
 
@@ -191,12 +218,14 @@ func (s *Synchronizer) handleNextEvent() bool {
 	return true
 }
 
+// worker is the main message loop
 func (s *Synchronizer) worker() {
 	logrus.Debug(`Synchronizer::worker`)
 	for s.handleNextEvent() {
 	}
 }
 
+// withRetry handles errors from the event handler and requeues events that fail
 func (s *Synchronizer) withRetry(err error, event *core.ServerUpdateEvent) {
 	logrus.Debug("Synchronizer::withRetry")
 	if err != nil {

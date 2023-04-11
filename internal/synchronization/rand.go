@@ -10,8 +10,13 @@ import (
 	"time"
 )
 
+// charset contains all characters that can be used in random string generation
 var charset = []byte("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+// number contains all numbers that can be used in random string generation
 var number = []byte("0123456789")
+
+// alphaNumeric contains all characters and numbers that can be used in random string generation
 var alphaNumeric = append(charset, number...)
 
 // RandomString where n is the length of random string we want to generate
@@ -24,6 +29,7 @@ func RandomString(n int) string {
 	return string(b)
 }
 
+// RandomMilliseconds returns a random duration between min and max milliseconds
 func RandomMilliseconds(min, max int) time.Duration {
 	randomizer := rand.New(rand.NewSource(time.Now().UnixNano()))
 	random := randomizer.Intn(max-min) + min

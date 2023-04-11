@@ -11,6 +11,9 @@ import (
 	"time"
 )
 
+// NewHttpClient is a factory method to create a new Http Client with a default configuration.
+// RoundTripper is a wrapper around the default net/communication Transport to add additional headers, in this case,
+// the Headers are configured for JSON.
 func NewHttpClient() (*netHttp.Client, error) {
 	headers := NewHeaders()
 	tlsConfig := NewTlsConfig()
@@ -25,6 +28,7 @@ func NewHttpClient() (*netHttp.Client, error) {
 	}, nil
 }
 
+// NewHeaders is a factory method to create a new basic Http Headers slice.
 func NewHeaders() []string {
 	return []string{
 		"Content-Type: application/json",
@@ -32,10 +36,13 @@ func NewHeaders() []string {
 	}
 }
 
+// NewTlsConfig is a factory method to create a new basic Tls Config.
+// More attention should be given to the use of `InsecureSkipVerify: true`, as it is not recommended for production use.
 func NewTlsConfig() *tls.Config {
 	return &tls.Config{InsecureSkipVerify: true}
 }
 
+// NewTransport is a factory method to create a new basic Http Transport.
 func NewTransport(config *tls.Config) *netHttp.Transport {
 	transport := netHttp.DefaultTransport.(*netHttp.Transport)
 	transport.TLSClientConfig = config

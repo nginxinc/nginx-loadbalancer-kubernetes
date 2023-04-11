@@ -11,11 +11,13 @@ import (
 	nginxClient "github.com/nginxinc/nginx-plus-go-client/client"
 )
 
+// TcpBorderClient implements the BorderClient interface for TCP upstreams.
 type TcpBorderClient struct {
 	BorderClient
 	nginxClient NginxClientInterface
 }
 
+// NewTcpBorderClient is the Factory function for creating an TcpBorderClient.
 func NewTcpBorderClient(client interface{}) (Interface, error) {
 	ngxClient, ok := client.(NginxClientInterface)
 	if !ok {
@@ -27,6 +29,7 @@ func NewTcpBorderClient(client interface{}) (Interface, error) {
 	}, nil
 }
 
+// Update manages the Upstream servers for the Upstream Name given in the ServerUpdateEvent.
 func (tbc *TcpBorderClient) Update(event *core.ServerUpdateEvent) error {
 	streamUpstreamServers := asNginxStreamUpstreamServers(event.UpstreamServers)
 	_, _, _, err := tbc.nginxClient.UpdateStreamServers(event.UpstreamName, streamUpstreamServers)
@@ -37,6 +40,7 @@ func (tbc *TcpBorderClient) Update(event *core.ServerUpdateEvent) error {
 	return nil
 }
 
+// Delete deletes the Upstream server for the Upstream Name given in the ServerUpdateEvent.
 func (tbc *TcpBorderClient) Delete(event *core.ServerUpdateEvent) error {
 	err := tbc.nginxClient.DeleteStreamServer(event.UpstreamName, event.UpstreamServers[0].Host)
 	if err != nil {
