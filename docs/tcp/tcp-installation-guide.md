@@ -6,8 +6,8 @@
 
 <br/>
 
-![Kubernetes](../media/kubernetes-icon.png) | ![Nginx Plus](../media/nginx-plus-icon.png) | ![NIC](../media/nginx-ingress-icon.png)
---- | --- | ---
+![Kubernetes](../media/kubernetes-icon.png) | ![NKL](../media/nkl-logo.png) | ![Nginx Plus](../media/nginx-plus-icon.png) | ![NIC](../media/nginx-ingress-icon.png)
+--- | --- | --- | ---
 
 <br/>
 
@@ -26,7 +26,7 @@ This Solution from Nginx provides Enterprise class features which address common
 
 <br/>
 
-![NKL Solution Overview](../media/nginxlb-nklv2.png)
+![NKL Solution Overview](../media/nkl-stream-diagram.png)
 
 <br/>
 
@@ -106,6 +106,14 @@ Apply the updated nodeport-nkl.yaml Manifest:
 kubectl apply -f nodeport-nkl.yaml
 ```
 
+Verify the NodePort is now defined:
+
+```bash
+kubectl get svc nginx-ingress -n nginx-ingress
+```
+
+![NKL NodePort](../media/nkl-stream-nodeport.png)
+
 <br/>
 
 ## Demo Application
@@ -144,7 +152,6 @@ Note: If you choose a different Application to test with, `the Nginx health chec
 
 ![Linux](../media/linux-icon.png)
 
-
 This is any standard Linux OS system, based on the Linux Distro and Technical Specs required for Nginx Plus, which can be found here: https://docs.nginx.com/nginx/technical-specs/   
 
 This Solution followed the "Installation of Nginx Plus on Centos/Redhat/Oracle" steps for installing Nginx Plus.  
@@ -157,7 +164,7 @@ This Solution followed the "Installation of Nginx Plus on Centos/Redhat/Oracle" 
 
 <br/>
 
-![Nginx Red Plus](../media/nginxredplus.png)
+![Nginx Red Plus](../media/nginx-red-plus.png)
 
 <br/>
 
@@ -208,9 +215,9 @@ server {
 
 - Use the dashboard.conf file provided.  It will enable the /api endpoint, change the port to 9000, and provide access to the Plus Dashboard.  Place this file in the /etc/nginx/conf.d folder, and reload nginx.  The Plus dashboard is now accessible at http://nginx-lb-server-ip:9000/dashboard.html.  It should look similar to this:
 
-![NGINX Dashboard](../media/nginxlb-dashboard.png)
+![NGINX Dashboard](../media/nkl-stream-dashboard.png)
 
-- Create a new folder for the stream config .conf files.  /etc/nginx/stream is used in this Solution.
+- Create a new folder for the stream config .conf files.  `/etc/nginx/stream` is used in this Solution.
 
 ```bash
 mkdir /etc/nginx/stream
@@ -342,16 +349,15 @@ stream {
 
 <br/>
 
-## Nginx Kubernetes Loadbalancing Controller
+## NKL - Nginx Kubernetes Loadbalancing Controller
 
 <br/>
 
-![NIC](../media/nginx-ingress-icon.png)
+![NIC](../media/nkl-logo.png)
 
 <br/>
 
-
-This is the new Controller, which is configured to watch the k8s environment, the nginx-ingress Service object, and send API updates to the Nginx LB Server when there are changes.  It only requires three things.
+This is the new Controller, which is configured to watch the K8s environment, the `nginx-ingress Service` object, and send API updates to the Nginx LB Server when there are changes.  It only requires three things.
 
 - New kubernetes namespace and RBAC
 - NKL ConfigMap, to configure the Controller
@@ -407,7 +413,7 @@ kubectl describe cm nkl-config -n nkl
 
 The status should show "running", your nginx-hosts should have the LB Server IP:Port/api.
 
-![NKL Running](../media/nkl-pod-configmap.png)
+![NKL Running](../media/nkl-configmap.png)
 
 To make it easy to watch the NKL controller log messages, add the following bash alias:
 
@@ -435,7 +441,7 @@ Verify that the `nginx-ingress` NodePort Service is properly defined:
 kubectl get svc nginx-ingress -n nginx-ingress
 ```
 
-![Nginx Ingress NodePort Service](../media/nkl-nodeport.png)
+![Nginx Ingress NodePort Service](../media/nkl-stream-nodeport.png)
 
 
 <br/>
@@ -444,7 +450,7 @@ kubectl get svc nginx-ingress -n nginx-ingress
 
 When you are finished, the Nginx Plus Dashboard on the LB Server should look similar to the following image:
 
-![NGINX Upstreams Dashboard](../media/nginxlb-upstreams.png)
+![NGINX Upstreams Dashboard](../media/nkl-stream-upstreams.png)
 
 Important items for reference:
 - Orange are the upstream server blocks, from the `etc/nginx/stream/nginxk8slb.conf` file.
@@ -455,6 +461,9 @@ Important items for reference:
 - 10.1.1.8
 - 10.1.1.10
 
+Note:  K8s Control Nodes are excluded intentionally.
+
+<br/>
 
 Configure DNS, or the local hosts file, for cafe.example.com > NginxLB Server IP Address.  In this example:
 
@@ -478,11 +487,11 @@ kubectl delete -f nodeport-nkl.yaml
 
 Now the `nginx-ingress` Service is gone, and the upstream list will be empty in the Dashboard.
 
-![NGINX No NodePort](../media/nkl-no-nodeport.png)
+![NGINX No NodePort](../media/nkl-stream-no-nodeport.png)
 
 The NKL log messages confirm the deletion of the NodePorts:
 
-![NGINX No NodePort](../media/nkl-logs-deleted.png)
+![NGINX No NodePort](../media/nkl-stream-logs-deleted.png)
 
 If you refresh the cafe.example.com browser page, it will Time Out.  There are NO upstreams for Nginx to send the request to!
 
@@ -496,11 +505,15 @@ Verify the nginx-ingress Service is re-created.  Notice the the Port Numbers hav
 
 The NKL Controller detects this change, and modifies the upstreams.  The Dashboard will show you the new Port numbers, matching the new NodePort definitions.  The NKL logs show these messages, confirming the changes:
 
-![NGINX No NodePort](../media/nkl-logs-created.png)
+![NGINX No NodePort](../media/nkl-stream-logs-created.png)
 
 <br/>
 
 The Completes the Testing Section.
 
+<br/>
 
+## Authors
+- Chris Akker - Solutions Architect - Community and Alliances @ F5, Inc.
+- Steve Wagner - Solutions Architect - Community and Alliances @ F5, Inc.
 

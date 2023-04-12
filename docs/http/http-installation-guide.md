@@ -6,23 +6,26 @@
 
 <br/>
 
-![Kubernetes](../media/kubernetes-icon.png) | ![Nginx Plus](../media/nginx-plus-icon.png) | ![NIC](../media/nginx-ingress-icon.png)
---- | --- | ---
+![Kubernetes](../media/kubernetes-icon.png) | ![NKL](../media/nkl-logo.png)| ![Nginx Plus](../media/nginx-plus-icon.png) | ![NIC](../media/nginx-ingress-icon.png)
+--- | --- | --- | ---
 
 <br/>
 
 ## Solution Overview
 
-This Solution from Nginx provides Enterprise class features which address common challenges with networking, traffic management, and High Availability for On-Premises Kubernetes Clusters.
+This Solution from Nginx provides Enterprise class features which address common challenges with networking, traffic management, and High Availability for `On-Premises Kubernetes Clusters`.
 
-1. Provides a `replacement Loadbalancer Service.`  The Loadbalancer Service is a key component provided by most Cloud Providers.  However, when running a cluster On Premises, the `Loadbalancer Service is not available.`  This Solution provides a replacement, using an Nginx Server, and a new K8s Controller.  These two components work together to watch the `NodePort Service` in the cluster, and immediately update the Nginx LB Server when changes occur.  No more static `ExternalIP` needed in your loadbalancer.yaml Manifests!
-2. Provides MultiCluster Load Balancing, traffic steering, health checks, TLS termination, advanced LB algorithms, and enhanced metrics.
+1. Provides a `replacement Loadbalancer Service.`  The Loadbalancer Service is a key component provided by most Cloud Providers.  However, when running a cluster On Premises, the `Loadbalancer Service is not available.`  This Solution provides a replacement, using an Nginx Server, and a new K8s Controller from Nginx.  These two components work together to watch the `NodePort Service` in the cluster, and immediately update the Nginx LB Server when changes occur.  
+>No static `ExternalIP` needed in your loadbalancer.yaml Manifests!
+2. Provides `MultiCluster Load Balancing`, traffic steering, health checks, TLS termination, advanced LB algorithms, and enhanced metrics.
 3. Provides dynamic, ratio-based Load Balancing for Multiple Clusters.  This allows for advanced traffic steering, and operation efficiency with no Reloads or downtime.
-  - High Availability
-  - Horizontal Cluster scaling
-  - Non-stop seemless K8s Cluster upgrades, migrations, patching
-  - HTTP Split clients for A/B, Blue/Green, and Canary testing and production traffic
-  - Additional security features like App Protect Firewall, JWT auth, Rate Limiting, Service and Bandwidth controls, FIPS, advanced TLS features.
+   - MultiCluster Active/Active Load Balancing
+   - Horizontal Cluster Scaling
+   - HTTP Split Clients - for A/B, Blue/Green, and Canary test and production traffic steering.  Allows Cluster operations/maintainence like upgrades, patching, expansion and troubleshooting
+   - Nginx Zone Sync of KeyVal data
+   - Advanced TLS Processing - MutualTLS, OCSP, FIPS, dynamic cert loading
+   - Advanced Security features - App Protect WAF Firewall, Oauth, JWT, Dynamic Rate and Bandwidth limits, GeoIP, IP block/allow lists
+   - Nginx Java Script (NJS) for custom solutions
 
 <br/>
 
@@ -35,7 +38,7 @@ This Solution from Nginx provides Enterprise class features which address common
 - Working kubernetes clusters, with admin privleges
 - Running `nginx-ingress controller`, either OSS or Plus. This install guide followed the instructions for deploying an Nginx Ingress Controller here:  https://docs.nginx.com/nginx-ingress-controller/installation/installation-with-manifests/
 - Demo application, this install guide uses the Nginx Cafe example, found here:  https://github.com/nginxinc/kubernetes-ingress/tree/main/examples/ingress-resources/complete-example
-- A bare metal Linux server or VM for the external LB Server, connected to a network external to the cluster.  Two of these will be required if High Availability is needed, as shown here.
+- A bare metal Linux server or VM for the external Nginx LB Server, connected to a network external to the cluster.  Two of these will be required if High Availability is needed, as shown here.
 - Nginx Plus software loaded on the LB Server(s). This install guide follows the instructions for installing Nginx Plus on Centos 7, located here: https://docs.nginx.com/nginx/admin-guide/installing-nginx/installing-nginx-plus/
 - The Nginx Kubernetes Loadbalancer (NKL) Controller, new software for this Solution.
 
@@ -49,7 +52,7 @@ This Solution from Nginx provides Enterprise class features which address common
 
 <br/>
 
-A standard K8s cluster is all that is required, two or more Clusters if you want to MultiCluster LB using HTTP Split Clients.  There must be enough resources available to run the Nginx Ingress Controller, and the Nginx Kubernetes Loadbalancer Controller, and test application like the Cafe Demo.  You must have administrative access to be able to create the namespace, services, and deployments for this Solution.  This Solution was tested on Kubernetes version 1.23.  Most recent versions => v1.21 should work just fine.
+A standard K8s cluster is all that is required, two or more Clusters if you want `Active/Active MultiCluster Load Balancing` using HTTP Split Clients.  There must be enough resources available to run the Nginx Ingress Controller, and the Nginx Kubernetes Loadbalancer Controller, and test application like the Cafe Demo.  You must have administrative access to be able to create the namespace, services, and deployments for this Solution.  This Solution was tested on Kubernetes version 1.23.  Most recent versions => v1.21 should work just fine.
 
 <br/>
 
@@ -108,7 +111,7 @@ kubectl apply -f nodeport-cluster1.yaml
 
 **NOTE:** If you have a second K8s cluster, and you want to Load Balance both Clusters using the MultiCluster Solution, repeat the appropriates steps on your second cluster.  
 
-**IMPORTANT:  Do NOT mix and match nodeport-clusterX.yaml files.**  
+**IMPORTANT:  Do not mix and match nodeport-clusterX.yaml files.**  
 
 - `nodeport-cluster1.yaml` must be used for Cluster1, `nodeport-cluster2.yaml` must be used for Cluster2.  The NodePort definitions must match each cluster exactly.
 - Nodeports and manifest files must match the target cluster for the HTTP Split Clients dynamic ratio configuration to work correctly.  
@@ -129,7 +132,7 @@ This is not part of the actual Solution, but it is useful to have a well-known a
 
 Note: If you choose a different Application to test with, `the Nginx health checks provided here will likely NOT work,` and will need to be modified to work correctly.
 
-- Use the provided Cafe Demo manifests in the cafe-demo folder:
+- Use the provided Cafe Demo manifests in the docs/cafe-demo folder:
 
   ```bash
   kubectl apply -f cafe-secret.yaml
@@ -141,24 +144,23 @@ Note: If you choose a different Application to test with, `the Nginx health chec
 
   https://github.com/nginxinc/kubernetes-ingress/tree/main/examples/ingress-resources/complete-example
 
-- The Cafe Demo Docker image used is an upgraded one, with simple graphics and additional Request and Response variables added.
+- The Cafe Demo Docker image used here is an upgraded one, with simple graphics and additional Request and Response variables added.
 
   https://hub.docker.com/r/nginxinc/ingress-demo
 
-**IMPORTANT** - Do not use the `cafe-ingress.yaml` file.  Rather, use the `cafe-virtualserver.yaml` file that is provided here.  It uses the Nginx Plus CRDs to define a VirtualServer, and the related Virtual Server Routes needed.  If you are using Nginx OSS Ingress Controller, you will need to comment out the healthcheck parameters.
+**IMPORTANT** - Do not use the `cafe-ingress.yaml` file.  Rather, use the `cafe-virtualserver.yaml` file that is provided here.  It uses the Nginx Plus CRDs to define a VirtualServer, and the related Virtual Server Routes needed.  If you are using Nginx OSS Ingress Controller, you will need to use the appropriate manifests, which is not covered in this Solution.
 
 <br/>
 
-## Linux VM or bare-metal server
+## Linux VM or bare-metal server for Nginx Plus
 
 ![Linux](../media/linux-icon.png) | ![Nginx Plus](../media/nginx-plus-icon.png)
 
 <br/>
 
-
 This is any standard Linux OS system, based on the Linux Distro and Technical Specs required for Nginx Plus, which can be found here: https://docs.nginx.com/nginx/technical-specs/   
 
-This Solution followed the "Installation of Nginx Plus on Centos/Redhat/Oracle" steps for installing Nginx Plus.  
+This Solution followed the `Installation of Nginx Plus on Centos/Redhat/Oracle` steps for installing Nginx Plus.  
 
 https://docs.nginx.com/nginx/admin-guide/installing-nginx/installing-nginx-plus/
 
@@ -179,7 +181,7 @@ https://www.nginx.com/free-trial-request/
 
 <br/>
 
-This is the Nginx configuration required for the LB Server, external to the cluster.  It must be configured for the following.
+This is the Nginx configuration required for the Nginx LB Server, external to the cluster.  It must be configured for the following:
 
 - Move the Nginx default Welcome page from port 80 to port 8080.  Port 80 will be used by Prometheus in this Solution.
 - The Nginx NJS module is enabled, and configured to export the Nginx Plus statistics.
@@ -249,7 +251,7 @@ server {
 
 ```
 
-- Enable the Nginx Plus dashboard.  Use the dashboard.conf file provided.  It will enable the /api endpoint, change the port to 9000, and provide access to the Plus Dashboard.  Note:  There is no security for the /api endpoint in this example config, it should be secured as approprite with TLS or IP allow list.
+- Enable the Nginx Plus dashboard.  Use the `dashboard.conf` file provided.  It will enable the /api endpoint, change the port to 9000, and provide access to the Plus Dashboard.  Note:  There is no security for the /api endpoint in this example config, it should be secured as approprite with TLS or IP allow list.
 - Place this file in the /etc/nginx/conf.d folder, and reload nginx.  The Plus dashboard is now accessible at http://nginx-lb-server-ip:9000/dashboard.html.  It should look similar to this:
 
 ![NGINX Dashboard](../media/nkl-http-dashboard.png)
@@ -316,7 +318,7 @@ stream {
 
 - Configure Nginx for HTTP processing, load balancing, and MultiCluster split clients for this Solution.
 
-  `Notice that this Solution only uses port 443.`  
+  `Notice that this Solution only uses port 443 and terminates TLS.`  
   
   Place the `clusters.conf` file in the /etc/nginx/conf.d folder, and reload Nginx.  Notice the match block and health check directives are for the cafe.example.com Demo application from Nginx.
 
@@ -473,7 +475,7 @@ map $split_level $upstream {
 
 ```
 
-- Configure Nginx for the Prometheus scraper page, which exports the Plus statistics.  Place the `prometheus.conf` file in /etc/nginx/conf.d and reload Nginx.
+- Configure Nginx for the Prometheus scraper page, which exports the Plus statistics.  Place the `prometheus.conf` file in /etc/nginx/conf.d folder and reload Nginx.
 
 ```bash
 cat /etc/nginx/conf.d/prometheus.conf
@@ -521,7 +523,7 @@ scrape_configs:
       - targets: ['10.1.1.4:80', '10.1.1.5:80']  # Nginx LB Servers
 ```
 
-- High Availability:  If you have 2 or more Nginx Plus LB Servers, you can use Zone Sync to synchronize the Split Key Value Store data between the Nginx Servers automatically.  Use the `zonesync.conf` example file provided, change the IP addresses to match your Nginx LB Servers.  Place this file in /etc/nginx/stream, and reload Nginx.  Note:  This example does not provide any security for the Zone Sync traffic, secure as necessary with TLS or IP allowlist.
+- High Availability:  If you have 2 or more Nginx Plus LB Servers, you can use Zone Sync to synchronize the Split Key Value Store data between the Nginx Servers automatically.  Use the `zonesync.conf` example file provided, change the IP addresses to match your Nginx LB Servers.  Place this file in /etc/nginx/stream folder, and reload Nginx.  Note:  This example does not provide any security for the Zone Sync traffic, secure as necessary with TLS or IP allowlist.
 
 ```bash
 cat zonesync.conf
@@ -558,10 +560,9 @@ Watching the Nginx Plus Dashboard, you will see messages sent/received if Zone S
 
 <br/>
 
-![NIC](../media/nginx-ingress-icon.png)
+![NIC](../media/nkl-logo.png)
 
 <br/>
-
 
 This is the new K8s Controller from Nginx, which is configured to watch the k8s environment, the `nginx-ingress Service` object, and send API updates to the Nginx LB Server when there are changes.  It only requires three things.
 
@@ -625,7 +626,7 @@ To make it easy to watch the NKL Controller log messages, add the following bash
 alias nkl-follow-logs='kubectl -n nkl get pods | grep nkl-deployment | cut -f1 -d" "  | xargs kubectl logs -n nkl --follow $1'
 ```
 
-Using a new Terminal, watch the NKL Controller logs:
+Using a new Terminal, watch the NKL Controller log:
 
 ```bash
 nkl-follow-logs
@@ -646,7 +647,11 @@ kubectl get svc nginx-ingress -n nginx-ingress
 ```
 
 ![Nginx Ingress NodePort Service](../media/nkl-cluster1-nodeport.png)
+![Nginx Ingress NodePort Service](../media/nkl-cluster1-upstreams.png)
 
+### NodePort is 443:30267, K8s Workers are 10.1.1.8 and .10.
+
+<br/>
 <br/>
 
 ## MultiCluster Solution
@@ -661,14 +666,14 @@ If you plan to implement and test the MultiCluster Load Balancing Solution, repe
 
 When you are finished, the Nginx Plus Dashboard on the LB Server should look similar to the following image:
 
-![NGINX Upstreams Dashboard](../media/nkl-cluster1-upstreams.png)
+![NGINX Upstreams Dashboard](../media/nkl-multicluster-upstreams.png)
 
 Important items for reference:
 - Orange are the upstream server blocks, from the `etc/nginx/conf.d/clusters.conf` file.
 - If both NKL Controllers are working, it will update the correct `clusterX-https` upstream block. 
 - The IP addresses will match the K8s worker nodes, the port numbers will match the NodePort definitions for nginx-ingress Service from each cluster.
 
->Note: In this example, there is a 3-Node K8s cluster, with one Control Node, and 2 Worker Nodes.  The NKL Controller only configures `Worker Node` IP addresses, from Cluster1, which are:
+>Note: In this example, there is a 3-Node K8s cluster, with one Control Node, and 2 Worker Nodes.  The NKL Controller only configures Nginx with `Worker Node` IP addresses, from Cluster1, which are:
 - 10.1.1.8
 - 10.1.1.10
 
@@ -676,7 +681,9 @@ Cluster2 Worker Node addresses are:
 - 10.1.1.11
 - 10.1.1.12
 
+Notice: K8s Control Nodes are excluded from the list intentionally.
 
+<br/>
 
 Configure DNS, or the local hosts file, for cafe.example.com > NginxLB Server IP Address.  In this example:
 
@@ -688,7 +695,7 @@ cat /etc/hosts
 
 Open a browser tab to https://cafe.example.com/coffee.  
 
-The Dashboard's `HTTP Upstreams Connection counters` will increase as you refresh the browser page.
+The Dashboard's `HTTP Upstreams Requests counters` will increase as you refresh the browser page.
 
 Using a Terminal and `./kube Context set for Cluster1`, delete the `nginx-ingress nodeport service` definition.  
 
@@ -699,15 +706,16 @@ kubectl delete -f nodeport-cluster1.yaml
 Now the `nginx-ingress` Service is gone, and the Cluster1 upstream list will now be empty in the Dashboard.
 
 ![NGINX No Cluster1 NodePort](../media/nkl-cluster1-delete-nodeport.png)
-
+Legend:
 - Orange highlights the Cluster1 and NodePort are deleted.
 - Indigo highlights the NKL Controller log message, successfully deleting the cluster1-https upstreams.
 - Blue highlights the actual API calls to the LB Server, 10.1.1.4.
 - Notice there are 4 Delete Log messages, 2 Worker Nodes X 2 LB Servers.
+- If you are running a second Nginx LB Server for HA, and Zone Sync is working, the cluster1-https upstreams on LB Server#2 will also be empty.  Check the LB Server#2 Dashboard to confirm.
 
-If you refresh the cafe.example.com browser page, it might respond with `502 Bad Gateway`.  There are NO upstreams in Cluster1 for Nginx to send the requests to!
+If you refresh the cafe.example.com browser page, 1/2 of the requests will respond with `502 Bad Gateway`.  There are NO upstreams in Cluster1 for Nginx to send the requests to!
 
-Add the `nginx-ingress` Service back to the cluster:
+Add the `nginx-ingress` Service back to Cluster1:
 
 ```
 kubectl apply -f nodeport-cluster1.yaml
@@ -715,23 +723,22 @@ kubectl apply -f nodeport-cluster1.yaml
 
 Verify the nginx-ingress Service is re-created.  Notice the the Port Numbers have changed!
 
-The NKL Controller detects this change, and modifies the LB Server upstreams.  The Dashboard will show you the new Port numbers, matching the new NodePort definitions.  The NKL logs show these messages, confirming the changes:
+`The NKL Controller detects this change, and modifies the LB Server upstreams.`  The Dashboard will show you the new Port numbers, matching the new NodePort definitions.  The NKL logs show these messages, confirming the changes:
 
 ![NKL Add NodePort](../media/nkl-cluster1-add-nodeport.png)
 
 <br/>
 
-## Testiing MultiCluster Loadbalancing with HTTP Split Clients
+## Testing MultiCluster Loadbalancing with HTTP Split Clients
 
-In this section, you will generate some HTTP load on the Nginx LB Server, and watch as it sends traffic to both Clusters.  Then you will `change the Split ratio`, and watch Nginx send differnet traffic levels to each cluster, dynamically.
+In this section, you will generate some HTTP load on the Nginx LB Server, and watch as it sends traffic to both Clusters.  Then you will `dynamically change the Split ratio`, and watch Nginx send different traffic levels to each cluster.
 
-The only took you need for this, is an HTTP load generation tool.  WRK, running in a docker container outside the cluster is what is shown here.
+The only tool you need for this, is an HTTP load generation tool.  WRK, running in a docker container outside the cluster is what is shown here.
 
-1.  Start WRK, on a client outside the cluster.  This command runs WRK for 15 minutes, targets the Nginx LB Server URL of https://10.1.1.4/coffee.  The host header is required, cafe.example.com.
+Start WRK, on a client outside the cluster.  This command runs WRK for 15 minutes, targets the Nginx LB Server URL of https://10.1.1.4/coffee.  The host header is required, cafe.example.com, as Nginx is configured for this server_name. (And so is the Nginx Ingress Controller).
 
 ```bash
 docker run --rm williamyeh/wrk -t2 -c200 -d15m -H 'Host: cafe.example.com' --timeout 2s https://10.1.1.4/coffee
-
 ```
 
 ![nkl Clusters 50-50](../media/nkl-clusters-50.png)
@@ -744,15 +751,21 @@ Add a record to the KV store, by sending an API command to Nginx Plus:
 curl -iX POST -d '{"cafe.example.com":50}' http://nginxlb:9000/api/8/http/keyvals/split
 ```
 
-Check the API record is there:
+Verify the API record is there, on both Nginx LB Servers:
 ```bash
 curl http://nginxlb:9000/api/8/http/keyvals/split
+curl http://nginxlb2:9000/api/8/http/keyvals/split
 ```
+
 ![NginxLB KeyVal](../media/nkl-keyval-split.png)
 
-Notice the delta in HTTP Response Time, Cluster2 is running much faster than Cluster1 !
+If the KV data is missing on one LB Server, your Zone Sync must be fixed.
+
+>Notice the difference in HTTP Response Times, Cluster2 is running much faster than Cluster1 !  (The Red and Green highlights on the Dashboard)
 
 So, you decide to send less traffic to Cluster1, and more to Cluster2.  You will set the HTTP Split ratio to 10/90 = 10% to Cluster1, 90% to Cluster2.
+
+Remember:  This Solution example configures Nginx for Cluster1 to use the Split value, and the remaining percentage of traffic is sent to Cluster2.
 
 Change the KV Split Ratio to 10:
 ```bash
@@ -761,13 +774,13 @@ curl -iX PATCH -d '{"cafe.example.com":10}' http://nginxlb:9000/api/8/http/keyva
 
 ![NginxLB Clusters 10-90](../media/nkl-clusters-10.png)
 
-Note:  The first time, an HTTP POST is required to ADD a new record to the KV store.  Then you use an HTTP PATCH method to update an existing record, changing the ratio in memory, dynamically, with no reloads or restarts of Nginx required!
+Note:  The first time, an HTTP POST is required to ADD a new record to the KV store.  Then after you use an HTTP PATCH method to update an existing record, changing the ratio value in memory, dynamically, with no reloads or restarts of Nginx required!
 
 Try a few more ratios, see how it works.  If you review the `clusters.conf` file, you will discover what Ratios are provided for you.  You can edit to suit your needs, or course.  Notice the Map directive has a "default" set to "50".  So if you make a mistake, it will Split at a 50/50 ratio.
 
 As you can see, if you set the Ratio to "0", Cluster1 receives NO TRAFFIC, and you can perform k8s maintenance, troubleshooting, upgrades, etc, with no impact to live traffic.  Alternatively, you can set the Ratio to "100", and now Cluster2 receives NO TRAFFIC, and you can work on that cluster - with NO downtime required.
 
-Set the Split back to "50" when you testing is completed.
+Set the Split back to "50" when your testing is completed, and ask the boss for a raise.
 
 ## Prometheus and Grafana
 
@@ -779,9 +792,9 @@ The Completes the Testing Section.
 
 ## Prometheus and Grafana Server
 
-During the testing of the Solution, it is useful to see visually, the load balancing and HTTP Split Ratios using a chart or graph.
+During the testing of the Solution, it is useful to see visually, the load balancing and HTTP Split Ratios using a chart or graph over time.
 
-Here are the instructions to run 2 Docker containers on a Server, which will collect the Nginx Plus statistics from Prometheus, and graph them with Grafana. 
+Here are the instructions to run 2 Docker containers on a Monitor Server, which will collect the Nginx Plus statistics from Prometheus, and graph them with Grafana. 
 
 - Review, edit and place the sample `prometheus.yml` file in /etc/prometheus folder.
 
@@ -791,7 +804,7 @@ Here are the instructions to run 2 Docker containers on a Server, which will col
 sudo docker run --restart always --network="host" -d -p 9090:9090 --name=prometheus -v ~/prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus
 ```
 
-Web console access to the data is on <server-ip:9090>.
+Prometheus Web Console access to the data is on <server-ip:9090>.
 
 - Create a docker volume to store the Grafana data.
 
@@ -807,7 +820,25 @@ sudo docker run --restart always -d -p 3000:3000 --name=grafana -v grafana-stora
 
 Web console access to Grafana is on <server-ip:3000>.  Login is admin/admin.
 
-You can import the provided `grafana-dashboard.json` file to see the Nginx Plus Cluster1 and 2 statistics and Upstream Response Times.
+You can import the provided `grafana-dashboard.json` file to see the Nginx Plus `Cluster1 and 2 statistics` and Upstream Response Times.
+
+- Here are four Grafana Charts of the MultiCluster Solution, under load with WRK, as detailed above.  
+- The Split ratio was started at 50%, then changed using the Plus API at 12:56:30, and then again 3 minutes later at 12:59:30.
+- The first graph is Split Ratio=50, second graph is Split Ratio=10, and third graph is Split Ratio=90.
+- The fourth graph is the HTTP Response Time from both Clusters ... why is Cluster2 so much faster than Cluster1 ???  Good thing Nginx provides way to monitor and adjust the traffic based on real-time metrics :-)
+
+![Nginx LB Split 50 Grafana](../media/nkl-grafana-reqs-50.png)
+![Nginx LB Split 10 Grafana](../media/nkl-grafana-reqs-10.png)
+![Nginx LB Split 90 Grafana](../media/nkl-grafana-reqs-90.png)
+
+![Nginx LB Resp Time Grafana](../media/nkl-grafana-resp.png)
+
+<br/>
 
 ## End of Prometheus and Grafana Section
 
+<br/>
+
+## Authors
+- Chris Akker - Solutions Architect - Community and Alliances @ F5, Inc.
+- Steve Wagner - Solutions Architect - Community and Alliances @ F5, Inc.
