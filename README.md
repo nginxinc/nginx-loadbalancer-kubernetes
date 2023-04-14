@@ -34,7 +34,7 @@ _**NKL is a Kubernetes controller that monitors Services and Nodes in your clust
 That's all well and good, but what does that mean? Well, Kubernetes clusters require some tooling to handling routing traffic from the outside world (e.g.: the Internet, corporate network, etc.) to the cluster. 
 This is typically done with a load balancer. The load balancer is responsible for routing traffic to the appropriate Kubernetes worker node which then forwards the traffic to the appropriate Service / Pod.
 
-If you are using a hosted web solution -- Digital Ocean, AWS, Azure, etc. -- you can use the cloud provider's load balancer service. This service will create a load balancer for you. 
+If you are using a hosted web solution -- Digital Ocean, AWS, Azure, etc. -- you can use the cloud provider's load balancer service. Those services will create a load balancer for you. 
 You can use the cloud provider's API to manage the load balancer, or you can use the cloud provider's web console.
 
 However, if you checked the first box above, you are running Kubernetes on-premise and will need to manage your own load balancer. This is where NKL comes in.
@@ -113,6 +113,11 @@ As a rule, we support the use of [OpenTelemetry](https://opentelemetry.io/) for 
 
 Presently we are not accepting pull requests. However, we welcome your feedback and suggestions. 
 Please open an issue to let us know what you think!
+
+One way to contribute is to help us test NKL. We are looking for people to test NKL in a variety of environments.
+
+If you are curious about the implementation, you should certainly browse the code, but first you might wish to refer to the [Design](docs/DESIGN.md) document. 
+Some of the design decisions are explained there.
 
 ## Roadmap
 
