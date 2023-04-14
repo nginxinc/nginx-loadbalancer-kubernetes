@@ -116,7 +116,7 @@ Please open an issue to let us know what you think!
 
 One way to contribute is to help us test NKL. We are looking for people to test NKL in a variety of environments.
 
-If you are curious about the implementation, you should certainly browse the code, but first you might wish to refer to the [Design](docs/DESIGN.md) document. 
+If you are curious about the implementation, you should certainly browse the code, but first you might wish to refer to the [design document](docs/DESIGN.md). 
 Some of the design decisions are explained there.
 
 ## Roadmap
@@ -127,7 +127,7 @@ To this end, NKL has been architected to be extensible to support other "Border 
 Border Servers are the term NKL uses to describe load-balancers, reverse proxies, etc. that run outside the cluster and handle 
 routing outside traffic to your cluster. 
 
-While we have identified a few potential targets, we are open to suggestions. Please open an issue to share your thoughts on potential targets.
+While we have identified a few potential targets, we are open to suggestions. Please open an issue to share your thoughts on potential implementations.
 
 We look forward to building a community around NKL and value all feedback and suggestions. Varying perspectives and embracing
 diverse ideas will be key to NKL becoming a solution that is useful to the community. We will consider it a success
