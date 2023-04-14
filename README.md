@@ -19,7 +19,7 @@ The NGINX K8s Loadbalancer, or _NKL_, is a Kubernetes controller that provides T
 
 ### Why NKL?
 
-NKL provides a simple, easy-to-manage way to manage load-balancing for your Kubernetes applications by leveraging NGINX Plus hosts running outside your cluster.
+NKL provides a simple, easy-to-manage way to automate load balancing for your Kubernetes applications by leveraging NGINX Plus hosts running outside your cluster.
 
 NKL installs easily, has a small footprint, and is easy to configure and manage.
 
@@ -31,15 +31,15 @@ tl;dr:
 
 _**NKL is a Kubernetes controller that monitors Services and Nodes in your cluster, and then sends API calls to an external NGINX Plus server to manage NGINX Plus Upstream servers automatically.**_
 
-That's all well and good, but what does that mean? From the outside in, Kubernetes clusters require some tooling to handling routing from outside (e.g.: the Internet, corporate network, etc.) to the cluster. 
-This is typically done with a load balancer. The load balancer is responsible for routing traffic to the appropriate Kubernetes worker node which then forwards the traffic to the appropriate Pod.
+That's all well and good, but what does that mean? Well, Kubernetes clusters require some tooling to handling routing traffic from the outside world (e.g.: the Internet, corporate network, etc.) to the cluster. 
+This is typically done with a load balancer. The load balancer is responsible for routing traffic to the appropriate Kubernetes worker node which then forwards the traffic to the appropriate Service / Pod.
 
-If you are using a hosted web solution -- Digital Ocean, AWS, Azure, etc. -- you can use the cloud provider's load balancer service. This service will create a load balancer for you, and then manage the configuration of the load balancer for you. 
+If you are using a hosted web solution -- Digital Ocean, AWS, Azure, etc. -- you can use the cloud provider's load balancer service. This service will create a load balancer for you. 
 You can use the cloud provider's API to manage the load balancer, or you can use the cloud provider's web console.
 
 However, if you checked the first box above, you are running Kubernetes on-premise and will need to manage your own load balancer. This is where NKL comes in.
 
-NKL itself does not perform load balancing. Instead, NKL allows you to manage Service resources within your cluster and have the load balancers automatically be updated to support those changes, all with tooling you are most likely already using. 
+NKL itself does not perform load balancing. Instead, NKL allows you to manage resources within your cluster and have the load balancers automatically be updated to support those changes, with tooling you are most likely already using. 
 
 ## Getting Started
 
@@ -52,11 +52,12 @@ You will not need to clone this repo to use NKL. Instead, you can install NKL us
 
 ### RBAC
 
-As with everything Kubernetes, NKL requires RBAC permissions to function properly. The necessary resources are defined in the various YAML files in `deployement/rabc/`.
+As with everything Kubernetes, NKL requires RBAC permissions to function properly. The necessary resources are defined in the various YAML files in `deployement/rbac/`.
 
 For convenience, two scripts are included, `apply.sh`, and `unapply.sh`. These scripts will apply or remove the RBAC resources, respectively.
 
-The permissions required by NKL are modest. NKL requires the ability to read Resources via shared informers; the resources are Services, Nodes, and ConfigMaps. The Services and ConfigMap are restricted to a specific namespace (default: "nkl"). The Nodes resource is cluster-wide.
+The permissions required by NKL are modest. NKL requires the ability to read Resources via shared informers; the resources are Services, Nodes, and ConfigMaps. 
+The Services and ConfigMap are restricted to a specific namespace (default: "nkl"). The Nodes resource is cluster-wide.
 
 ### Configuration
 
@@ -65,44 +66,53 @@ This contains a comma-separated list of NGINX Plus hosts that NKL will maintain.
 
 You will need to update this ConfigMap to reflect the NGINX Plus hosts you wish to manage.
 
-If you were to deploy the ConfigMap and start NKL without updating the `nginx-hosts` value, don't fear; the ConfigMap is monitored for changes and NKL will update the NGINX Plus hosts accordingly when the resource is changed, no restart required.
+If you were to deploy the ConfigMap and start NKL without updating the `nginx-hosts` value, don't fear; the ConfigMap resource is monitored for changes and NKL will update the NGINX Plus hosts accordingly when the resource is changed, no restart required.
 
 ### Deployment
 
-There is an extensive [Installation Guide](docs/InstallationGuide.md) available in the `docs/` directory. Please refer to that for detailed instructions on how to deploy NKL and run a demo application.
+There is an extensive [Installation Guide](docs/InstallationGuide.md) available in the `docs/` directory. 
+Please refer to that for detailed instructions on how to deploy NKL and run a demo application.
 
 To get NKL up and running in ten steps or fewer, follow these instructions (NOTE, all the aforementioned prerequisites must be met for this to work):
 
 1. Clone this repo (optional, you can simply copy the `deployments/` directory) 
-`git clone git@github.com:nginxinc/nginx-k8s-loadbalancer.git`
+
+```git clone git@github.com:nginxinc/nginx-k8s-loadbalancer.git```
 
 2. Apply the RBAC resources
-`./deployments/rbac/apply.sh`
+
+```./deployments/rbac/apply.sh```
 
 3. Apply the Namespace
-`kubectl apply -f deployments/namespace.yaml`
 
-4. Update / Apply the ConfigMap
-   - For best results add the `nginx-hosts` value to the ConfigMap
-   - `kubectl apply -f deployments/configmap.yaml`
+```kubectl apply -f deployments/namespace.yaml```
+
+4. Update / Apply the ConfigMap (For best results update the `nginx-hosts` values first)
+
+```kubectl apply -f deployments/configmap.yaml```
 
 5. Apply the Deployment
-`kubectl apply -f deployments/deployment.yaml`
+
+```kubectl apply -f deployments/deployment.yaml```
 
 6. Check the logs
-`kubectl -n nkl get pods | grep nkl-deployment | cut -f1 -d" "  | xargs kubectl logs -n nkl --follow $1`
 
-At this point NKL should be up and running. Now would be a great time to go over to the [Installation Guide](docs/InstallationGuide.md) and follow the instructions to deploy a demo application.
+```kubectl -n nkl get pods | grep nkl-deployment | cut -f1 -d" "  | xargs kubectl logs -n nkl --follow $1```
+
+At this point NKL should be up and running. Now would be a great time to go over to the [Installation Guide](docs/InstallationGuide.md) 
+and follow the instructions to deploy a demo application.
 
 ### Monitoring
 
-Presently NKL includes a fair amount of logging. This is intended to be used for debugging purposes. There are plans to add more robust monitoring and alerting in the future.
+Presently NKL includes a fair amount of logging. This is intended to be used for debugging purposes. 
+There are plans to add more robust monitoring and alerting in the future.
 
-As a rule, we support the use of OpenTelemetry for observability, and we will be adding support in the near future.
+As a rule, we support the use of [OpenTelemetry](https://opentelemetry.io/) for observability, and we will be adding support in the near future.
 
 ## Contributing
 
-Presently we are not accepting pull requests. However, we welcome your feedback and suggestions. Please open an issue to let us know what you think!
+Presently we are not accepting pull requests. However, we welcome your feedback and suggestions. 
+Please open an issue to let us know what you think!
 
 ## Roadmap
 
@@ -114,7 +124,9 @@ routing outside traffic to your cluster.
 
 While we have identified a few potential targets, we are open to suggestions. Please open an issue to share your thoughts on potential targets.
 
-We do hope to realize enough community interest to warrant opening the project to pull requests and other contributions.
+We look forward to building a community around NKL and value all feedback and suggestions. Varying perspectives and embracing
+diverse ideas will be key to NKL becoming a solution that is useful to the community. We will consider it a success
+when we are able to accept pull requests from the community.
 
 ## License
 
