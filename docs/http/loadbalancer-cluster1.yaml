@@ -1,16 +1,26 @@
 # NKL LoadBalancer Service file
+<<<<<<< HEAD
 # Spec -ports name must be in the format of
 # nkl-<upstream-block-name>
 # externalIPs are set to Nginx LB Servers
 # Chris Akker, Apr 2023
+=======
+# NodePort -ports name must be in the format of
+# nkl-<upstream-block-name>
+# externalIPs are set to Nginx LB Servers
+# Chris Akker, Jan 2023
+>>>>>>> add loadbalancer files
 #
 apiVersion: v1
 kind: Service
 metadata:
   name: nginx-ingress
   namespace: nginx-ingress
+<<<<<<< HEAD
   annotations:
     nginxinc.io/nkl-cluster1-https: "http"   # Must be added
+=======
+>>>>>>> add loadbalancer files
 spec:
   type: LoadBalancer
   externalIPs:
@@ -20,6 +30,10 @@ spec:
   - port: 443
     targetPort: 443
     protocol: TCP
+<<<<<<< HEAD
     name: nkl-cluster1-https     # Must match Nginx upstream name
+=======
+    name: nkl-cluster1-https
+>>>>>>> add loadbalancer files
   selector:
     app: nginx-ingress

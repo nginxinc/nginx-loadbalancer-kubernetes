@@ -1,7 +1,10 @@
 # NKL Nodeport Service file
 # NodePort -ports name must be in the format of
 # nkl-<upstream-block-name>
+<<<<<<< HEAD
 # The nginxinc.io Annotation must be added
+=======
+>>>>>>> add loadbalancer files
 # Chris Akker, Apr 2023
 #
 apiVersion: v1
