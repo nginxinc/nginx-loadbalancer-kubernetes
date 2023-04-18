@@ -7,7 +7,11 @@
 
 <br/>
 
+<<<<<<< HEAD
 >With the NGINX Plus Servers located external to the Cluster, using NGINX's advanced HTTP/S features provide Enterprise class traffic management solutions.
+=======
+>With the Nginx Plus Servers located external to the Cluster, using Nginx's advanced HTTP/S features provide Enterprise traffic management solutions.
+>>>>>>> change to NGINX
   
 - MultiCluster Active/Active Load Balancing
 - Horizontal Cluster Scaling
@@ -17,6 +21,7 @@
   - Cluster resource expansions
   - Troubleshooting
   - ^^ With NO downtime or reloads
+<<<<<<< HEAD
 - NGINX Zone Sync of KeyVal data
 - API Gateway functions
 - Advanced TLS Processing - MutualTLS, OCSP, FIPS, dynamic cert loading
@@ -54,6 +59,37 @@ NGINX HTTP Split Clients with Dynamic Ratio -- 10% Cluster1 : 90% Cluster2
 
 ![NGINX HTTP Split 10](../media/nkl-clusters-10.png)
 
+=======
+- Nginx Zone Sync of KeyVal data
+- API Gateway functions
+- Advanced TLS Processing - MutualTLS, OCSP, FIPS, dynamic cert loading
+- Advanced Security features - App Protect WAF Firewall, Oauth, JWT, Dynamic Rate and Bandwidth limits, GeoIP, IP block/allow lists
+- Nginx Java Script (NJS) for custom solutions
+
+<br/>
+
+## Reference Diagram for NKL HTTP Load Balancer Service
+
+<br/>
+
+![NKL MultiCluster Diagram](../media/nkl-multicluster-dagram.png)
+Multiple K8s Clusters, HA Nginx Plus LB, NKL Controllers
+
+<br/>
+
+![NKL MultiCluster NodePort](../media/nkl-cluster1-add-nodeport.png)
+NKL Watching NodePort and Updating HTTP Upstreams
+
+<br/>
+
+![NKL MultiCluster Dashboard](../media/nkl-multicluster-upstreams.png)
+MultiCluster Load Balancing
+
+<br/>
+
+![Nginx HTTP Split 10](../media/nkl-clusters-10.png)
+Nginx HTTP Split Clients with Dynamic Ratio -- 10% Cluster1 : 90% Cluster2 
+>>>>>>> change to NGINX
 
 <br/>
 
@@ -62,7 +98,10 @@ The `Installation Guide` for HTTP MultiCluster Solution is located in the docs/h
 [HTTP MultiCluster Loadbalancing Guide](../http/http-installation-guide.md)
 
 <br/>
+<<<<<<< HEAD
 
 ## Authors
 - Chris Akker - Solutions Architect - Community and Alliances @ F5, Inc.
 - Steve Wagner - Solutions Architect - Community and Alliances @ F5, Inc.
+=======
+>>>>>>> change to NGINX
