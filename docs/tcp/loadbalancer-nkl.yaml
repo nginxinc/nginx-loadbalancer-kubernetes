@@ -1,6 +1,7 @@
-# NKL Nodeport Service file
+# NKL LoadBalancer Service file
 # NodePort -ports name must be in the format of
 # nkl-<upstream-block-name>
+# externalIPs are set to Nginx LB Servers
 # Chris Akker, Apr 2023
 #
 apiVersion: v1
@@ -9,7 +10,10 @@ metadata:
   name: nginx-ingress
   namespace: nginx-ingress
 spec:
-  type: NodePort 
+  type: LoadBalancer
+  externalIPs:
+  - 10.1.1.4
+  - 10.1.1.5 
   ports:
   - port: 80
     targetPort: 80
