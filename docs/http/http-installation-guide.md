@@ -80,7 +80,7 @@ A standard K8s cluster is all that is required, two or more Clusters if you want
 
 The NGINX Ingress Controller in this Solution is the destination target for traffic (north-south) that is being sent to the cluster(s).  The installation of the actual Ingress Controller is outside the scope of this guide, but the links to the docs are included for your reference.  `The NIC installation using Manifests must follow the documents exactly as written,` as this Solution depends on the `nginx-ingress` namespace and service objects.  **Only the very last step is changed.**  
 
-**NOTE:** This Solution only works with `nginx-ingress from NGINX`.  It will `not` work with the K8s Community version of Ingress, called ingress-nginx.  
+**NOTE:** This Solution only works with `nginx-ingress from NGINX`.  It will not work with the K8s Community version of Ingress, called ingress-nginx.  
 
 If you are unsure which Ingress Controller you are running, check out the blog on nginx.com:  
     
@@ -205,7 +205,7 @@ https://www.nginx.com/free-trial-request/
 - Plus Dashboard enabled, used for testing, monitoring, and visualization of the Solution working.
 - The `http` context is used for MultiCluster Loadbalancing, for HTTP/S processing, Split Clients ratio, and prometheus exporting.
 - Plus KeyValue store is configured, to hold the dynamic Split ratio metadata.
-- Plus Zone Sync on Port 9001 is configured, to synchronize the dynamic KVstore data between multiple NGINX LB Servers.
+- Plus Zone Sync on Port 9001 is configured, to synchronize the dynamic KeyVal data between multiple NGINX LB Servers.
 
 <br/>
 
@@ -516,7 +516,7 @@ server {
 
 ```
 
-- High Availability:  If you have 2 or more NGINX Plus LB Servers, you can use Zone Sync to synchronize the Split Key Value Store data between the NGINX Servers automatically.  Use the `zonesync.conf` example file provided, change the IP addresses to match your NGINX LB Servers.  Place this file in /etc/nginx/stream folder, and reload NGINX.  Note:  This example does not provide any security for the Zone Sync traffic, secure as necessary with TLS or IP allowlist.
+- High Availability:  If you have 2 or more NGINX Plus LB Servers, you can use Zone Sync to synchronize the KeyValue SplitRatio data between the NGINX Servers automatically.  Use the `zonesync.conf` example file provided, change the IP addresses to match your NGINX LB Servers.  Place this file in /etc/nginx/stream folder, and reload NGINX.  Note:  This example does not provide any security for the Zone Sync traffic, secure as necessary with TLS or IP allowlist.
 
 ```bash
 cat zonesync.conf
@@ -535,7 +535,7 @@ server {
 
    listen 9001;
 
-   # cluster of 2 nodes
+   # Zone Sync with 2 nodes
    zone_sync_server 10.1.1.4:9001;
    zone_sync_server 10.1.1.5:9001;
 
@@ -543,7 +543,7 @@ server {
 
 ```
 
-Watching the NGINX Plus Dashboard, you will see messages sent/received if Zone Synch is operating correctly:
+Watching the NGINX Plus Dashboard, Cluster Tab, you will see messages sent/received if Zone Sync is operating correctly:
 
 ![Zone Sync](../media/nkl-zone-sync.png)
 
@@ -557,7 +557,7 @@ Watching the NGINX Plus Dashboard, you will see messages sent/received if Zone S
 
 <br/>
 
-This is the new K8s Controller from NGINX, which is configured to watch the k8s environment, the `nginx-ingress Service` object, and send API updates to the NGINX LB Server when there are changes.  It only requires three things.
+### This is the new K8s Controller from NGINX, which is configured to watch the k8s environment, the `nginx-ingress Service` object, and send API updates to the NGINX LB Server when there are changes.  It only requires three things:
 
 - New kubernetes namespace and RBAC
 - NKL ConfigMap, to configure the Controller
@@ -642,7 +642,7 @@ kubectl get svc nginx-ingress -n nginx-ingress
 ![NGINX Ingress NodePort Service](../media/nkl-cluster1-nodeport.png)
 ![NGINX Ingress NodePort Service](../media/nkl-cluster1-upstreams.png)
 
-### NodePort is 443:30267, K8s Workers are 10.1.1.8 and .10.
+### NodePort mapping is 443:30267,  K8s Workers are 10.1.1.8 and .10.
 
 <br/>
 <br/>
@@ -674,7 +674,7 @@ Cluster2 Worker Node addresses are:
 - 10.1.1.11
 - 10.1.1.12
 
-Notice: K8s Control Nodes are excluded from the list intentionally.
+Note: K8s Control Nodes are excluded from the list intentionally.
 
 <br/>
 
@@ -696,7 +696,7 @@ Using a Terminal and `./kube Context set for Cluster1`, delete the `nginx-ingres
 kubectl delete -f nodeport-cluster1.yaml
 ```
 
-Now the `nginx-ingress` Service is gone, and the Cluster1 upstream list will now be empty in the Dashboard.
+Now the `nginx-ingress` Service is gone, and the Cluster1 upstream list will now be empty in the Dashboard.  The NKL Logs will show that it has `DELETED` the upstream servers!
 
 ![NGINX No Cluster1 NodePort](../media/nkl-cluster1-delete-nodeport.png)
 Legend:
@@ -724,11 +724,22 @@ Verify the nginx-ingress Service is re-created.  Notice the the Port Numbers hav
 
 ## 7. Testing MultiCluster Loadbalancing with HTTP Split Clients
 
+<br/>
+
 In this section, you will generate some HTTP load on the NGINX LB Server, and watch as it sends traffic to both Clusters.  Then you will `dynamically change the Split ratio`, and watch NGINX send different traffic levels to each cluster.
 
 The only tool you need for this, is an HTTP load generation tool.  WRK, running in a docker container outside the cluster is what is shown here.
 
 Start WRK, on a client outside the cluster.  This command runs WRK for 15 minutes, targets the NGINX LB Server URL of https://10.1.1.4/coffee.  The host header is required, cafe.example.com, as NGINX is configured for this server_name. (And so is the NGINX Ingress Controller).
+
+In these test examples, the Nginx LB Servers and IPs in the hosts file are:
+
+```bash
+cat /etc/hosts
+
+nginxlb  10.1.1.4
+nginxlb2 10.1.1.5
+```
 
 ```bash
 docker run --rm williamyeh/wrk -t2 -c200 -d15m -H 'Host: cafe.example.com' --timeout 2s https://10.1.1.4/coffee
@@ -736,15 +747,15 @@ docker run --rm williamyeh/wrk -t2 -c200 -d15m -H 'Host: cafe.example.com' --tim
 
 ![nkl Clusters 50-50](../media/nkl-clusters-50.png)
 
-You see the traffic is load balanced between cluster1 and cluster2 at 50/50 ratio.  
+You see the traffic is load balanced between cluster1 and cluster2 at 50:50 ratio.  
 
-Add a record to the KV store, by sending an API command to NGINX Plus:
+Add a record to the KeyValue store, by sending an API command to NGINX Plus:
 
 ```bash
 curl -iX POST -d '{"cafe.example.com":50}' http://nginxlb:9000/api/8/http/keyvals/split
 ```
 
-Verify the API record is there, on both NGINX LB Servers:
+Verify the `split KeyVal record` is there, on both NGINX LB Servers:
 ```bash
 curl http://nginxlb:9000/api/8/http/keyvals/split
 curl http://nginxlb2:9000/api/8/http/keyvals/split
@@ -754,11 +765,11 @@ curl http://nginxlb2:9000/api/8/http/keyvals/split
 
 If the KV data is missing on one LB Server, your Zone Sync must be fixed.
 
->Notice the difference in HTTP Response Times, Cluster2 is running much faster than Cluster1 !  (The Red and Green highlights on the Dashboard)
+>Notice the difference in HTTP Response Times in the Dashboard, highlighted in Red and Green: Cluster2 is responding much faster than Cluster1!  (The Red and Green highlights on the Dashboard).
 
-So, you decide to send less traffic to Cluster1, and more to Cluster2.  You will set the HTTP Split ratio to 10/90 = 10% to Cluster1, 90% to Cluster2.
+So, you decide to send less traffic to Cluster1, and more to Cluster2.  You will set the HTTP Split ratio to 10:90 = 10% to Cluster1, 90% to Cluster2.
 
-Remember:  This Solution example configures NGINX for Cluster1 to use the Split value, and the remaining percentage of traffic is sent to Cluster2.
+Remember:  This Split Clients example configures NGINX for Cluster1 to use the Split KeyValue, and the remaining percentage of traffic is sent to Cluster2.
 
 Change the KV Split Ratio to 10:
 ```bash
@@ -782,8 +793,6 @@ The Completes the Testing Section.
 ## 8. Prometheus and Grafana Servers
 
 <br/>
-
-Prometheus | Grafana
 
 ![](../media/prometheus-icon.png)  |![](../media/grafana-icon.png)
 --- | ---
@@ -826,7 +835,13 @@ scrape_configs:
 sudo docker run --restart always --network="host" -d -p 9090:9090 --name=prometheus -v ~/prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus
 ```
 
-Prometheus Web Console access to the data is on <monitor-server-ip:9090>.
+Prometheus Web Console access to the data is on http://<monitor-server-ip:9090>.
+
+Explore some of the metrics available.  Try a query for `nginxplus_upstream_server_response_time`:
+
+![NGINX Prom HTTP Requests](../media/prometheus-upstreams.png)
+
+>Wow, look at the variance in performance!
 
 <br/>
 
@@ -844,7 +859,7 @@ docker volume create grafana-storage
 sudo docker run --restart always -d -p 3000:3000 --name=grafana -v grafana-storage:/var/lib/grafana grafana/grafana
 ```
 
-Web console access to Grafana is on <monitor-server-ip:3000>.  Login is admin/admin.
+Web console access to Grafana is on http://<monitor-server-ip:3000>.  Login is admin/admin.
 
 You can import the provided `grafana-dashboard.json` file to see the NGINX Plus `Cluster1 and 2 statistics` HTTP RPS and Upstream Response Times.
 
