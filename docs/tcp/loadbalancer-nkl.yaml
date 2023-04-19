@@ -1,5 +1,5 @@
 # NKL LoadBalancer Service file
-# NodePort -ports name must be in the format of
+# Spec -ports name must be in the format of
 # nkl-<upstream-block-name>
 # externalIPs are set to Nginx LB Servers
 # Chris Akker, Apr 2023
@@ -12,8 +12,8 @@ metadata:
 spec:
   type: LoadBalancer
   externalIPs:
-  - 10.1.1.4
-  - 10.1.1.5 
+  - 10.1.1.4          #Nginx LB1 Server
+  - 10.1.1.5          #Nginx LB2 Server
   ports:
   - port: 80
     targetPort: 80

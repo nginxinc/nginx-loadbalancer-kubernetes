@@ -75,9 +75,60 @@ If you are unsure which Ingress Controller you are running, check out the blog o
 https://www.nginx.com/blog/guide-to-choosing-ingress-controller-part-4-nginx-ingress-controller-options
 
 
->Important!  The very last step in the NIC deployment with Manifests, is to deploy the nodeport.yaml Service file.  `This file must be changed!  It is not the default nodeport file.`  Instead, use the `nodeport-nkl.yaml` manifest file that is provided here with this Solution.  The "ports name" in the Nodeport manifest `MUST` be in the correct format for this Solution to work correctly.  The port name is the mapping from NodePorts to the LB Server's upstream blocks.  The port names are intentionally changed to avoid conflicts with other NodePort definitions.
+>Important!  The very last step in the NIC deployment with Manifests, is to deploy the loadbalancer.yaml or nodeport.yaml Service file.  `This file must be changed!  It is not the default file from the NIC repo.`  Instead, use the `loadbalancer-nkl.yaml`, or `nodeport-nkl.yaml` manifest file that is provided here with this Solution.  The "ports name" in the Service manifest `MUST` be in the correct format for this Solution to work correctly.  The port name is the mapping from `ports name` to the LB Server's upstream blocks.  The ports names are intentionally changed to avoid conflicts with other LoadBalancer or NodePort definitions.
 
-Review the new `nkl-nodeport.yaml` Service defintion file:
+Reivew the new `loadbalancer-nkl.yaml` Service definition file:
+```yaml
+
+# NKL LoadBalancer Service file
+# Spec -ports name must be in the format of
+# nkl-<upstream-block-name>
+# externalIPs are set to Nginx LB Servers
+# Chris Akker, Apr 2023
+#
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-ingress
+  namespace: nginx-ingress
+spec:
+  type: LoadBalancer
+  externalIPs:
+  - 10.1.1.4        #Nginx LB1 Server
+  - 10.1.1.5        #Nginx LB2 Server
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+    name: nkl-nginx-lb-http      # Must be changed to this
+  - port: 443
+    targetPort: 443
+    protocol: TCP
+    name: nkl-nginx-lb-https     # Must be changed to this
+  selector:
+    app: nginx-ingress
+
+```
+
+Apply the updated loadbalancer-nkl.yaml Manifest:
+
+```bash
+kubectl apply -f loadbalancer-nkl.yaml
+```
+
+Verify the LoadBalancer is now defined:
+
+```bash
+kubectl get svc nginx-ingress -n nginx-ingress
+```
+
+The nginx-ingress Service, `ExternalIPs` should match your external Nginx LB Server IPs:
+
+![NKL LoadBalancer](../media/nkl-stream-loadbalancer.png)
+
+<br/>
+
+Alternatively, if you want to use a NodePort Service, review the new `nodeport-nkl.yaml` Service defintion file:
 
 ```yaml
 # NKL Nodeport Service file

@@ -40,10 +40,11 @@ This Solution provides a replacement, using an NGINX Server, and a new K8s Contr
 2. Install NGINX Cafe Demo Application in your Cluster
 3. Install NGINX Plus on the Loadbalancer Server(s) 
 4. Configure NGINX Plus for MultiCluster Load Balancing
-5. Install NKL - NGINX Kubernetes LB Controller in your Cluster
-6. Test out NKL
-7. Test MultiCluster Load Balancing Solution
-8. Optional - Monitor traffic with Prometheus / Grafana
+5. Install NKL NGINX Kubernetes LB Controller in your Cluster
+6. Install NKL LoadBalancer or NodePort Service manifest
+7. Test out NKL
+8. Test MultiCluster Load Balancing Solution
+9. Optional - Monitor traffic with Prometheus / Grafana
 
 <br/>
 
@@ -87,52 +88,7 @@ If you are unsure which Ingress Controller you are running, check out the blog o
 https://www.nginx.com/blog/guide-to-choosing-ingress-controller-part-4-nginx-ingress-controller-options
 
 
->Important!  The very last step in the NIC deployment with Manifests, is to deploy the `nodeport.yaml` Service file.  `This file must be changed - it is not the default nodeport file.`  
-Instead, use the `nodeport-cluster1.yaml` manifest file that is provided here with this Solution.  The "ports name" in the Nodeport manifest `MUST` be in the correct format for this Solution to work correctly.  The port name is the mapping from NodePorts to the LB Server's upstream blocks.  The port names are intentionally changed to avoid conflicts with other NodePort definitions.
-
-Review the new `nodeport-cluster1.yaml` Service defintion file:
-
-```yaml
-# NKL Nodeport Service file
-# Chris Akker, Apr 2023
-# NodePort -ports name must be in the format of
-#
-## nkl-<upstream-block-name> ##
-# 
-#
-apiVersion: v1
-kind: Service
-metadata:
-  name: nginx-ingress
-  namespace: nginx-ingress
-spec:
-  type: NodePort 
-  ports:
-  - port: 443
-    targetPort: 443
-    protocol: TCP
-    name: nkl-cluster1-https  # This must match NGINX upstream name
-  selector:
-    app: nginx-ingress
-
-```
-
-Apply the updated nodeport-cluster1.yaml Manifest:
-
-```bash
-kubectl apply -f nodeport-cluster1.yaml
-```
-
-**NOTE:** If you have a second K8s cluster, and you want to Load Balance both Clusters using the MultiCluster Solution, repeat the appropriates steps on your second cluster.  
-
-**IMPORTANT:  Do not mix and match nodeport-clusterX.yaml files.**  
-
-- `nodeport-cluster1.yaml` must be used for Cluster1, `nodeport-cluster2.yaml` must be used for Cluster2.  The NodePort definitions must match each cluster exactly.
-- Nodeports and manifest files must match the target cluster for the HTTP Split Clients dynamic ratio configuration to work correctly.  
-- It is highly recommended that you configure, test, and verify traffic is flowing correctly on Cluster1, before you add Cluster2.  
-- Be aware of and properly set your `./kube/config Cluster Context`, before applying one of these nodeport definitions.
-
-<br/>
+>Important!  Do not complete the very last step in the NIC deployment with Manifests, `do not deploy the loadbalancer.yaml or nodeport.yaml Service file!`  You will apply a different loadbalancer or nodeport Service manifest later, after the NKL Controller is up and running.  `The Service file must be changed` - it is not the default file.  
 
 ## 2. Install NGINX Cafe Demo Application
 
@@ -213,19 +169,21 @@ https://www.nginx.com/free-trial-request/
 
 >/etc/nginx/conf.d
 
-    - clusters.conf           | MultiCluster LB and split clients config
-    - dashboard.conf          | NGINX Plus API and Dashboard config
-    - default-http.conf       | New default.conf config
-    - grafana-dashboard.json  | NGINX Plus Grafana dashboard
-    - nginx.conf              | New nginx.conf
-    - nodeport-cluster1.yaml  | NodePort config for Cluster1
-    - nodeport-cluster2.yaml  | NodePort config for Cluster2
-    - prometheus.conf         | NGINX Prometheus config
-    - prometheus.yml          | Prometheus container config
+    - clusters.conf               | MultiCluster LB and split clients config
+    - dashboard.conf              | NGINX Plus API and Dashboard config
+    - default-http.conf           | New default.conf config
+    - grafana-dashboard.json      | NGINX Plus Grafana dashboard
+    - nginx.conf                  | New nginx.conf
+    - loadbalancer-cluster1.yaml  | LoadBalancer manifest for Cluster1
+    - loadbalancer-cluster2.yaml  | LoadBalancer manifest for Cluster2
+    - nodeport-cluster1.yaml      | NodePort manifest for Cluster1
+    - nodeport-cluster2.yaml      | NodePort manifest for Cluster2
+    - prometheus.conf             | NGINX Prometheus config
+    - prometheus.yml              | Prometheus container config
 
 >/etc/nginx/stream
        
-    - zonesync.conf           | NGINX Zone Sync config
+    - zonesync.conf               | NGINX Zone Sync config
 
 <br/>
 
@@ -521,10 +479,10 @@ server {
 ```bash
 cat zonesync.conf
 
-# NGINX K8sLB Zone Sync configuration, for KVstore split
+# NGINX K8sLB Zone Sync configuration, for KeyVal split
 # Chris Akker, Apr 2023
 # Stream Zone Sync block
-# 2 NGINX Plus nodes KVstore zone
+# 2 NGINX Plus nodes KeyVal zone
 # NGINX Kubernetes Loadbalancer
 # https://docs.nginx.com/nginx/admin-guide/high-availability/zone_sync/
 #
@@ -557,7 +515,7 @@ Watching the NGINX Plus Dashboard, Cluster Tab, you will see messages sent/recei
 
 <br/>
 
-### This is the new K8s Controller from NGINX, which is configured to watch the k8s environment, the `nginx-ingress Service` object, and send API updates to the NGINX LB Server when there are changes.  It only requires three things:
+### This is the new K8s Controller from NGINX, which is configured to watch the k8s environment, the `nginx-ingress` Service object, and send API updates to the NGINX LB Server(s) when there are changes.  It only requires three things:
 
 - New kubernetes namespace and RBAC
 - NKL ConfigMap, to configure the Controller
@@ -609,7 +567,7 @@ kubectl get pods -n nkl
 kubectl describe cm nkl-config -n nkl
 ```
 
-The status should show "running", your `nginx-hosts` should have the <LB Server IP>:Port/api defined.
+The status should show "running", your `nginx-hosts` should have the LB Server IP:Port/api defined.
 
 ![NKL Running](../media/nkl-configmap.png)
 
@@ -619,15 +577,115 @@ To make it easy to watch the NKL Controller log messages, add the following bash
 alias nkl-follow-logs='kubectl -n nkl get pods | grep nkl-deployment | cut -f1 -d" "  | xargs kubectl logs -n nkl --follow $1'
 ```
 
-Using a new Terminal, watch the NKL Controller log:
+Using a new Terminal, you can watch the NKL Controller log:
 
 ```bash
 nkl-follow-logs
 ```
 
-Leave this Terminal window open, so you can watch the log messages!
+Leave this Terminal window open, so you can watch the log messages.
 
-- Create the NKL compatible NODEPORT Service, using the `nodeport-cluster1.yaml` manifest provided:
+<br/>
+
+## 6. Install NKL LoadBalancer or NodePort Service Manifest
+
+<br/>
+
+Select which Service Type you would like, and follow the appropriate steps below.  Do not use both the LoadBalancer and NodePort Service files at the same time.
+
+Instead, use the `loadbalancer-cluster1.yaml` or `nodeport-cluster1.yaml` manifest file that is provided here with this Solution.  The "ports name" in the manifests `MUST` be in the correct format for this Solution to work correctly.  
+>**`The port name is the mapping from NodePorts to the LB Server's upstream blocks.`**  The port names are intentionally changed to avoid conflicts with other NodePort definitions.
+
+<br/>
+
+### If you want to run a Service Type LoadBalancer
+
+- Review the `loadbalancer-cluster1.yaml` file:
+
+```yaml
+# NKL LoadBalancer Service file
+# Spec -ports name must be in the format of
+# nkl-<upstream-block-name>
+# externalIPs are set to Nginx LB Servers
+# Chris Akker, Jan 2023
+#
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-ingress
+  namespace: nginx-ingress
+spec:
+  type: LoadBalancer
+  externalIPs:
+  - 10.1.1.4          # Nginx LB1 Server
+  - 10.1.1.5          # Nginx LB2 Server
+  ports:
+  - port: 443
+    targetPort: 443
+    protocol: TCP
+    name: nkl-cluster1-https     # Must match Nginx upstream name
+  selector:
+    app: nginx-ingress
+
+```
+
+- Apply the NKL Compatible LoadBalancer `loadbalancer-cluster1.yaml` Service Manifest:
+
+```bash
+kubectl apply -f loadbalancer-cluster1.yaml
+```
+
+![NKL Cluster1 Loadbalancer](..//media/nkl-cluster1-add-loadbalancer.png)
+
+Legend:
+- Orange is the LoadBalancer Service `External-IP`, which are your Nginx LB Server IPs
+- Blue is the `NodePort mapping` created by K8s.  The new NKL Controller updates the Nginx LB Server upstreams with these, shown on the dashboard.
+
+<br/>
+
+**NOTE:** If you have a second K8s cluster, and you want to Load Balance both Clusters using the MultiCluster Solution, repeat the previous setup on your second cluster.  
+
+**IMPORTANT:  Do not mix and match loadbalancer-clusterX.yaml files!**  
+
+- `loadbalancer-cluster1.yaml` must be used for Cluster1
+- `loadbalancer-cluster2.yaml` must be used for Cluster2
+- The Port name definitions must match each cluster's upstream name exactly, minus the `nkl-` prefix.
+- Port name and manifest files must match the target cluster for the NKL Controller, and HTTP Split Clients dynamic ratio configuration to work correctly.  
+- It is highly recommended that you configure, test, and verify traffic is flowing correctly on Cluster1, before you add Cluster2.  
+- Be aware of and properly set your `./kube Config Context`, before applying one of these LoadBalancer definitions.
+
+<br/>
+
+### Alternatively, if you want a Service Type NodePort
+
+Review the new `nodeport-cluster1.yaml` Service defintion file:
+
+```yaml
+# NKL Nodeport Service file
+# Chris Akker, Apr 2023
+# NodePort -ports name must be in the format of
+#
+## nkl-<upstream-block-name> ##
+# 
+#
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-ingress
+  namespace: nginx-ingress
+spec:
+  type: NodePort 
+  ports:
+  - port: 443
+    targetPort: 443
+    protocol: TCP
+    name: nkl-cluster1-https  # This must match NGINX upstream name
+  selector:
+    app: nginx-ingress
+
+```
+
+- Create the NKL compatible NodePort Service, using the `nodeport-cluster1.yaml` manifest provided:
 
 ```bash
 kubectl apply -f nodeport-cluster1.yaml
@@ -645,15 +703,21 @@ kubectl get svc nginx-ingress -n nginx-ingress
 ### NodePort mapping is 443:30267,  K8s Workers are 10.1.1.8 and .10.
 
 <br/>
+
+**NOTE:** If you have a second K8s cluster, and you want to Load Balance both Clusters using the MultiCluster Solution, repeat the appropriate setup on your second cluster.  
+
+**IMPORTANT:  Do not mix and match nodeport-clusterX.yaml files.**  
+
+- `nodeport-cluster1.yaml` must be used for Cluster1
+- `nodeport-cluster2.yaml` must be used for Cluster2
+- The NodePort definitions must match each cluster upstream name exactly.
+- Nodeports and manifest files must match the target cluster for the NKL Controller and HTTP Split Clients dynamic ratio configuration to work correctly.  
+- It is highly recommended that you configure, test, and verify traffic is flowing correctly on Cluster1, before you add Cluster2.  
+- Be aware of and properly set your `./kube/config Config Context`, before applying one of these nodeport definitions.
+
 <br/>
 
-### MultiCluster Solution
-
-If you plan to implement and test the MultiCluster Load Balancing Solution, repeat all the steps to configure the second K8s cluster, identical to the first Cluster1 steps.  There is only one change - you MUST use the appropriate `nodeport-clusterX.yaml` manifest to match the appropriate cluster.  Don't forget to check and set your ./kube Config Context when you change clusters!
-
-<br/>
-
-## 6. Testing NKL
+## 7. Testing NKL Nginx Kubernetes Loadbalancer
 
 <br/>
 
@@ -690,8 +754,12 @@ Open a browser tab to https://cafe.example.com/coffee.
 
 The Dashboard's `HTTP Upstreams Requests counters` will increase as you refresh the browser page.
 
-Using a Terminal and `./kube Context set for Cluster1`, delete the `nginx-ingress nodeport service` definition.  
+Using a Terminal and `./kube Context set for Cluster1`, delete the `nginx-ingress loadbalancer service` or `nginx-ingress nodeport service` definition.  
 
+```bash
+kubectl delete -f loadbalancer-cluster1.yaml
+```
+or
 ```bash
 kubectl delete -f nodeport-cluster1.yaml
 ```
@@ -703,7 +771,7 @@ Legend:
 - Orange highlights the Cluster1 and NodePort are deleted.
 - Indigo highlights the NKL Controller log message, successfully deleting the cluster1-https upstreams.
 - Blue highlights the actual API calls to the LB Server, 10.1.1.4.
-- Notice there are 4 Delete Log messages, 2 Worker Nodes X 2 LB Servers.
+- Notice there are 4 Deleted Log messages, 2 Worker Nodes X 2 LB Servers.
 - If you are running a second NGINX LB Server for HA, and Zone Sync is working, the cluster1-https upstreams on LB Server#2 will also be empty.  Check the LB Server#2 Dashboard to confirm.
 
 If you refresh the cafe.example.com browser page, 1/2 of the requests will respond with `502 Bad Gateway`.  There are NO upstreams in Cluster1 for NGINX to send the requests to!
@@ -711,26 +779,35 @@ If you refresh the cafe.example.com browser page, 1/2 of the requests will respo
 Add the `nginx-ingress` Service back to Cluster1:
 
 ```
+kubectl apply -f loadbalancer-cluster1.yaml
+```
+or
+```
 kubectl apply -f nodeport-cluster1.yaml
 ```
 
 Verify the nginx-ingress Service is re-created.  Notice the the Port Numbers have changed!
 
-`The NKL Controller detects this change, and modifies the LB Server upstreams.`  The Dashboard will show you the new Port numbers, matching the new NodePort definitions.  The NKL logs show these messages, confirming the changes:
+`The NKL Controller detects this change, and modifies the LB Server(s)  upstreams to match.`  The Dashboard will show you the new Port numbers, matching the new NodePorts.  The NKL logs show these messages, confirming the changes:
 
 ![NKL Add NodePort](../media/nkl-cluster1-add-nodeport.png)
 
 <br/>
 
-## 7. Testing MultiCluster Loadbalancing with HTTP Split Clients
+### MultiCluster Solution
+
+If you plan to implement and test the MultiCluster Load Balancing Solution, repeat all the steps to configure the second K8s cluster, identical to the first Cluster1 steps.  
+- There is only one change - you MUST use the appropriate `loadbalancer-clusterX.yaml` or `nodeport-clusterX.yaml` manifest to match the appropriate cluster.
+- Don't forget to check and set your ./kube Config Context when you change clusters!  
+- The NKL Controller in Cluster2 should be updating the `cluster2-https` upstreams.
 
 <br/>
 
-In this section, you will generate some HTTP load on the NGINX LB Server, and watch as it sends traffic to both Clusters.  Then you will `dynamically change the Split ratio`, and watch NGINX send different traffic levels to each cluster.
+## 8. Testing MultiCluster Loadbalancing with HTTP Split Clients
 
-The only tool you need for this, is an HTTP load generation tool.  WRK, running in a docker container outside the cluster is what is shown here.
+<br/>
 
-Start WRK, on a client outside the cluster.  This command runs WRK for 15 minutes, targets the NGINX LB Server URL of https://10.1.1.4/coffee.  The host header is required, cafe.example.com, as NGINX is configured for this server_name. (And so is the NGINX Ingress Controller).
+In this section, you will generate some HTTP load on the NGINX LB Server, and watch as it sends traffic to both Clusters.  Then you will `dynamically change the HTTP Split ratio`, and watch NGINX send different traffic levels to each cluster.
 
 In these test examples, the Nginx LB Servers and IPs in the hosts file are:
 
@@ -741,21 +818,26 @@ nginxlb  10.1.1.4
 nginxlb2 10.1.1.5
 ```
 
+The only tool you need for this, is an HTTP load generation tool.  WRK, running in a docker container outside the cluster is what is shown here.
+
+- Start WRK, on a client outside the cluster.  This command runs WRK for 15 minutes, targets the NGINX LB Server URL of https://10.1.1.4/coffee.  The host header is required, cafe.example.com, as NGINX is configured for this server_name. (And so is the NGINX Ingress Controller).
+
 ```bash
 docker run --rm williamyeh/wrk -t2 -c200 -d15m -H 'Host: cafe.example.com' --timeout 2s https://10.1.1.4/coffee
 ```
 
-![nkl Clusters 50-50](../media/nkl-clusters-50.png)
+![NKL Clusters 50-50](../media/nkl-clusters-50.png)
 
-You see the traffic is load balanced between cluster1 and cluster2 at 50:50 ratio.  
+You see the traffic is load balanced between cluster1 and cluster2 at a 50:50 ratio.  
 
-Add a record to the KeyValue store, by sending an API command to NGINX Plus:
+- ADD a new record to the KeyValue store, by sending an API command to NGINX Plus:
 
 ```bash
 curl -iX POST -d '{"cafe.example.com":50}' http://nginxlb:9000/api/8/http/keyvals/split
 ```
 
-Verify the `split KeyVal record` is there, on both NGINX LB Servers:
+- Verify the `split KeyVal record` is there, on both NGINX LB Servers:
+
 ```bash
 curl http://nginxlb:9000/api/8/http/keyvals/split
 curl http://nginxlb2:9000/api/8/http/keyvals/split
@@ -763,34 +845,35 @@ curl http://nginxlb2:9000/api/8/http/keyvals/split
 
 ![NGINXLB KeyVal](../media/nkl-keyval-split.png)
 
-If the KV data is missing on one LB Server, your Zone Sync must be fixed.
+If the KeyVal data is missing on one LB Server, your Zone Sync must be fixed.
 
 >Notice the difference in HTTP Response Times in the Dashboard, highlighted in Red and Green: Cluster2 is responding much faster than Cluster1!  (The Red and Green highlights on the Dashboard).
 
-So, you decide to send less traffic to Cluster1, and more to Cluster2.  You will set the HTTP Split ratio to 10:90 = 10% to Cluster1, 90% to Cluster2.
+Given this, you decide to send less traffic to Cluster1, and more to Cluster2.  You will set the HTTP Split ratio to 10:90 = 10% to Cluster1, 90% to Cluster2.
 
 Remember:  This Split Clients example configures NGINX for Cluster1 to use the Split KeyValue, and the remaining percentage of traffic is sent to Cluster2.
 
-Change the KV Split Ratio to 10:
+- Change the KeyVal Split Ratio to 10:
+
 ```bash
 curl -iX PATCH -d '{"cafe.example.com":10}' http://nginxlb:9000/api/8/http/keyvals/split
 ```
 
 ![NGINXLB Clusters 10-90](../media/nkl-clusters-10.png)
 
-**Important NOTE:**  The first time, an `HTTP POST` is required to ADD a new record to the KeyValue store.  Once the record exists, use an `HTTP PATCH` method to update an existing record, which will change the ratio value in memory, dynamically, with no reloads or restarts of NGINX required!
+**Important NOTE:**  The first time, an `HTTP POST` is required to ADD a new record to the KeyValue store.  Once the record exists, use an `HTTP PATCH` method to update an existing record, which will change the ratio value in KeyVal memory, dynamically.  Nginx sees this change, and applies it with no reloads or restarts of NGINX required!
 
-Try a few more ratios, see how it works.  If you review the `clusters.conf` file, you will discover what Ratios are provided for you.  You can edit to suit your needs, of course.  Notice the Map directive has a "default" set to "50".  So if you make a mistake, it will Split at a 50:50 ratio.
+Try a few more ratios, see how it works.  If you review the `clusters.conf` file, you will discover what Ratios are provided for you.  You can edit these to suit your needs.  Also notice the Map directive has a "default" set to "50".  So if the Value is blank or set incorrectly, it will Split at a default of 50:50 ratio.
 
-As you can see, if you set the Ratio to "0", `Cluster1 receives NO TRAFFIC`, and you can perform k8s maintenance, troubleshooting, upgrades, etc, with no impact to live traffic.  Alternatively, you can set the Ratio to "100", and now `Cluster2 receives NO TRAFFIC`, and you can work on that cluster - with NO downtime required.
+As you can see, if you set the Ratio to "0", `Cluster1 receives NO TRAFFIC`, and you can perform K8s maintenance, troubleshooting, upgrades, etc, with no impact to live traffic.  Alternatively, you can set the Ratio to "100", and now `Cluster2 receives NO TRAFFIC`, and you can work on that cluster - with NO disruption to traffic and downtime required.
 
-Set the Split back to "50" when your testing is completed, and ask the boss for a raise.
+- Set the Split back to "50" when your testing is completed, and ask the boss for a raise.
 
 The Completes the Testing Section.
 
 </br>
 
-## 8. Prometheus and Grafana Servers
+## 9. Prometheus and Grafana Servers
 
 <br/>
 
