@@ -1,10 +1,14 @@
 # NKL LoadBalancer Service file
 <<<<<<< HEAD
+<<<<<<< HEAD
 # Spec -ports name must be in the format of
 # nkl-<upstream-block-name>
 # The nginxinc.io Annotation must be added
 =======
 # NodePort -ports name must be in the format of
+=======
+# Spec -ports name must be in the format of
+>>>>>>> add loadbalancer files
 # nkl-<upstream-block-name>
 >>>>>>> add loadbalancer files
 # externalIPs are set to Nginx LB Servers
@@ -28,8 +32,13 @@ spec:
 spec:
   type: LoadBalancer
   externalIPs:
+<<<<<<< HEAD
   - 10.1.1.4
   - 10.1.1.5 
+>>>>>>> add loadbalancer files
+=======
+  - 10.1.1.4          #Nginx LB1 Server
+  - 10.1.1.5          #Nginx LB2 Server
 >>>>>>> add loadbalancer files
   ports:
   - port: 80
