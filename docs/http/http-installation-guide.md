@@ -16,8 +16,7 @@
 ### This Solution from NGINX provides Enterprise class features which address common challenges with networking, traffic management, and High Availability for On-Premises Kubernetes Clusters.
 
 1. Provides a `replacement Loadbalancer Service.`  The Loadbalancer Service is a key component provided by most Cloud Providers.  However, when running a K8s Cluster On Premises, the `Loadbalancer Service is not available.`  
-This Solution provides a replacement, using an NGINX Server, and a new K8s Controller from NGINX.  These two components work together to watch the `NodePort Service` in the cluster, and immediately update the NGINX LB Server when changes occur.  
->No static `ExternalIP` needed in your loadbalancer.yaml Manifests!
+This Solution provides a replacement, using an NGINX Server, and a new K8s Controller from NGINX.  These two components work together to watch the `nginx-ingress Service` in the cluster, and immediately update the NGINX LB Server when changes occur.  
 2. Provides `MultiCluster Load Balancing`, traffic steering, health checks, TLS termination, advanced LB algorithms, and enhanced metrics.
 3. Provides dynamic, ratio-based Load Balancing for Multiple Clusters.  This allows for advanced traffic steering, and operation efficiency with no Reloads or downtime.
    - MultiCluster Active/Active Load Balancing
@@ -55,7 +54,7 @@ This Solution provides a replacement, using an NGINX Server, and a new K8s Contr
 - Demo application, this install guide uses the NGINX Cafe example, found here:  https://github.com/nginxinc/kubernetes-ingress/tree/main/examples/ingress-resources/complete-example
 - A bare metal Linux server or VM for the external NGINX LB Server, connected to a network external to the cluster.  Two of these will be required if High Availability is needed, as shown here.
 - NGINX Plus software loaded on the LB Server(s). This install guide follows the instructions for installing NGINX Plus on Centos 7, located here: https://docs.nginx.com/nginx/admin-guide/installing-nginx/installing-nginx-plus/
-- The NGINX Kubernetes Loadbalancer (NKL) Controller, new software for this Solution.
+- The NGINX Kubernetes Loadbalancer (NKL) Controller, new software from Nginx for this Solution.
 
 <br/>
 
@@ -67,7 +66,7 @@ This Solution provides a replacement, using an NGINX Server, and a new K8s Contr
 
 <br/>
 
-A standard K8s cluster is all that is required, two or more Clusters if you want the `Active/Active MultiCluster Load Balancing Solution` using HTTP Split Clients.  There must be enough resources available to run the NGINX Ingress Controller, and the NGINX Kubernetes Loadbalancer Controller, and test application like the Cafe Demo.  You must have administrative access to be able to create the namespace, services, and deployments for this Solution.  This Solution was tested on Kubernetes version 1.23.  Most recent versions => v1.21 should work just fine.
+A standard K8s cluster is all that is required, two or more Clusters if you want the `Active/Active MultiCluster Load Balancing Solution` using HTTP Split Clients.  There must be enough resources available to run the NGINX Ingress Controller, and the NGINX Kubernetes Loadbalancer Controller, and test application like the Cafe Demo.  You must have administrative access to be able to create the namespace, services, and deployments for this Solution.  This Solution was tested on Kubernetes version 1.23.
 
 <br/>
 
@@ -100,7 +99,7 @@ https://www.nginx.com/blog/guide-to-choosing-ingress-controller-part-4-nginx-ing
 
 This is not part of the actual Solution, but it is useful to have a well-known application running in the cluster, as a known-good target for test commands.  The example provided here is used by the Solution to demonstrate proper traffic flows.  
 
-Note: If you choose a different Application to test with, `the NGINX health checks provided here will likely NOT work,` and will need to be modified to work correctly.
+Note: If you choose a different Application to test with, `the NGINX configurations and health checks provided here may not work,` and will need to be modified to work correctly.
 
 - Use the provided Cafe Demo manifests in the docs/cafe-demo folder:
 
@@ -114,7 +113,7 @@ Note: If you choose a different Application to test with, `the NGINX health chec
 
   https://github.com/nginxinc/kubernetes-ingress/tree/main/examples/ingress-resources/complete-example
 
-- The Cafe Demo Docker image used here is an upgraded one, with simple graphics and additional Request and Response variables added.
+- The Cafe Demo Docker image used here is an upgraded one, with simple graphics and additional TCP/IP and HTTP variables added.
 
   https://hub.docker.com/r/nginxinc/ingress-demo
 
@@ -133,7 +132,7 @@ Note: If you choose a different Application to test with, `the NGINX health chec
 
 <br/>
 
-This is any standard Linux OS system, based on the Linux Distro and Technical Specs required for NGINX Plus, which can be found here: https://docs.nginx.com/nginx/technical-specs/   
+This can be any standard Linux OS system, based on the Linux Distro and Technical Specs required for NGINX Plus, which can be found here: https://docs.nginx.com/nginx/technical-specs/   
 
 This Solution followed the `Installation of NGINX Plus on Centos/Redhat/Oracle` steps for installing NGINX Plus.  
 
@@ -289,11 +288,17 @@ stream {
 
 ```
 
-- Configure NGINX for HTTP processing, load balancing, and MultiCluster split clients for this Solution.
+- Configure NGINX for HTTP traffic processing, load balancing, and MultiCluster Split Clients for this Solution.
 
-  `Notice that this Solution only uses port 443 and terminates TLS.`  
+  `Notice that this example Solution only uses port 443 and terminates TLS.`  
   
-  Place the `clusters.conf` file in the /etc/nginx/conf.d folder, and reload NGINX.  Notice the match block and health check directives are for the cafe.example.com Demo application from NGINX.
+If you need a self-signed TLS cert/key, use openssl, and place both files in the /etc/ssl/nginx folder.
+  
+  ```bash
+  openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout default.key -out default.crt -subj "/CN=NKL"
+  ```
+  
+- Place the `clusters.conf` file in the /etc/nginx/conf.d folder, and reload NGINX.  Notice the match block and health check directives are for the cafe.example.com Demo application from NGINX.
 
 ```bash
 cat /etc/nginx/conf.d/clusters.conf
@@ -474,7 +479,7 @@ server {
 
 ```
 
-- High Availability:  If you have 2 or more NGINX Plus LB Servers, you can use Zone Sync to synchronize the KeyValue SplitRatio data between the NGINX Servers automatically.  Use the `zonesync.conf` example file provided, change the IP addresses to match your NGINX LB Servers.  Place this file in /etc/nginx/stream folder, and reload NGINX.  Note:  This example does not provide any security for the Zone Sync traffic, secure as necessary with TLS or IP allowlist.
+- High Availability:  If you have 2 or more NGINX Plus LB Servers, you can use Zone Sync to synchronize the KeyValue SplitRatio data between the NGINX Servers automatically.  Use the `zonesync.conf` example file provided, change the IP addresses to match your NGINX LB Servers.  Place this file in /etc/nginx/stream folder on each LB Server, and reload NGINX.  Note:  This example does not provide any security for the Zone Sync traffic, secure as necessary with TLS or IP allowlist.
 
 ```bash
 cat zonesync.conf
