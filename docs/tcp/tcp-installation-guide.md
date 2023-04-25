@@ -167,8 +167,12 @@ A standard K8s cluster is all that is required.  There must be enough resources 
 
 <br/>
 
+<<<<<<< HEAD
 # 1. Install NGINX Ingress Controller
 >>>>>>> change to NGINX
+=======
+## 1. Install NGINX Ingress Controller
+>>>>>>> update install guides
 
 <br/>
 
@@ -721,7 +725,7 @@ Note: If you choose a different Application to test with, `the NGINX health chec
 
   https://github.com/nginxinc/kubernetes-ingress/tree/main/examples/ingress-resources/complete-example
 
-- The Cafe Demo Docker image used is an upgraded one, with simple graphics and additional Request and Response variables added.
+- The Cafe Demo Docker image used here is an upgraded one, with simple graphics and additional TCP/IP and HTTP variables added.
 
   https://hub.docker.com/r/nginxinc/ingress-demo
 
@@ -729,7 +733,7 @@ Note: If you choose a different Application to test with, `the NGINX health chec
 
 <br/>
 
-# 3. Install NGINX Plus on LoadBalancer Server(s)
+## 3. Install NGINX Plus on LoadBalancer Server(s)
 
 <br/>
 
@@ -771,10 +775,9 @@ https://www.nginx.com/free-trial-request/
 
     - dashboard.conf              | NGINX Plus API and Dashboard config
     - default-tcp.conf            | New default.conf config
-    - grafana-dashboard.json      | NGINX Plus Grafana dashboard
     - nginx.conf                  | New nginx.conf
-    - loadbalancer-nkl.yaml       | LoadBalancer manifest for Cluster1
-    - nodeport-nkl.yaml           | NodePort manifest for Cluster1
+    - loadbalancer-nkl.yaml       | LoadBalancer manifest
+    - nodeport-nkl.yaml           | NodePort manifest
 
 >/etc/nginx/stream
        
@@ -820,7 +823,7 @@ server {
 ```
 
 - Enable the NGINX Plus dashboard.  Use the `dashboard.conf` file provided.  It will enable the /api endpoint, change the port to 9000, and provide access to the Plus Dashboard.  Note:  There is no security for the /api endpoint in this example config, it should be secured as approprite with TLS or IP allow list.
-- Place this file in the /etc/nginx/conf.d folder, and reload nginx.  The Plus dashboard is now accessible at http://nginx-lb-server-ip:9000/dashboard.html.  It should look similar to this:
+- Place this file in the /etc/nginx/conf.d folder, and reload nginx.  The Plus dashboard is now accessible at http://<nginx-lbserver-ip>:9000/dashboard.html.  It should look similar to this:
 
 ![NGINX Dashboard](../media/nkl-stream-dashboard.png)
 
@@ -933,7 +936,7 @@ stream {
 
 ```
 
-- Check the NGINX Plus Dashboard, at http://<nginx-lbserver-ip:9000/dashboard.html.  You should see something like this:
+- Check the NGINX Plus Dashboard, at http://<nginx-lbserver-ip>:9000/dashboard.html.  You should see something like this:
 
 ![NKL Stream Upstreams](../media/nkl-stream-dashboard.png)
 
@@ -969,7 +972,7 @@ kubectl create namespace nkl
 kubectl apply -f secret.yaml serviceaccount.yaml clusterrole.yaml clusterrolebinding.yaml
 ```
 
-Modify the ConfigMap manifest to match your Network environment. Change the `nginx-hosts` IP address to match your NGINX LB Server IP.  If you have 2 or more LB Servers, separate them with a comma.  Keep the port number for the Plus API endpoint, and the `/api` URL as shown.
+Modify the ConfigMap manifest to match your NGINX LB Server(s). Change the `nginx-hosts` IP address to match your NGINX LB Server IP.  If you have 2 or more LB Servers, separate them with a comma.  Keep the port number for the Plus API endpoint, and the `/api` URL as shown.
 
 ```yaml
 
@@ -996,7 +999,7 @@ Deploy the NKL Controller:
 kubectl apply -f nkl-deployment.yaml
 ```
 
-Check to see if the NKL Controller is running with the updated ConfigMap:
+Check to see if the NKL Controller is running, with the updated ConfigMap:
 
 ```bash
 kubectl get pods -n nkl
@@ -1009,13 +1012,13 @@ The status should show "running", your `nginx-hosts` should have the LB Server I
 
 ![NKL Running](../media/nkl-configmap.png)
 
-To make it easy to watch the NKL controller log messages, add the following bash alias:
+To make it easy to watch the NKL Controller's log messages, add the following bash alias:
 
 ```bash
 alias nkl-follow-logs='kubectl -n nkl get pods | grep nkl-deployment | cut -f1 -d" "  | xargs kubectl logs -n nkl --follow $1'
 ```
 
-Using a Terminal, watch the NKL Controller logs:
+Using a Terminal, you can watch the NKL Controller log:
 
 ```bash
 nkl-follow-logs
@@ -1172,12 +1175,17 @@ When you are finished, the NGINX Plus Dashboard on the LB Server should look sim
 Important items for reference:
 - Orange are the upstream server blocks, from the `etc/nginx/stream/nginxk8slb.conf` file.
 <<<<<<< HEAD
+<<<<<<< HEAD
 - Blue is the IP:Port of the nginx-ingress Service for http.
 - Indigo is the IP:Port of the nginx-ingress Service for https.
 =======
 - Blue is the IP:Port of the NodePort Service for http.
 - Indigo is the IP:Port of the NodePort Service for https.
 >>>>>>> added Grafana
+=======
+- Blue is the IP:Port of the nginx-ingress Service for http.
+- Indigo is the IP:Port of the nginx-ingress Service for https.
+>>>>>>> update install guides
 
 >Note: In this example, there is a 3-Node K8s cluster, with one Control Node, and 2 Worker Nodes.  The NKL Controller only configures `Worker Node` IP addresses, which are:
 - 10.1.1.8
@@ -1274,7 +1282,7 @@ or
 kubectl delete -f nodeport-nkl.yaml
 ```
 
-Now the `nginx-ingress` Service is gone, and the upstream list will be empty in the Dashboard.
+Now the `nginx-ingress` Service is gone, and the upstream lists will be empty in the Dashboard.
 
 ![NGINX No NodePort](../media/nkl-stream-no-nodeport.png)
 
@@ -1296,7 +1304,7 @@ or
 kubectl apply -f nodeport-nkl.yaml
 ```
 
-- Verify the nginx-ingress Service is re-created.  Notice the the Port Numbers have changed!
+- Verify the nginx-ingress Service is re-created.  Notice the the NodePort Numbers have changed!
 
 ```bash
 kubectl get svc nginx-ingress -n nginx-ingress

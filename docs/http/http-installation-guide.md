@@ -1337,7 +1337,7 @@ kubectl create namespace nkl
 kubectl apply -f secret.yaml serviceaccount.yaml clusterrole.yaml clusterrolebinding.yaml
 ```
 
-- Modify the ConfigMap manifest to match your Network environment. Change the `nginx-hosts` IP address to match your NGINX LB Server IP.  If you have 2 or more LB Servers, separate them with a comma.  Important! - keep the port number for the Plus API endpoint, and the `/api` URL as shown.
+- Modify the ConfigMap manifest to match your NGINX LB Server(s). Change the `nginx-hosts` IP address to match your NGINX LB Server IP.  If you have 2 or more LB Servers, separate them with a comma.  Important! - keep the port number for the Plus API endpoint, and the `/api` URL as shown.
 
 ```yaml
 apiVersion: v1
@@ -1362,7 +1362,7 @@ kubectl apply -f nkl-configmap.yaml
 kubectl apply -f nkl-deployment.yaml
 ```
 
-Check to see if the NKL Controller is running with the updated ConfigMap:
+Check to see if the NKL Controller is running, with the updated ConfigMap:
 
 ```bash
 kubectl get pods -n nkl
@@ -1375,7 +1375,7 @@ The status should show "running", your `nginx-hosts` should have the LB Server I
 
 ![NKL Running](../media/nkl-configmap.png)
 
-To make it easy to watch the NKL Controller log messages, add the following bash alias:
+To make it easy to watch the NKL Controller's log messages, add the following bash alias:
 
 ```bash
 alias nkl-follow-logs='kubectl -n nkl get pods | grep nkl-deployment | cut -f1 -d" "  | xargs kubectl logs -n nkl --follow $1'
