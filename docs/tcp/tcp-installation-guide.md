@@ -6,7 +6,7 @@
 
 <br/>
 
-![Kubernetes](../media/kubernetes-icon.png) | ![NKL](../media/nkl-logo.png) | ![NGINX Plus](../media/NGINX-plus-icon.png) | ![NIC](../media/nginx-ingress-icon.png)
+![Kubernetes](../media/kubernetes-icon.png) | ![NKL](../media/nkl-logo.png) | ![NGINX Plus](../media/nginx-plus-icon.png) | ![NIC](../media/nginx-ingress-icon.png)
 --- | --- | --- | ---
 
 <br/>
@@ -17,7 +17,7 @@
 
 1. Provides a `replacement Loadbalancer Service.`  The Loadbalancer Service is a key component provided by most Cloud Providers.  However, when running a K8s Cluster On Premises, the `Loadbalancer Service is not available`.  
 2. This Solution provides a replacement, using an NGINX Server, and a new K8s Controller from NGINX.  These two components work together to watch the `nginx-ingress Service` in the cluster, and immediately update the NGINX LB Server when changes occur.  
-- Provides automatic NGINX upstream config updates, application health checks, and enhanced metrics.
+3. Provides automatic NGINX upstream config updates, application health checks, and enhanced metrics.
 
 <br/>
 
@@ -39,7 +39,7 @@
 
 ### Pre-Requisites
 
-- Working kubernetes cluster, with admin privleges
+- Working Kubernetes cluster, with admin privleges
 - Running `nginx-ingress controller`, either OSS or Plus. This install guide followed the instructions for deploying an NGINX Ingress Controller here:  https://docs.nginx.com/nginx-ingress-controller/installation/installation-with-manifests/
 - Demo application, this install guide uses the NGINX Cafe example, found here:  https://github.com/nginxinc/kubernetes-ingress/tree/main/examples/ingress-resources/complete-example
 - A bare metal Linux server or VM for the external NGINX LB Server, connected to a network external to the cluster.  Two of these will be required if High Availability is needed, as shown here.
@@ -205,7 +205,7 @@ server {
 ```
 
 - Enable the NGINX Plus dashboard.  Use the `dashboard.conf` file provided.  It will enable the /api endpoint, change the port to 9000, and provide access to the Plus Dashboard.  Note:  There is no security for the /api endpoint in this example config, it should be secured as approprite with TLS or IP allow list.
-- Place this file in the /etc/nginx/conf.d folder, and reload nginx.  The Plus dashboard is now accessible at http://<nginx-lbserver-ip>:9000/dashboard.html.  It should look similar to this:
+- Place this file in the /etc/nginx/conf.d folder, and reload nginx.  The Plus dashboard is now accessible at http://nginx-lbserver-ip:9000/dashboard.html.  It should look similar to this:
 
 ![NGINX Dashboard](../media/nkl-stream-dashboard.png)
 
@@ -318,7 +318,7 @@ stream {
 
 ```
 
-- Check the NGINX Plus Dashboard, at http://<nginx-lbserver-ip>:9000/dashboard.html.  You should see something like this:
+- Check the NGINX Plus Dashboard, at http://nginx-lbserver-ip:9000/dashboard.html.  You should see something like this:
 
 ![NKL Stream Upstreams](../media/nkl-stream-dashboard.png)
 
@@ -362,7 +362,7 @@ apiVersion: v1
 kind: ConfigMap
 data:
   nginx-hosts:
-    "http://10.1.1.4:9000/api,http://10.1.1.5:9000/api" # change IP(s) to match NGINX LB Server(s)
+    "http://10.1.1.4:9000/api,http://10.1.1.5:9000/api"    # change IP(s) to match NGINX LB Server(s)
 metadata:
   name: nkl-config
   namespace: nkl
@@ -546,14 +546,13 @@ kubectl get svc nginx-ingress -n nginx-ingress
 
 <br/>
 
-The name of the Service port is matched to the name of the upstream block in NGINX.  The Plus API, follows a defined format, so the url for the API call must be correct, in order to update the correct NGINX upstream block.  There are 2 types of upstreams in NGINX.  `Stream` upstreams are used in the stream context, for TCP/UDP load balancing configurations.  `Http` upstreams are used in the http context, for HTTP/HTTPS configurations.  (See details for HTTP in the http-installation-guide.md, here:  [HTTP Guide](../http/http-installation-guide.md)
+The name of the Service port is matched to the name of the upstream block in NGINX.  The Plus API, follows a defined format, so the url for the API call must be correct, in order to update the correct NGINX upstream block.  There are 2 types of upstreams in NGINX.  `Stream` upstreams are used in the stream context, for TCP/UDP load balancing configurations.  `Http` upstreams are used in the http context, for HTTP/HTTPS configurations.  (See details for HTTP in the http-installation-guide.md, here:  [HTTP Guide](../http/http-installation-guide.md).
 
 <br/>
 
 ## 7. Testing NKL NGINX Kubernetes Loadbalancer
 
 <br/>
-
 
 When you are finished, the NGINX Plus Dashboard on the LB Server should look similar to the following image:
 
@@ -623,6 +622,11 @@ kubectl get svc nginx-ingress -n nginx-ingress
 
 `The NKL Controller detects this change, and modifies the LB Server(s) upstreams to match.`  The Dashboard will show you the new Port numbers, matching the new LoadBalancer or NodePort definitions.  The NKL logs show these messages, confirming the changes:
 
+![NKL LoadBalancer](../media/nkl-stream-add-loadbalancer.png)
+
+or
+
+![NKL NodePort](../media/nkl-stream-nodeport.png)
 ![NKL Logs Created](../media/nkl-stream-logs-created.png)
 ![NGINX Upstreams Dashboard](../media/nkl-stream-upstreams.png)
 
