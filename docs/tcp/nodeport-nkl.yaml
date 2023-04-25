@@ -2,9 +2,13 @@
 # NodePort -ports name must be in the format of
 # nkl-<upstream-block-name>
 <<<<<<< HEAD
+<<<<<<< HEAD
 # The nginxinc.io Annotation must be added
 =======
 >>>>>>> add loadbalancer files
+=======
+# The nginxinc.io Annotation must be added
+>>>>>>> update install guides
 # Chris Akker, Apr 2023
 #
 apiVersion: v1

@@ -2,9 +2,13 @@
 # NodePort -ports name must be in the format of
 # nkl-<upstream-block-name>
 <<<<<<< HEAD
+<<<<<<< HEAD
 # The nginxinc.io Annotation must be added
 =======
 >>>>>>> added http docs
+=======
+# The nginxinc.io Annotation must be added
+>>>>>>> update install guides
 # Chris Akker, Apr 2023
 #
 apiVersion: v1
@@ -13,10 +17,15 @@ metadata:
   name: nginx-ingress
   namespace: nginx-ingress
 <<<<<<< HEAD
+<<<<<<< HEAD
   annotations:
     nginxinc.io/nkl-cluster2-https: "http"   # Must be added
 =======
 >>>>>>> added http docs
+=======
+  annotations:
+    nginxinc.io/nkl-cluster2-https: "http"   # Must be added
+>>>>>>> update install guides
 spec:
   type: NodePort 
   ports:

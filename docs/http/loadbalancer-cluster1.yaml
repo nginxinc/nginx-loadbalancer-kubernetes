@@ -21,10 +21,15 @@ metadata:
   name: nginx-ingress
   namespace: nginx-ingress
 <<<<<<< HEAD
+<<<<<<< HEAD
   annotations:
     nginxinc.io/nkl-cluster1-https: "http"   # Must be added
 =======
 >>>>>>> add loadbalancer files
+=======
+  annotations:
+    nginxinc.io/nkl-cluster1-https: "http"   # Must be added
+>>>>>>> update install guides
 spec:
   type: LoadBalancer
   externalIPs:
