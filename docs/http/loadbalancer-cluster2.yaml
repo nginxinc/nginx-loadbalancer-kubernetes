@@ -9,6 +9,8 @@ kind: Service
 metadata:
   name: nginx-ingress
   namespace: nginx-ingress
+  annotations:
+    nginxinc.io/nkl-cluster2-https: "http"   # Must be added
 spec:
   type: LoadBalancer
   externalIPs:
