@@ -11,26 +11,26 @@ import (
 	nginxClient "github.com/nginxinc/nginx-plus-go-client/client"
 )
 
-// HttpBorderClient implements the BorderClient interface for HTTP upstreams.
-type HttpBorderClient struct {
+// NginxHttpBorderClient implements the BorderClient interface for HTTP upstreams.
+type NginxHttpBorderClient struct {
 	BorderClient
 	nginxClient NginxClientInterface
 }
 
-// NewHttpBorderClient is the Factory function for creating an HttpBorderClient.
-func NewHttpBorderClient(client interface{}) (Interface, error) {
+// NewNginxHttpBorderClient is the Factory function for creating an NginxHttpBorderClient.
+func NewNginxHttpBorderClient(client interface{}) (Interface, error) {
 	ngxClient, ok := client.(NginxClientInterface)
 	if !ok {
 		return nil, fmt.Errorf(`expected a NginxClientInterface, got a %v`, client)
 	}
 
-	return &HttpBorderClient{
+	return &NginxHttpBorderClient{
 		nginxClient: ngxClient,
 	}, nil
 }
 
 // Update manages the Upstream servers for the Upstream Name given in the ServerUpdateEvent.
-func (hbc *HttpBorderClient) Update(event *core.ServerUpdateEvent) error {
+func (hbc *NginxHttpBorderClient) Update(event *core.ServerUpdateEvent) error {
 	httpUpstreamServers := asNginxHttpUpstreamServers(event.UpstreamServers)
 	_, _, _, err := hbc.nginxClient.UpdateHTTPServers(event.UpstreamName, httpUpstreamServers)
 	if err != nil {
@@ -41,7 +41,7 @@ func (hbc *HttpBorderClient) Update(event *core.ServerUpdateEvent) error {
 }
 
 // Delete deletes the Upstream server for the Upstream Name given in the ServerUpdateEvent.
-func (hbc *HttpBorderClient) Delete(event *core.ServerUpdateEvent) error {
+func (hbc *NginxHttpBorderClient) Delete(event *core.ServerUpdateEvent) error {
 	err := hbc.nginxClient.DeleteHTTPServer(event.UpstreamName, event.UpstreamServers[0].Host)
 	if err != nil {
 		return fmt.Errorf(`error occurred deleting the nginx+ upstream server: %w`, err)

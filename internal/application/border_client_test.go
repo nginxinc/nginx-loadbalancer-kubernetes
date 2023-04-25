@@ -17,20 +17,20 @@ func TestBorderClient_CreatesHttpBorderClient(t *testing.T) {
 		t.Errorf(`error creating border client: %v`, err)
 	}
 
-	if _, ok := client.(*HttpBorderClient); !ok {
-		t.Errorf(`expected client to be of type HttpBorderClient`)
+	if _, ok := client.(*NginxHttpBorderClient); !ok {
+		t.Errorf(`expected client to be of type NginxHttpBorderClient`)
 	}
 }
 
 func TestBorderClient_CreatesTcpBorderClient(t *testing.T) {
 	borderClient := mocks.MockNginxClient{}
-	client, err := NewBorderClient("tcp", borderClient)
+	client, err := NewBorderClient("stream", borderClient)
 	if err != nil {
 		t.Errorf(`error creating border client: %v`, err)
 	}
 
-	if _, ok := client.(*TcpBorderClient); !ok {
-		t.Errorf(`expected client to be of type TcpBorderClient`)
+	if _, ok := client.(*NginxStreamBorderClient); !ok {
+		t.Errorf(`expected client to be of type NginxStreamBorderClient`)
 	}
 }
 

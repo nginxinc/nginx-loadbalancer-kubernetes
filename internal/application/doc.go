@@ -17,8 +17,8 @@ To add a Border Server client...
 At this time the only supported Border Servers are NGINX Plus servers.
 
 The two Border Server clients for NGINX Plus are:
-- HttpBorderClient: updates NGINX Plus servers using HTTP Upstream methods on the NGINX Plus API.
-- TcpBorderClient: updates NGINX Plus servers using Stream Upstream methods on the NGINX Plus API.
+- NginxHttpBorderClient: updates NGINX Plus servers using HTTP Upstream methods on the NGINX Plus API.
+- NginxStreamBorderClient: updates NGINX Plus servers using Stream Upstream methods on the NGINX Plus API.
 
 Both of these implementations use the NGINX Plus client module to communicate with the NGINX Plus server.
 
