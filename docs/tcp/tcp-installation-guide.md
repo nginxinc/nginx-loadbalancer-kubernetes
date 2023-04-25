@@ -140,7 +140,7 @@ https://www.nginx.com/free-trial-request/
 
 <br/>
 
-## 4. Configure Nginx Plus for TCP Load Balancing
+## 4. Configure NGINX Plus for TCP Load Balancing
 
 ### This is the configuration required for the NGINX LB Server, external to the cluster.  It must be configured for the following:
 
@@ -460,33 +460,35 @@ spec:
 
 ```
 
-Apply the NKL Compatible LoadBalancer `loadbalancer-nkl.yaml` Service Manifest:
+- Apply the NKL Compatible LoadBalancer `loadbalancer-nkl.yaml` Service Manifest:
 
 ```bash
 kubectl apply -f loadbalancer-nkl.yaml
 ```
 
-![NKL Stream Loadbalancer](..//media/nkl-stream-add-loadbalancer.png)
-
-Legend:
-- Orange is the LoadBalancer Service `External-IP`, which are your Nginx LB Server IP(s).
-- Blue is the `NodePort mapping` created by K8s.  The new NKL Controller updates the Nginx LB Server upstreams with these, shown on the dashboard.
-
-<br/>
-
-Verify the LoadBalancer is now defined:
+- Verify the LoadBalancer is now defined:
 
 ```bash
 kubectl get svc nginx-ingress -n nginx-ingress
 ```
 
-The nginx-ingress Service, `ExternalIPs` should match your external Nginx LB Server IP(s):
+The nginx-ingress Service, `ExternalIPs` should match your external NGINX LB Server IP(s):
 
-![NKL LoadBalancer](../media/nkl-stream-loadbalancer.png)
+![NKL Stream Loadbalancer](..//media/nkl-stream-add-loadbalancer.png)
+
+Legend:
+- Orange is the TYPE LoadBalancer Service
+- Red is the LoadBalancer Service `EXTERNAL-IP`, which are your NGINX LB Server IP(s); 10.1.1.4 and 10.1.1.5 in this example.
+- Blue is the `K8s NodePort mapping` for Port 80.
+- Indigo is the `K8s NodePort mapping` for Port 443.
+- Green is the NKL Log messages, creating the upstreams to match.
+- The new NKL Controller updates the NGINX LB Server upstreams with these, shown on the dashboard.
+
+No Reload of NGINX needed!  The NKL Controller uses the Plus API to dynamically add/delete/modify the upstreams as nginx-ingress Service changes.
 
 <br/>
 
-### Alternatively, if you want a Service Type NodePort Service
+### Alternatively, if you want a Service Type NodePort
 
 Review the new `nodeport-nkl.yaml` Service defintion file:
 
@@ -540,7 +542,15 @@ kubectl get svc nginx-ingress -n nginx-ingress
 
 <br/>
 
-## 7. Testing NKL Nginx Kubernetes Loadbalancer
+### Deep Dive Explanation
+
+<br/>
+
+The name of the Service port is matched to the name of the upstream block in NGINX.  The Plus API, follows a defined format, so the url for the API call must be correct, in order to update the correct NGINX upstream block.  There are 2 types of upstreams in NGINX.  `Stream` upstreams are used in the stream context, for TCP/UDP load balancing configurations.  `Http` upstreams are used in the http context, for HTTP/HTTPS configurations.  (See details for HTTP in the http-installation-guide.md, here:  [HTTP Guide](../http/http-installation-guide.md)
+
+<br/>
+
+## 7. Testing NKL NGINX Kubernetes Loadbalancer
 
 <br/>
 

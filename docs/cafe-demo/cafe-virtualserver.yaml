@@ -1,6 +1,6 @@
 #Example virtual server with routes for Cafe Demo
 #For NKL Solution, redirects required for LB Server health checks
-#Chris Akker, Jan 2023
+#Chris Akker, Apr 2023
 #
 apiVersion: k8s.nginx.org/v1
 kind: VirtualServer

@@ -2,7 +2,7 @@
 # Spec -ports name must be in the format of
 # nkl-<upstream-block-name>
 # externalIPs are set to Nginx LB Servers
-# Chris Akker, Jan 2023
+# Chris Akker, Apr 2023
 #
 apiVersion: v1
 kind: Service
