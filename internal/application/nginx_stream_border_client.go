@@ -11,26 +11,26 @@ import (
 	nginxClient "github.com/nginxinc/nginx-plus-go-client/client"
 )
 
-// TcpBorderClient implements the BorderClient interface for TCP upstreams.
-type TcpBorderClient struct {
+// NginxStreamBorderClient implements the BorderClient interface for stream upstreams.
+type NginxStreamBorderClient struct {
 	BorderClient
 	nginxClient NginxClientInterface
 }
 
-// NewTcpBorderClient is the Factory function for creating an TcpBorderClient.
-func NewTcpBorderClient(client interface{}) (Interface, error) {
+// NewNginxStreamBorderClient is the Factory function for creating an NginxStreamBorderClient.
+func NewNginxStreamBorderClient(client interface{}) (Interface, error) {
 	ngxClient, ok := client.(NginxClientInterface)
 	if !ok {
 		return nil, fmt.Errorf(`expected a NginxClientInterface, got a %v`, client)
 	}
 
-	return &TcpBorderClient{
+	return &NginxStreamBorderClient{
 		nginxClient: ngxClient,
 	}, nil
 }
 
 // Update manages the Upstream servers for the Upstream Name given in the ServerUpdateEvent.
-func (tbc *TcpBorderClient) Update(event *core.ServerUpdateEvent) error {
+func (tbc *NginxStreamBorderClient) Update(event *core.ServerUpdateEvent) error {
 	streamUpstreamServers := asNginxStreamUpstreamServers(event.UpstreamServers)
 	_, _, _, err := tbc.nginxClient.UpdateStreamServers(event.UpstreamName, streamUpstreamServers)
 	if err != nil {
@@ -41,7 +41,7 @@ func (tbc *TcpBorderClient) Update(event *core.ServerUpdateEvent) error {
 }
 
 // Delete deletes the Upstream server for the Upstream Name given in the ServerUpdateEvent.
-func (tbc *TcpBorderClient) Delete(event *core.ServerUpdateEvent) error {
+func (tbc *NginxStreamBorderClient) Delete(event *core.ServerUpdateEvent) error {
 	err := tbc.nginxClient.DeleteStreamServer(event.UpstreamName, event.UpstreamServers[0].Host)
 	if err != nil {
 		return fmt.Errorf(`error occurred deleting the nginx+ upstream server: %w`, err)

@@ -9,9 +9,9 @@ import (
 	"testing"
 )
 
-func TestHttpBorderClient_Delete(t *testing.T) {
-	event := buildServerUpdateEvent(deletedEventType, ClientTypeHttp)
-	borderClient, nginxClient, err := buildBorderClient(ClientTypeHttp)
+func TestTcpBorderClient_Delete(t *testing.T) {
+	event := buildServerUpdateEvent(deletedEventType, ClientTypeNginxStream)
+	borderClient, nginxClient, err := buildBorderClient(ClientTypeNginxStream)
 	if err != nil {
 		t.Fatalf(`error occurred creating a new border client: %v`, err)
 	}
@@ -21,14 +21,14 @@ func TestHttpBorderClient_Delete(t *testing.T) {
 		t.Fatalf(`error occurred deleting the nginx+ upstream server: %v`, err)
 	}
 
-	if !nginxClient.CalledFunctions["DeleteHTTPServer"] {
-		t.Fatalf(`expected DeleteHTTPServer to be called`)
+	if !nginxClient.CalledFunctions["DeleteStreamServer"] {
+		t.Fatalf(`expected DeleteStreamServer to be called`)
 	}
 }
 
-func TestHttpBorderClient_Update(t *testing.T) {
-	event := buildServerUpdateEvent(createEventType, ClientTypeHttp)
-	borderClient, nginxClient, err := buildBorderClient(ClientTypeHttp)
+func TestTcpBorderClient_Update(t *testing.T) {
+	event := buildServerUpdateEvent(createEventType, ClientTypeNginxStream)
+	borderClient, nginxClient, err := buildBorderClient(ClientTypeNginxStream)
 	if err != nil {
 		t.Fatalf(`error occurred creating a new border client: %v`, err)
 	}
@@ -38,22 +38,22 @@ func TestHttpBorderClient_Update(t *testing.T) {
 		t.Fatalf(`error occurred deleting the nginx+ upstream server: %v`, err)
 	}
 
-	if !nginxClient.CalledFunctions["UpdateHTTPServers"] {
-		t.Fatalf(`expected UpdateHTTPServers to be called`)
+	if !nginxClient.CalledFunctions["UpdateStreamServers"] {
+		t.Fatalf(`expected UpdateStreamServers to be called`)
 	}
 }
 
-func TestHttpBorderClient_BadNginxClient(t *testing.T) {
+func TestTcpBorderClient_BadNginxClient(t *testing.T) {
 	var emptyInterface interface{}
-	_, err := NewBorderClient(ClientTypeHttp, emptyInterface)
+	_, err := NewBorderClient(ClientTypeNginxStream, emptyInterface)
 	if err == nil {
 		t.Fatalf(`expected an error to occur when creating a new border client`)
 	}
 }
 
-func TestHttpBorderClient_DeleteReturnsError(t *testing.T) {
-	event := buildServerUpdateEvent(deletedEventType, ClientTypeHttp)
-	borderClient, _, err := buildTerrorizingBorderClient(ClientTypeHttp)
+func TestTcpBorderClient_DeleteReturnsError(t *testing.T) {
+	event := buildServerUpdateEvent(deletedEventType, ClientTypeNginxStream)
+	borderClient, _, err := buildTerrorizingBorderClient(ClientTypeNginxStream)
 	if err != nil {
 		t.Fatalf(`error occurred creating a new border client: %v`, err)
 	}
@@ -65,9 +65,9 @@ func TestHttpBorderClient_DeleteReturnsError(t *testing.T) {
 	}
 }
 
-func TestHttpBorderClient_UpdateReturnsError(t *testing.T) {
-	event := buildServerUpdateEvent(createEventType, ClientTypeHttp)
-	borderClient, _, err := buildTerrorizingBorderClient(ClientTypeHttp)
+func TestTcpBorderClient_UpdateReturnsError(t *testing.T) {
+	event := buildServerUpdateEvent(createEventType, ClientTypeNginxStream)
+	borderClient, _, err := buildTerrorizingBorderClient(ClientTypeNginxStream)
 	if err != nil {
 		t.Fatalf(`error occurred creating a new border client: %v`, err)
 	}

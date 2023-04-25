@@ -20,9 +20,9 @@ package application
 // 3. Update the NewBorderClient factory method in border_client.go that returns the client;
 const (
 
-	// ClientTypeTcp creates a TcpBorderClient that uses the Stream* methods of the NGINX Plus client.
-	ClientTypeTcp = "tcp"
+	// ClientTypeNginxStream creates a NginxStreamBorderClient that uses the Stream* methods of the NGINX Plus client.
+	ClientTypeNginxStream = "stream"
 
-	// ClientTypeHttp creates an HttpBorderClient that uses the HTTP* methods of the NGINX Plus client.
-	ClientTypeHttp = "http"
+	// ClientTypeNginxHttp creates an NginxHttpBorderClient that uses the HTTP* methods of the NGINX Plus client.
+	ClientTypeNginxHttp = "http"
 )

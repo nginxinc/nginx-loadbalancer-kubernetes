@@ -89,7 +89,7 @@ func fixIngressName(name string) string {
 	return name[4:]
 }
 
-// getClientType returns the client type for the port, defaults to ClientTypeHttp if no Annotation is found.
+// getClientType returns the client type for the port, defaults to ClientTypeNginxHttp if no Annotation is found.
 func getClientType(portName string, annotations map[string]string) string {
 	key := fmt.Sprintf("%s/%s", configuration.PortAnnotationPrefix, portName)
 	logrus.Infof("getClientType: key=%s", key)
@@ -99,5 +99,5 @@ func getClientType(portName string, annotations map[string]string) string {
 		}
 	}
 
-	return application.ClientTypeHttp
+	return application.ClientTypeNginxHttp
 }

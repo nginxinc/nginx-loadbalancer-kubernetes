@@ -31,11 +31,11 @@ func NewBorderClient(clientType string, borderClient interface{}) (Interface, er
 	logrus.Debugf(`NewBorderClient for type: %s`, clientType)
 
 	switch clientType {
-	case ClientTypeTcp:
-		return NewTcpBorderClient(borderClient)
+	case ClientTypeNginxStream:
+		return NewNginxStreamBorderClient(borderClient)
 
-	case ClientTypeHttp:
-		return NewHttpBorderClient(borderClient)
+	case ClientTypeNginxHttp:
+		return NewNginxHttpBorderClient(borderClient)
 
 	default:
 		borderClient, _ := NewNullBorderClient()
