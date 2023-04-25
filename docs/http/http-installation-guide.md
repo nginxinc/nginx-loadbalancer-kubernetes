@@ -942,7 +942,7 @@ https://www.nginx.com/free-trial-request/
 
 <br/>
 
-## 4. Configure Nginx Plus for MultiCluster Load Balancing
+## 4. Configure NGINX Plus for MultiCluster Load Balancing
 
 <br/>
 
@@ -1445,8 +1445,8 @@ kubectl apply -f loadbalancer-cluster1.yaml
 ![NKL Cluster1 Loadbalancer](..//media/nkl-cluster1-add-loadbalancer.png)
 
 Legend:
-- Orange is the LoadBalancer Service `External-IP`, which are your Nginx LB Server IP(s).
-- Blue is the `NodePort mapping` created by K8s.  The new NKL Controller updates the Nginx LB Server upstreams with these, shown on the dashboard.
+- Orange is the LoadBalancer Service `External-IP`, which are your NGINX LB Server IP(s).
+- Blue is the `NodePort mapping` created by K8s.  The new NKL Controller updates the NGINX LB Server upstreams with these, shown on the dashboard.
 
 <br/>
 
@@ -1525,7 +1525,7 @@ kubectl get svc nginx-ingress -n nginx-ingress
 
 <br/>
 
-## 7. Testing NKL Nginx Kubernetes Loadbalancer
+## 7. Testing NKL NGINX Kubernetes Loadbalancer
 
 <br/>
 
@@ -1788,7 +1788,7 @@ The only tool you need for this, is an HTTP load generation tool.  WRK, running 
 
 In this section, you will generate some HTTP load on the NGINX LB Server, and watch as it sends traffic to both Clusters.  Then you will `dynamically change the HTTP Split ratio`, and watch NGINX send different traffic levels to each cluster.
 
-In these test examples, the Nginx LB Servers and IPs in the hosts file are:
+In these test examples, the NGINX LB Servers and IPs in the hosts file are:
 
 ```bash
 cat /etc/hosts
@@ -1840,7 +1840,7 @@ curl -iX PATCH -d '{"cafe.example.com":10}' http://nginxlb:9000/api/8/http/keyva
 
 ![NGINXLB Clusters 10-90](../media/nkl-clusters-10.png)
 
-**Important NOTE:**  The first time, an `HTTP POST` is required to ADD a new record to the KeyValue store.  Once the record exists, use an `HTTP PATCH` method to update an existing record, which will change the ratio value in KeyVal memory, dynamically.  Nginx sees this change, and applies it with no reloads or restarts of NGINX required!
+**Important NOTE:**  The first time, an `HTTP POST` is required to ADD a new record to the KeyValue store.  Once the record exists, use an `HTTP PATCH` method to update an existing record, which will change the ratio value in KeyVal memory, dynamically.  NGINX sees this change, and applies it with no reloads or restarts of NGINX required!
 
 Try a few more ratios, see how it works.  If you review the `clusters.conf` file, you will discover what Ratios are provided for you.  You can edit these to suit your needs.  Also notice the Map directive has a "default" set to "50".  So if the Value is blank or set incorrectly, it will Split at a default of 50:50 ratio.
 

@@ -5,6 +5,7 @@
 # nkl-<upstream-block-name>
 # externalIPs are set to Nginx LB Servers
 # Chris Akker, Apr 2023
+<<<<<<< HEAD
 =======
 # NodePort -ports name must be in the format of
 =======
@@ -14,6 +15,8 @@
 # externalIPs are set to Nginx LB Servers
 # Chris Akker, Jan 2023
 >>>>>>> add loadbalancer files
+=======
+>>>>>>> update install guides
 #
 apiVersion: v1
 kind: Service
