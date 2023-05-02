@@ -52,6 +52,8 @@ If you are running Kubernetes on-premise and will need to manage your own load b
 
 NKL itself does not perform load balancing. Rather, NKL allows you to manage Service resources within your cluster to update your load balancers, with tooling you are most likely already using. 
 
+<img src="docs/media/nkl-blog-diagram-v1.png" width="768" />
+
 ## Getting Started
 
 There are few bits of administrivia to get out of the way before you can start leveraging NKL for your load balancing needs.
