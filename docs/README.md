@@ -49,7 +49,7 @@ This repo contains source code and documents for a new `Kubernetes Controller fr
 
 <br/>
 
-![NKL Stream Diagram](media/nkl-stream-diagram.png)
+![NKL Stream Diagram](media/nkl-blog-diagram-v1.png)
 
 <br/>
 
