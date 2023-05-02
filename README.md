@@ -1,11 +1,10 @@
-<div>
+<div style="margin-bottom: 5em;">
     <span>
-<img src="nkl-logo.svg" width="124" />
-</span>    
-<span>
-<h2>nginx-k8s-loadbalancer</h2>
-</span>
+        <img style="float: left;" src="nkl-logo.svg" width="124" />
+        <h2 style="padding: 1.5em">nginx-k8s-loadbalancer</h2>
+    </span>
 </div>
+
 
 The NGINX K8s Loadbalancer, or _NKL_, is a Kubernetes controller that provides TCP load balancing external to a Kubernetes cluster running on-premise.
 
