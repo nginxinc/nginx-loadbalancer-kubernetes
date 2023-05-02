@@ -185,25 +185,30 @@ This can be any standard Linux OS system, based on the Linux Distro and Technica
 <br/>
 
 ### Overview of the Config Files used for the NGINX Plus LB Servers:
-
->/etc/nginx/conf.d
-
-    - clusters.conf               | MultiCluster LB and split clients config
-    - dashboard.conf              | NGINX Plus API and Dashboard config
-    - default-http.conf           | New default.conf config
-    - grafana-dashboard.json      | NGINX Plus Grafana dashboard
-    - nginx.conf                  | New nginx.conf
-    - loadbalancer-cluster1.yaml  | LoadBalancer manifest for Cluster1
-    - loadbalancer-cluster2.yaml  | LoadBalancer manifest for Cluster2
-    - nodeport-cluster1.yaml      | NodePort manifest for Cluster1
-    - nodeport-cluster2.yaml      | NodePort manifest for Cluster2
-    - prometheus.conf             | NGINX Prometheus config
-    - prometheus.yml              | Prometheus container config
-
->/etc/nginx/stream
-       
-    - zonesync.conf               | NGINX Zone Sync config
-
+```bash
+etc/
+└── nginx/
+    ├── conf.d/
+    │   ├── clusters.conf........ MultiCluster LB and split clients config
+    │   ├── dashboard.conf........ NGINX Plus API and Dashboard config
+    │   ├── default.conf........ New default.conf config
+    │   └── prometheus.conf........ NGINX Prometheus config
+    ├── nginx.conf........ New nginx.conf
+    └── stream
+        └── zonesync.conf........ NGINX Zone Sync config 
+```
+``` bash
+# Git Clone this repository.
+nginx-k8s-loadbalancer/
+└── docs/
+    └── http/
+        ├── grafana-dashboard.json........ NGINX Plus Grafana dashboard
+        ├── loadbalancer-cluster1.yaml........ LoadBalancer manifest for Cluster1
+        ├── loadbalancer-cluster2.yaml........ LoadBalancer manifest for Cluster2
+        ├── nodeport-cluster1.yaml........ NodePort manifest for Cluster1
+        ├── nodeport-cluster2.yaml........ NodePort manifest for Cluster2
+        └── prometheus.yml........ Prometheus container config
+```
 <br/>
 
 After a new installation of NGINX Plus, make the following configuration changes:
