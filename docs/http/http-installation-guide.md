@@ -1,5 +1,6 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 # NGINX Kubernetes Loadbalancer - HTTP MultiCluster LB Solution
 
 <br/>
@@ -14,6 +15,9 @@
 =======
 # NGINX Kubernetes Loadbalancer - MultiCluster LB Solution
 >>>>>>> change to NGINX
+=======
+# NGINX Kubernetes Loadbalancer - HTTP MultiCluster LB Solution
+>>>>>>> added step numbers
 
 <br/>
 
@@ -185,6 +189,7 @@ A standard K8s cluster is all that is required, two or more Clusters if you want
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 The NGINX Ingress Controller in this Solution is the destination target for traffic (north-south) that is being sent to the cluster(s).  The installation of the actual Ingress Controller is outside the scope of this guide, but the links to the docs are included for your reference.  The `NIC installation using Manifests` must follow the documents exactly as written, as this Solution depends on the `nginx-ingress` namespace and service objects.  **Only the very last step is changed.**  
 
 1. Follow these instructions to deploy the Nginx Ingress Controller into your cluster:  https://docs.nginx.com/nginx-ingress-controller/installation/installation-with-manifests/
@@ -210,12 +215,17 @@ The NGINX Ingress Controller in this Solution is the destination target for traf
 =======
 The NGINX Ingress Controller in this Solution is the destination target for traffic (north-south) that is being sent to the cluster(s).  The installation of the actual Ingress Controller is outside the scope of this guide, but the links to the docs are included for your reference.  The NIC installation using Manifests must follow the documents exactly as written, as this Solution depends on the `nginx-ingress` namespace and service objects.  **Only the very last step is changed.**  
 >>>>>>> update install guides
+=======
+The NGINX Ingress Controller in this Solution is the destination target for traffic (north-south) that is being sent to the cluster(s).  The installation of the actual Ingress Controller is outside the scope of this guide, but the links to the docs are included for your reference.  The `NIC installation using Manifests` must follow the documents exactly as written, as this Solution depends on the `nginx-ingress` namespace and service objects.  **Only the very last step is changed.**  
+>>>>>>> added step numbers
 
-**NOTE:** This Solution only works with `nginx-ingress` from NGINX.  It will not work with the K8s Community version of Ingress, called ingress-nginx.  
+1. Follow these instructions to deploy the Nginx Ingress Controller into your cluster:  https://docs.nginx.com/nginx-ingress-controller/installation/installation-with-manifests/
 
-If you are unsure which Ingress Controller you are running, check out the blog on nginx.com:  
+   **NOTE:** This Solution only works with `nginx-ingress` from NGINX.  It will not work with the K8s Community version of Ingress, called ingress-nginx.  
+
+1. If you are unsure which Ingress Controller you are running, check out the blog on nginx.com for more information:  
     
-https://www.nginx.com/blog/guide-to-choosing-ingress-controller-part-4-nginx-ingress-controller-options
+   https://www.nginx.com/blog/guide-to-choosing-ingress-controller-part-4-nginx-ingress-controller-options
 
 <br/>
 
@@ -245,6 +255,7 @@ Note: If you choose a different Application to test with, `the NGINX configurati
 <br/>
 
   1. Use the provided Cafe Demo manifests in the docs/cafe-demo folder:
+<<<<<<< HEAD
 
       ```bash
       kubectl apply -f cafe-secret.yaml
@@ -898,22 +909,24 @@ Note: If you choose a different Application to test with, `the NGINX configurati
 <br/>
 
 - Use the provided Cafe Demo manifests in the docs/cafe-demo folder:
+=======
+>>>>>>> added step numbers
 
-  ```bash
-  kubectl apply -f cafe-secret.yaml
-  kubectl apply -f cafe.yaml
-  kubectl apply -f cafe-virtualserver.yaml
-  ```
+   ```bash
+   kubectl apply -f cafe-secret.yaml
+   kubectl apply -f cafe.yaml
+   kubectl apply -f cafe-virtualserver.yaml
+   ```
+  
+  - The Cafe Demo reference files are located here:
 
-- The Cafe Demo reference files are located here:
+    https://github.com/nginxinc/kubernetes-ingress/tree/main/examples/ingress-resources/complete-example
 
-  https://github.com/nginxinc/kubernetes-ingress/tree/main/examples/ingress-resources/complete-example
+  1. The Cafe Demo Docker image used here is an upgraded one, with simple graphics and additional TCP/IP and HTTP variables added.
 
-- The Cafe Demo Docker image used here is an upgraded one, with simple graphics and additional TCP/IP and HTTP variables added.
+    https://hub.docker.com/r/nginxinc/ingress-demo
 
-  https://hub.docker.com/r/nginxinc/ingress-demo
-
-**IMPORTANT** - Do not use the `cafe-ingress.yaml` file.  Rather, use the `cafe-virtualserver.yaml` file that is provided here.  It uses the NGINX Plus CRDs to define a VirtualServer, and the related VirtualServer Routes needed.  If you are using NGINX OSS Ingress Controller, you will need to use the appropriate manifests, which is not covered in this Solution.
+  1. **IMPORTANT** - Do not use the `cafe-ingress.yaml` file.  Rather, use the `cafe-virtualserver.yaml` file that is provided here.  It uses the NGINX Plus CRDs to define a VirtualServer, and the related VirtualServer Routes needed.  If you are using NGINX OSS Ingress Controller, you will need to use the appropriate manifests, which is not covered in this Solution.
 
 <br/>
 
@@ -930,13 +943,13 @@ Note: If you choose a different Application to test with, `the NGINX configurati
 
 This can be any standard Linux OS system, based on the Linux Distro and Technical Specs required for NGINX Plus, which can be found here: https://docs.nginx.com/nginx/technical-specs/   
 
-This Solution followed the `Installation of NGINX Plus on Centos/Redhat/Oracle` steps for installing NGINX Plus.  
+  1. This Solution followed the `Installation of NGINX Plus on Centos/Redhat/Oracle` steps for installing NGINX Plus.  
 
 https://docs.nginx.com/nginx/admin-guide/installing-nginx/installing-nginx-plus/
 
 >NOTE:  This Solution will only work with NGINX Plus, as NGINX OpenSource does not have the API that is used in this Solution.  Installation on unsupported Linux Distros is not recommended.
 
-If you need a license for NGINX Plus, a 30-day Trial license is available here:
+  1. If you need a license for NGINX Plus, a 30-day Trial license is available here:
 
 https://www.nginx.com/free-trial-request/
 
@@ -984,7 +997,7 @@ https://www.nginx.com/free-trial-request/
 
 After a new installation of NGINX Plus, make the following configuration changes:
 
-- Change NGINX's http default server to port 8080.  See the included `default-http.conf` file.  After reloading nginx, the default `Welcome to NGINX` page will be located at http://localhost:8080.
+1. Change NGINX's http default server to port 8080.  See the included `default-http.conf` file.  After reloading nginx, the default `Welcome to NGINX` page will be located at http://localhost:8080.
 
 ```bash
 cat /etc/nginx/conf.d/default.conf
@@ -1019,12 +1032,11 @@ server {
 
 ```
 
-- Enable the NGINX Plus dashboard.  Use the `dashboard.conf` file provided.  It will enable the /api endpoint, change the port to 9000, and provide access to the Plus Dashboard.  Note:  There is no security for the /api endpoint in this example config, it should be secured as approprite with TLS or IP allow list.
-- Place this file in the /etc/nginx/conf.d folder, and reload nginx.  The Plus dashboard is now accessible at http://nginx-lb-server-ip:9000/dashboard.html.  It should look similar to this:
+1. Enable the NGINX Plus dashboard.  Use the `dashboard.conf` file provided.  It will enable the /api endpoint, change the port to 9000, and provide access to the Plus Dashboard.  Note:  There is no security for the /api endpoint in this example config, it should be secured as approprite with TLS or IP allow list.  Place this file in the /etc/nginx/conf.d folder, and reload nginx.  The Plus dashboard is now accessible at http://nginx-lb-server-ip:9000/dashboard.html.  It should look similar to this:
 
 ![NGINX Dashboard](../media/nkl-http-dashboard.png)
 
-- Use the included nginx.conf file, it enables the NGINX NJS module, for exporting the Plus statistics:  
+1. Use the included nginx.conf file, it enables the NGINX NJS module, for exporting the Plus statistics:  
 
 ```bash
 cat /etc/nginx/nginx.conf
@@ -1085,17 +1097,17 @@ stream {
 
 ```
 
-- Configure NGINX for HTTP/S traffic processing, MultiCluster load balancing with HTTP Split Clients for this Solution.
+1. Configure NGINX for HTTP/S traffic processing, MultiCluster load balancing with HTTP Split Clients for this Solution.
 
   `Notice that this example Solution only uses port 443 and terminates TLS.`  
   
-If you need a self-signed TLS cert/key, use openssl, and place both files in the /etc/ssl/nginx folder.
+1. If you need a self-signed TLS cert/key, use openssl, and place both files in the /etc/ssl/nginx folder.
   
   ```bash
   openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout default.key -out default.crt -subj "/CN=NKL"
   ```
   
-- Place the `clusters.conf` file in the /etc/nginx/conf.d folder, and reload NGINX.  Notice the match block and health check directives are for the cafe.example.com Demo application from NGINX.
+1. Place the `clusters.conf` file in the /etc/nginx/conf.d folder, and reload NGINX.  Notice the match block and health check directives are for the cafe.example.com Demo application from NGINX.
 
 ```bash
 cat /etc/nginx/conf.d/clusters.conf
@@ -1250,7 +1262,7 @@ map $split_level $upstream {
 
 ```
 
-- Configure NGINX for the Prometheus scraper page, which exports the Plus statistics.  Place the `prometheus.conf` file in /etc/nginx/conf.d folder and reload NGINX.
+1. Configure NGINX for the Prometheus scraper page, which exports the Plus statistics.  Place the `prometheus.conf` file in /etc/nginx/conf.d folder and reload NGINX.
 
 ```bash
 cat /etc/nginx/conf.d/prometheus.conf
@@ -1276,7 +1288,7 @@ server {
 
 ```
 
-- High Availability:  If you have 2 or more NGINX Plus LB Servers, you can use Zone Sync to synchronize the KeyValue SplitRatio data between the NGINX LB Servers automatically.  Use the `zonesync.conf` example file provided, change the IP addresses to match your NGINX LB Servers.  Place this file in /etc/nginx/stream folder on each LB Server, and reload NGINX.  Note:  This example does not provide any security for the Zone Sync traffic, secure as necessary with TLS or IP allowlist.
+1. High Availability:  If you have 2 or more NGINX Plus LB Servers, you can use Zone Sync to synchronize the KeyValue SplitRatio data between the NGINX LB Servers automatically.  Use the `zonesync.conf` example file provided, change the IP addresses to match your NGINX LB Servers.  Place this file in /etc/nginx/stream folder on each LB Server, and reload NGINX.  Note:  This example does not provide any security for the Zone Sync traffic, secure as necessary with TLS or IP allowlist.
 
 ```bash
 cat zonesync.conf
@@ -1303,7 +1315,7 @@ server {
 
 ```
 
-- Checking the NGINX Plus Dashboard, Cluster Tab, you will see the Status of the `split` Zone as Green, and messages sent/received if Zone Sync is operating correctly:
+1. Checking the NGINX Plus Dashboard, Cluster Tab, you will see the Status of the `split` Zone as Green, and messages sent/received if Zone Sync is operating correctly:
 
 ![Zone Sync](../media/nkl-zone-sync.png)
 
@@ -1325,19 +1337,19 @@ server {
 
 <br/>
 
-- Create the new `nkl` K8s namespace:
+1. Create the new `nkl` K8s namespace:
 
 ```bash
 kubectl create namespace nkl
 ```
 
-- Apply the manifests for NKL's Secret, Service, ClusterRole, and ClusterRoleBinding:
+1. Apply the manifests for NKL's Secret, Service, ClusterRole, and ClusterRoleBinding:
 
 ```bash
 kubectl apply -f secret.yaml serviceaccount.yaml clusterrole.yaml clusterrolebinding.yaml
 ```
 
-- Modify the ConfigMap manifest to match your NGINX LB Server(s). Change the `nginx-hosts` IP address to match your NGINX LB Server IP.  If you have 2 or more LB Servers, separate them with a comma.  Important! - keep the port number for the Plus API endpoint, and the `/api` URL as shown.
+1. Modify the ConfigMap manifest to match your NGINX LB Server(s). Change the `nginx-hosts` IP address to match your NGINX LB Server IP.  If you have 2 or more LB Servers, separate them with a comma.  Important! - keep the port number for the Plus API endpoint, and the `/api` URL as shown.
 
 ```yaml
 apiVersion: v1
@@ -1350,19 +1362,19 @@ metadata:
   namespace: nkl
 ```
 
-Apply the updated ConfigMap:
+1. Apply the updated ConfigMap:
 
 ```bash
 kubectl apply -f nkl-configmap.yaml
 ```
 
-- Deploy the NKL Controller:
+1. Deploy the NKL Controller:
 
 ```bash
 kubectl apply -f nkl-deployment.yaml
 ```
 
-Check to see if the NKL Controller is running, with the updated ConfigMap:
+1. Check to see if the NKL Controller is running, with the updated ConfigMap:
 
 ```bash
 kubectl get pods -n nkl
@@ -1375,7 +1387,7 @@ The status should show "running", your `nginx-hosts` should have the LB Server I
 
 ![NKL Running](../media/nkl-configmap.png)
 
-To make it easy to watch the NKL Controller's log messages, add the following bash alias:
+1. To make it easy to watch the NKL Controller's log messages, add the following bash alias:
 
 ```bash
 alias nkl-follow-logs='kubectl -n nkl get pods | grep nkl-deployment | cut -f1 -d" "  | xargs kubectl logs -n nkl --follow $1'
@@ -1397,14 +1409,14 @@ Leave this Terminal window open, so you can watch the log messages.
 
 Select which Service Type you would like, and follow the appropriate steps below.  Do not use both the LoadBalancer and NodePort Service files at the same time.
 
-Instead, use the `loadbalancer-cluster1.yaml` or `nodeport-cluster1.yaml` manifest file that is provided here with this Solution.  The "ports name" in the manifests `MUST` be in the correct format for this Solution to work correctly.  
+Use the `loadbalancer-cluster1.yaml` or `nodeport-cluster1.yaml` manifest file that is provided here with this Solution.  The "ports name" in the manifests `MUST` be in the correct format for this Solution to work correctly.  
 >**`The port name is the mapping from NodePorts to the LB Server's upstream blocks.`**  The port names are intentionally changed to avoid conflicts with other NodePort definitions.
 
 <br/>
 
 ### If you want to run a Service Type LoadBalancer
 
-- Review the `loadbalancer-cluster1.yaml` file:
+1. Review the `loadbalancer-cluster1.yaml` file:
 
 ```yaml
 # NKL LoadBalancer Service file
@@ -1436,7 +1448,7 @@ spec:
 
 ```
 
-- Apply the NKL Compatible LoadBalancer `loadbalancer-cluster1.yaml` Service Manifest:
+1. Apply the NKL Compatible LoadBalancer `loadbalancer-cluster1.yaml` Service Manifest:
 
 ```bash
 kubectl apply -f loadbalancer-cluster1.yaml
@@ -1465,7 +1477,7 @@ Legend:
 
 ### Alternatively, if you want a Service Type NodePort
 
-Review the new `nodeport-cluster1.yaml` Service defintion file:
+1. Review the new `nodeport-cluster1.yaml` Service defintion file:
 
 ```yaml
 # NKL Nodeport Service file
@@ -1493,13 +1505,13 @@ spec:
 
 ```
 
-- Create the NKL compatible NodePort Service, using the `nodeport-cluster1.yaml` manifest provided:
+1. Create the NKL compatible NodePort Service, using the `nodeport-cluster1.yaml` manifest provided:
 
 ```bash
 kubectl apply -f nodeport-cluster1.yaml
 ```
 
-Verify that the `nginx-ingress` NodePort Service is properly defined:
+1. Verify that the `nginx-ingress` NodePort Service is properly defined:
 
 ```bash
 kubectl get svc nginx-ingress -n nginx-ingress
@@ -1530,11 +1542,15 @@ kubectl get svc nginx-ingress -n nginx-ingress
 <br/>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 When you are finished, the Nginx Plus Dashboard on the LB Server should look similar to the following image:
 >>>>>>> added Grafana
 =======
 When you are finished, the NGINX Plus Dashboard on the LB Server should look similar to the following image:
 >>>>>>> change to NGINX
+=======
+When you are finished, the NGINX Plus Dashboard on the LB Server(s) should look similar to the following image:
+>>>>>>> added step numbers
 
 ![NGINX Upstreams Dashboard](../media/nkl-multicluster-upstreams.png)
 
@@ -1545,6 +1561,7 @@ Important items for reference:
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >Note: In this example, there is a 3-Node K8s cluster, with one Control Node, and 2 Worker Nodes.  The NKL Controller only configures NGINX upstreams with `Worker Node` IP addresses, from Cluster1, which are:
 =======
 >Note: In this example, there is a 3-Node K8s cluster, with one Control Node, and 2 Worker Nodes.  The NKL Controller only configures Nginx with `Worker Node` IP addresses, from Cluster1, which are:
@@ -1552,6 +1569,9 @@ Important items for reference:
 =======
 >Note: In this example, there is a 3-Node K8s cluster, with one Control Node, and 2 Worker Nodes.  The NKL Controller only configures NGINX with `Worker Node` IP addresses, from Cluster1, which are:
 >>>>>>> change to NGINX
+=======
+>Note: In this example, there is a 3-Node K8s cluster, with one Control Node, and 2 Worker Nodes.  The NKL Controller only configures NGINX upstreams with `Worker Node` IP addresses, from Cluster1, which are:
+>>>>>>> added step numbers
 - 10.1.1.8
 - 10.1.1.10
 
@@ -1566,6 +1586,7 @@ Note: K8s Control Nodes are excluded from the list intentionally.
 <br/>
 
 1. Configure DNS, or the local hosts file, for cafe.example.com > NGINXLB Server IP Address.  In this example:
+<<<<<<< HEAD
 
     ```bash
     cat /etc/hosts
@@ -1626,6 +1647,8 @@ Note: K8s Control Nodes are excluded from the list intentionally.
 <br/>
 
 Configure DNS, or the local hosts file, for cafe.example.com > NGINXLB Server IP Address.  In this example:
+=======
+>>>>>>> added step numbers
 
 ```bash
 cat /etc/hosts
@@ -1633,11 +1656,11 @@ cat /etc/hosts
 10.1.1.4 cafe.example.com
 ```
 
-Open a browser tab to https://cafe.example.com/coffee.  
+1. Open a browser tab to https://cafe.example.com/coffee.  
 
 The Dashboard's `HTTP Upstreams Requests counters` will increase as you refresh the browser page.
 
-- Using a Terminal and `./kube Context set for Cluster1`, delete the `nginx-ingress loadbalancer service` or `nginx-ingress nodeport service` definition.  
+1. Using a Terminal and `./kube Context set for Cluster1`, delete the `nginx-ingress loadbalancer service` or `nginx-ingress nodeport service` definition.  
 
 ```bash
 kubectl delete -f loadbalancer-cluster1.yaml
@@ -1657,11 +1680,11 @@ Legend:
 - Notice there are 4 Deleted Log messages, 2 Worker Nodes X 2 LB Servers.
 - If you are running a second NGINX LB Server for HA, and Zone Sync is working, the cluster1-https upstreams on LB Server#2 will also be empty.  Check the LB Server#2 Dashboard to confirm.
 
-If you refresh the cafe.example.com browser page, 1/2 of the requests will respond with `502 Bad Gateway`.  There are NO upstreams in Cluster1 for NGINX to send the requests to!
+1. If you refresh the cafe.example.com browser page, 1/2 of the requests will respond with `502 Bad Gateway`.  There are NO upstreams in Cluster1 for NGINX to send the requests to!
 
 ---
 
-- Add the `nginx-ingress` Service back to Cluster1:
+1. Add the `nginx-ingress` Service back to Cluster1:
 
 ```bash
 kubectl apply -f loadbalancer-cluster1.yaml
@@ -1671,7 +1694,7 @@ or
 kubectl apply -f nodeport-cluster1.yaml
 ```
 
-- Verify the nginx-ingress Service is re-created.  Notice the the Port Numbers have changed!
+1. Verify the nginx-ingress Service is re-created.  Notice the the Port Numbers have changed!
 
 ```bash
 kubectl get svc nginx-ingress -n nginx-ingress
@@ -1797,9 +1820,9 @@ nginxlb  10.1.1.4
 nginxlb2 10.1.1.5
 ```
 
-The only tool you need for this, is an HTTP load generation tool.  WRK, running in a docker container outside the cluster is what is shown here.
+The only tool you need for this, is an HTTP load generation tool.  WRK, running in a docker container outside the cluster is shown here.
 
-- Start WRK, on a client outside the cluster.  This command runs WRK for 15 minutes, targets the NGINX LB Server URL of https://10.1.1.4/coffee.  The host header is required, cafe.example.com, as NGINX is configured for this server_name. (And so is the NGINX Ingress Controller).
+1. Start WRK, on a client outside the cluster.  This command runs WRK for 15 minutes, targets the NGINX LB Server URL of https://10.1.1.4/coffee.  The host header is required, cafe.example.com, as NGINX is configured for this server_name. (And so is the NGINX Ingress Controller).
 
 ```bash
 docker run --rm williamyeh/wrk -t2 -c200 -d15m -H 'Host: cafe.example.com' --timeout 2s https://10.1.1.4/coffee
@@ -1809,13 +1832,13 @@ docker run --rm williamyeh/wrk -t2 -c200 -d15m -H 'Host: cafe.example.com' --tim
 
 You see the traffic is load balanced between cluster1 and cluster2 at a 50:50 ratio.  
 
-- ADD a new record to the KeyValue store, by sending an API command to NGINX Plus:
+1. ADD a new record to the KeyValue store, by sending an API command to NGINX Plus:
 
 ```bash
 curl -iX POST -d '{"cafe.example.com":50}' http://nginxlb:9000/api/8/http/keyvals/split
 ```
 
-- Verify the `split KeyVal record` is there, on both NGINX LB Servers:
+1. Verify the `split KeyVal record` is there, on both NGINX LB Servers:
 
 ```bash
 curl http://nginxlb:9000/api/8/http/keyvals/split
@@ -1824,7 +1847,7 @@ curl http://nginxlb2:9000/api/8/http/keyvals/split
 
 ![NGINXLB KeyVal](../media/nkl-keyval-split.png)
 
-If the KeyVal data is missing on one LB Server, your Zone Sync must be fixed.
+If the KeyVal data is missing on one LB Server, your Zone Sync is not working and must be fixed.
 
 >Notice the difference in HTTP Response Times in the Dashboard, highlighted in Red and Green: Cluster2 is responding much faster than Cluster1!  (The Red and Green highlights on the Dashboard).
 
@@ -1832,7 +1855,7 @@ Given this, you decide to send less traffic to Cluster1, and more to Cluster2.  
 
 Remember:  This Split Clients example configures NGINX for Cluster1 to use the Split KeyValue, and the remaining percentage of traffic is sent to Cluster2.
 
-- Change the KeyVal Split Ratio to 10:
+1. Change the KeyVal Split Ratio to 10:
 
 ```bash
 curl -iX PATCH -d '{"cafe.example.com":10}' http://nginxlb:9000/api/8/http/keyvals/split
@@ -1842,11 +1865,11 @@ curl -iX PATCH -d '{"cafe.example.com":10}' http://nginxlb:9000/api/8/http/keyva
 
 **Important NOTE:**  The first time, an `HTTP POST` is required to ADD a new record to the KeyValue store.  Once the record exists, use an `HTTP PATCH` method to update an existing record, which will change the ratio value in KeyVal memory, dynamically.  NGINX sees this change, and applies it with no reloads or restarts of NGINX required!
 
-Try a few more ratios, see how it works.  If you review the `clusters.conf` file, you will discover what Ratios are provided for you.  You can edit these to suit your needs.  Also notice the Map directive has a "default" set to "50".  So if the Value is blank or set incorrectly, it will Split at a default of 50:50 ratio.
+1. Try a few more ratios, see how it works.  If you review the `clusters.conf` file, you will discover what Ratios are provided for you.  You can edit these to suit your needs.  Also notice the Map directive has a "default" set to "50".  So if the Value is blank or set incorrectly, it will Split at a default of 50:50 ratio.
 
 As you can see, if you set the Ratio to "0", `Cluster1 receives NO TRAFFIC`, and you can perform K8s maintenance, troubleshooting, upgrades, etc, with no impact to live traffic.  Alternatively, you can set the Ratio to "100", and now `Cluster2 receives NO TRAFFIC`, and you can work on that cluster - with NO disruption to traffic and downtime required.
 
-- Set the Split back to "50" when your testing is completed, and ask the boss for a raise.
+1. Set the Split back to "50" when your testing is completed, and ask the boss for a raise.
 
 The Completes the Testing Section.
 
@@ -1887,6 +1910,7 @@ Here are the instructions to run 2 Docker containers on a Monitor Server, which 
 ### Prometheus
 
 1. Configure your Prometheus server to collect NGINX Plus statistics from the scraper page.  Use the prometheus.yml file provided, edit the IP addresses to match your NGINX LB Server(s).
+<<<<<<< HEAD
 
     ```bash
     cat prometheus.yaml
@@ -1968,6 +1992,8 @@ Here are the instructions to run 2 Docker containers on a Monitor Server, which 
 >>>>>>> change to NGINX
 
 - Configure your Prometheus server to collect NGINX Plus statistics from the scraper page.  Use the prometheus.yml file provided, edit the IP addresses to match your NGINX LB Server(s).
+=======
+>>>>>>> added step numbers
 
 ```bash
 cat prometheus.yaml
@@ -1989,15 +2015,15 @@ scrape_configs:
       - targets: ['10.1.1.4:80', '10.1.1.5:80']  # NGINX LB Servers
 ```
 
-- Review, edit and place the sample `prometheus.yml` file in /etc/prometheus folder.
+1. Review, edit and place the sample `prometheus.yml` file in /etc/prometheus folder.
 
-- Start the Prometheus docker container:
+1. Start the Prometheus docker container:
 
 ```bash
 sudo docker run --restart always --network="host" -d -p 9090:9090 --name=prometheus -v ~/prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus
 ```
 
-Prometheus Web Console access to the data is on http://<monitor-server-ip:9090>.
+1. Prometheus Web Console access to the data is on http://<monitor-server-ip:9090>.
 
 Explore some of the metrics available.  Try a query for `nginxplus_upstream_server_response_time`:
 
@@ -2009,21 +2035,21 @@ Explore some of the metrics available.  Try a query for `nginxplus_upstream_serv
 
 ### Grafana 
 
-- Create a docker volume to store the Grafana data.
+1. Create a docker volume to store the Grafana data.
 
 ```bash
 docker volume create grafana-storage
 ```
 
-- Start the Grafana docker container:
+1. Start the Grafana docker container:
 
 ```bash
 sudo docker run --restart always -d -p 3000:3000 --name=grafana -v grafana-storage:/var/lib/grafana grafana/grafana
 ```
 
-Web console access to Grafana is on http://<monitor-server-ip:3000>.  Login is admin/admin.
+1. Web console access to Grafana is on http://<monitor-server-ip:3000>.  Login is admin/admin.
 
-You can import the provided `grafana-dashboard.json` file to see the NGINX Plus `Cluster1 and 2 statistics` HTTP RPS and Upstream Response Times.
+1. You can import the provided `grafana-dashboard.json` file to see the NGINX Plus `Cluster1 and 2 statistics` HTTP RPS and Upstream Response Times.
 
 <br/>
 
