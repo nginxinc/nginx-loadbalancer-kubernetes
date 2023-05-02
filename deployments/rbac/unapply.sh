@@ -2,7 +2,7 @@
 
 echo "Unapplying all RBAC resources..."
 
-kubectl delete -f ServiceAccount.yaml
-kubectl delete -f ClusterRole.yaml
-kubectl delete -f ClusterRoleBinding.yaml
-kubectl delete -f Secret.yaml
+kubectl delete -f serviceaccount.yaml
+kubectl delete -f clusterrole.yaml
+kubectl delete -f clusterrolebinding.yaml
+kubectl delete -f secret.yaml

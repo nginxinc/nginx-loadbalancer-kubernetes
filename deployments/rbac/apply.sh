@@ -2,7 +2,7 @@
 
 echo "Applying all RBAC resources..."
 
-kubectl apply -f ServiceAccount.yaml
-kubectl apply -f ClusterRole.yaml
-kubectl apply -f ClusterRoleBinding.yaml
-kubectl apply -f Secret.yaml
+kubectl apply -f serviceaccount.yaml
+kubectl apply -f clusterrole.yaml
+kubectl apply -f clusterrolebinding.yaml
+kubectl apply -f secret.yaml
