@@ -107,3 +107,7 @@ having defaults set to a base of 2 seconds, and a maximum of 60 seconds.
 
 The Synchronizer uses a jitter mechanism to avoid thrashing the NGINX Plus hosts. Each `core.ServerUpdateEvent` instance 
 is added to the "nkl-synchronizer" queue with a random jitter value between 250 and 750 milliseconds.
+
+## Authors
+- Steve Wagner - Solutions Architect - Community and Alliances @ F5, Inc.
+- Chris Akker - Solutions Architect - Community and Alliances @ F5, Inc.

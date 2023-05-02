@@ -1,0 +1,31 @@
+# NKL LoadBalancer Service file
+# Spec -ports name must be in the format of
+# nkl-<upstream-block-name>
+# The nginxinc.io Annotation must be added
+# externalIPs are set to Nginx LB Servers
+# Chris Akker, Apr 2023
+#
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-ingress
+  namespace: nginx-ingress
+  annotations:
+    nginxinc.io/nkl-nginx-lb-http: "stream"    # Must be added
+    nginxinc.io/nkl-nginx-lb-https: "stream"   # Must be added
+spec:
+  type: LoadBalancer
+  externalIPs:
+  - 10.1.1.4          #Nginx LB1 Server
+  - 10.1.1.5          #Nginx LB2 Server
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+    name: nkl-nginx-lb-http
+  - port: 443
+    targetPort: 443
+    protocol: TCP
+    name: nkl-nginx-lb-https
+  selector:
+    app: nginx-ingress

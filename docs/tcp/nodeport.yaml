@@ -1,8 +1,8 @@
-# NKL Nodeport Service file
-# NodePort port name must be in the format of
-# nkl-<upstream-block-name>
-# Chris Akker, Jan 2023
-#
+# This the default nodeport.yaml manifest for nginx-ingress.  
+# The port name MUST be changed to match the new LB Controller.
+# The nginxinc.io Annotation must be added.
+# See the new nodeport-nkl.yaml file example.
+# 
 apiVersion: v1
 kind: Service
 metadata:
@@ -14,11 +14,10 @@ spec:
   - port: 80
     targetPort: 80
     protocol: TCP
-    name: nkl-nginx-lb-http
+    name: http
   - port: 443
     targetPort: 443
     protocol: TCP
-    name: nkl-nginx-lb-https
+    name: https
   selector:
     app: nginx-ingress
-
