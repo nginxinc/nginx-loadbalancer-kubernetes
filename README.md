@@ -1,112 +1,160 @@
-# nginx-k8s-loadbalancer
-
-<br/>
-
-# Welcome to the Nginx Kubernetes Load Balancer Solution!
-
-<br/>
-
-![Nginx K8s LB](docs/media/nkl-logo.png) | ![Nginx K8s LB](docs/media/nginx-2020.png)
---- | ---
-
-<br/>
-
-This repo contains source code and documents for a new `Kubernetes Controller from Nginx`, that provides TCP and HTTP load balancing external to a Kubernetes Cluster running On Premises.  
-
-<br/>
-
->>**This is a replacement for a Cloud Providers `Service Type Loadbalancer`, that is not available for On Premises Kubernetes Clusters.**
-
-<br/>
-<br/>
+<div style="margin-bottom: 5em;">
+    <span>
+        <img style="float: left;" src="nkl-logo.svg" width="124" />
+        <h2 style="padding: 1.5em">nginx-k8s-loadbalancer</h2>
+    </span>
+</div>
 
 
-# Overview
-
-- `NKL - Nginx Kubernetes Loadbalancer` is a new K8s Controller from Nginx, that monitors specified K8s Services, and then sends API calls to an external Nginx Plus server to manage Nginx Upstream servers dynamically.  
-- This will `synchronize` the K8s Service Endpoint list, with the Nginx LB Server's upstream list.  
-- The primary use case and Solution provided is for tracking the K8s` NodePort` IP:Port definitions for the Nginx Ingress Controller's `nginx-ingress Service`.  
-- NKL is a native Kubernetes Controller, running, configured and managed with standard K8s commands.
-- NKL paired with the Nginx Plus Server located external to the K8s cluster, this new controller LB function will provide a `TCP Load Balancer Service` for On Premises K8s clusters, which do not have access to a Cloud providers "Service Type LoadBalancer".
-- NKL paired with the Nginx Plus Server located external to the Cluster, using Nginx's advanced HTTP features, provide an `HTTP Load Balancer Service` for Enterprise traffic management solutions, such as:
-  - MultiCluster Active/Active Load Balancing
-  - Horizontal Cluster Scaling
-  - HTTP Split Clients - for A/B, Blue/Green, and Canary test and production traffic steering.  Allows Cluster operations/maintainence like upgrades, patching, expansion and troubleshooting with no downtime or reloads
-  - Advanced TLS Processing - MutualTLS, OCSP, FIPS, dynamic cert loading
-  - Advanced Security features - Oauth, JWT, App Protect WAF Firewall, Rate and Bandwidth limits
-  - Nginx Java Script (NJS) for custom solutions
-  - Nginx Zone Sync of KeyVal data
-
-<br/>
-
-## NKL Controller Software Design Overview - How it works
-
-[NKL Controller DESIGN and Architecture](DESIGN.md)
-
-<br/>
-
-## Reference Diagram for NKL TCP Load Balancer Service
-
-<br/>
-
-![NKL Stream Diagram](docs/media/nkl-stream-diagram.png)
-
-<br/>
-
-## Sample Screenshots of Solution at Runtime
-
-<br/>
-
-![NGINX LB ConfigMap](docs/media/nkl-configmap.png)
-### ConfigMap with 2 Nginx LB Servers defined for HA
-
-<br/>
-
-![NGINX LB Create Nodeport](docs/media/nkl-stream-create-nodeport.png)
-### Nginx LB Server Dashboard, NodePort, and NKL Controller Logging
-
-### Legend:
-- Red - kubectl nodeport commands
-- Blue - nodeport and upstreams for http traffic
-- Indigo - nodeport and upstreams for https traffic
-- Green - NKL log for api calls to LB Server #1
-- Orange - Nginx LB Server upstream dashboard details
-- Kubernetes Worker Nodes are 10.1.1.8 and 10.1.1.10
-
-<br/>
-
-The `Installation Guide` for TCP Loadbalancer Solution is located in the docs/tcp folder:
-
-[TCP Installation Guide](docs/tcp/tcp-installation-guide.md)
-
-<br/>
-
-The `Installation Guide` for HTTP Loadbalancer Solution is located in the docs/http folder:
-
-[HTTP Installation Guide](docs/http/http-installation-guide.md)
-
-<br/>
+The NGINX K8s Loadbalancer, or _NKL_, is a Kubernetes controller that provides TCP load balancing external to a Kubernetes cluster running on-premise.
 
 ## Requirements
 
-Please see the /docs folder and Installation Guides for detailed documentation.
+[//]: # (### Who needs NKL?)
 
-<br/>
+[//]: # ()
+[//]: # (- [ ] If you find yourself living in a world where Kubernetes is running on-premise instead of a cloud provider, you might need NKL.)
 
-## Development
+[//]: # (- [ ] If you want exceptional, best-in-class load-balancing for your Kubernetes clusters by using NGINX Plus, you might need NKL.)
 
-Read the [`CONTRIBUTING.md`](https://github.com/nginxinc/nginx-k8s-loadbalancer/blob/main/CONTRIBUTING.md) file.
+[//]: # (- [ ] If you want the ability to manage your load-balancing configuration with the same tools you use to manage your Kubernetes cluster, you might need NKL.)
 
-<br/>
+### What you will need
 
-## Authors
-- Chris Akker - Solutions Architect - Community and Alliances @ F5, Inc.
-- Steve Wagner - Solutions Architect - Community and Alliances @ F5, Inc.
+- [ ] A Kubernetes cluster running on-premise.
+- [ ] One or more NGINX Plus hosts running outside your Kubernetes cluster (NGINX Plus hosts must have the ability to route traffic to the cluster).
 
-<br/>
+There is a more detailed [Installation Guide](docs/InstallationGuide.md) available in the `docs/` directory.
+
+### Why NKL?
+
+NKL provides a simple, easy-to-manage way to automate load balancing for your Kubernetes applications by leveraging NGINX Plus hosts running outside your cluster.
+
+NKL installs easily, has a small footprint, and is easy to configure and manage.
+
+NKL does not require learning a custom object model, you only have to understand NGINX configuration to get the most out of this solution. 
+There is thorough documentation available with the specifics in the `docs/` directory.
+
+### What does NKL do?
+
+tl;dr:
+
+_**NKL is a Kubernetes controller that monitors Services and Nodes in your cluster, and then sends API calls to an external NGINX Plus server to manage NGINX Plus Upstream servers automatically.**_
+
+That's all well and good, but what does it mean? Kubernetes clusters require some tooling to handling routing traffic from the outside world (e.g.: the Internet, corporate network, etc.) to the cluster. 
+This is typically done with a load balancer. The load balancer is responsible for routing traffic to the appropriate worker node which then forwards the traffic to the appropriate Service / Pod.
+
+If you are using a hosted web solution -- Digital Ocean, AWS, Azure, etc. -- you can use the cloud provider's load balancer service. Those services will create a load balancer for you. 
+You can use the cloud provider's API to manage the load balancer, or you can use the cloud provider's web console.
+
+If you are running Kubernetes on-premise and will need to manage your own load balancer, NKL can help.
+
+NKL itself does not perform load balancing. Rather, NKL allows you to manage Service resources within your cluster to update your load balancers, with tooling you are most likely already using. 
+
+<img src="docs/media/nkl-blog-diagram-v1.png" width="768" />
+
+## Getting Started
+
+There are few bits of administrivia to get out of the way before you can start leveraging NKL for your load balancing needs.
+
+As noted above, NKL is intended for when you have one or more Kubernetes clusters running on-premise. In addition to this,
+you need to have at least one NGINX Plus host running outside your cluster (Please refer to the [Roadmap](#Roadmap) for information about other load balancer servers). 
+
+### Deployment
+
+#### RBAC
+
+As with everything Kubernetes, NKL requires RBAC permissions to function properly. The necessary resources are defined in the various YAML files in `deployement/rbac/`.
+
+For convenience, two scripts are included, `apply.sh`, and `unapply.sh`. These scripts will apply or remove the RBAC resources, respectively.
+
+The permissions required by NKL are modest. NKL requires the ability to read Resources via shared informers; the resources are Services, Nodes, and ConfigMaps.
+The Services and ConfigMap are restricted to a specific namespace (default: "nkl"). The Nodes resource is cluster-wide.
+
+#### Configuration
+
+NKL is configured via a ConfigMap, the default settings are found in `deployment/configmap.yaml`. Presently there is a single configuration value exposed in the ConfigMap, `nginx-hosts`.
+This contains a comma-separated list of NGINX Plus hosts that NKL will maintain.
+
+You will need to update this ConfigMap to reflect the NGINX Plus hosts you wish to manage.
+
+If you were to deploy the ConfigMap and start NKL without updating the `nginx-hosts` value, don't fear; the ConfigMap resource is monitored for changes and NKL will update the NGINX Plus hosts accordingly when the resource is changed, no restart required.
+
+There is an extensive [Installation Guide](docs/InstallationGuide.md) available in the `docs/` directory. 
+Please refer to that for detailed instructions on how to deploy NKL and run a demo application.
+
+#### Versioning
+
+Versioning is a work in progress. The CI/CD pipeline is being developed and will be used to build and publish NKL images to the Container Registry. 
+Once in place, semantic versioning will be used for published images.
+
+#### Deployment Steps
+
+To get NKL up and running in ten steps or fewer, follow these instructions (NOTE, all the aforementioned prerequisites must be met for this to work). 
+There is a much more detailed [Installation Guide](docs/InstallationGuide.md) available in the `docs/` directory.
+
+1. Clone this repo (optional, you can simply copy the `deployments/` directory) 
+
+```git clone git@github.com:nginxinc/nginx-k8s-loadbalancer.git```
+
+2. Apply the RBAC resources
+
+```./deployments/rbac/apply.sh```
+
+3. Apply the Namespace
+
+```kubectl apply -f deployments/namespace.yaml```
+
+4. Update / Apply the ConfigMap (For best results update the `nginx-hosts` values first)
+
+```kubectl apply -f deployments/configmap.yaml```
+
+5. Apply the Deployment
+
+```kubectl apply -f deployments/deployment.yaml```
+
+6. Check the logs
+
+```kubectl -n nkl get pods | grep nkl-deployment | cut -f1 -d" "  | xargs kubectl logs -n nkl --follow $1```
+
+At this point NKL should be up and running. Now would be a great time to go over to the [Installation Guide](docs/InstallationGuide.md) 
+and follow the instructions to deploy a demo application.
+
+### Monitoring
+
+Presently NKL includes a fair amount of logging. This is intended to be used for debugging purposes. 
+There are plans to add more robust monitoring and alerting in the future.
+
+As a rule, we support the use of [OpenTelemetry](https://opentelemetry.io/) for observability, and we will be adding support in the near future.
+
+## Contributing
+
+Presently we are not accepting pull requests. However, we welcome your feedback and suggestions. 
+Please open an issue to let us know what you think!
+
+One way to contribute is to help us test NKL. We are looking for people to test NKL in a variety of environments.
+
+If you are curious about the implementation, you should certainly browse the code, but first you might wish to refer to the [design document](docs/DESIGN.md). 
+Some of the design decisions are explained there.
+
+## Roadmap
+
+While NKL was initially written specifically for NGINX Plus, we recognize there are other load-balancers that can be supported.
+
+To this end, NKL has been architected to be extensible to support other "Border Servers". 
+Border Servers are the term NKL uses to describe load-balancers, reverse proxies, etc. that run outside the cluster and handle 
+routing outside traffic to your cluster. 
+
+While we have identified a few potential targets, we are open to suggestions. Please open an issue to share your thoughts on potential implementations.
+
+We look forward to building a community around NKL and value all feedback and suggestions. Varying perspectives and embracing
+diverse ideas will be key to NKL becoming a solution that is useful to the community. We will consider it a success
+when we are able to accept pull requests from the community.
 
 ## License
 
 [Apache License, Version 2.0](https://github.com/nginxinc/nginx-k8s-loadbalancer/blob/main/LICENSE)
 
-&copy; [F5 Networks, Inc.](https://www.f5.com/) 2023
+&copy; [F5, Inc.](https://www.f5.com/) 2023
+
+(but don't let that scare you, we're really nice people...)
