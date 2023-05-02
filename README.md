@@ -24,7 +24,7 @@ The NGINX K8s Loadbalancer, or _NKL_, is a Kubernetes controller that provides T
 - [ ] A Kubernetes cluster running on-premise.
 - [ ] One or more NGINX Plus hosts running outside your Kubernetes cluster (NGINX Plus hosts must have the ability to route traffic to the cluster).
 
-There is a more detailed [Installation Guide](docs/InstallationGuide.md) available in the `docs/` directory.
+There is a more detailed [Installation Reference](docs/README.md) available in the `docs/` directory.
 
 ### Why NKL?
 
@@ -80,7 +80,7 @@ You will need to update this ConfigMap to reflect the NGINX Plus hosts you wish 
 
 If you were to deploy the ConfigMap and start NKL without updating the `nginx-hosts` value, don't fear; the ConfigMap resource is monitored for changes and NKL will update the NGINX Plus hosts accordingly when the resource is changed, no restart required.
 
-There is an extensive [Installation Guide](docs/InstallationGuide.md) available in the `docs/` directory. 
+There is an extensive [Installation Reference](docs/README.md) available in the `docs/` directory. 
 Please refer to that for detailed instructions on how to deploy NKL and run a demo application.
 
 #### Versioning
@@ -91,7 +91,7 @@ Once in place, semantic versioning will be used for published images.
 #### Deployment Steps
 
 To get NKL up and running in ten steps or fewer, follow these instructions (NOTE, all the aforementioned prerequisites must be met for this to work). 
-There is a much more detailed [Installation Guide](docs/InstallationGuide.md) available in the `docs/` directory.
+There is a much more detailed [Installation Reference](docs/README.md) available in the `docs/` directory.
 
 1. Clone this repo (optional, you can simply copy the `deployments/` directory) 
 
@@ -117,7 +117,7 @@ There is a much more detailed [Installation Guide](docs/InstallationGuide.md) av
 
 ```kubectl -n nkl get pods | grep nkl-deployment | cut -f1 -d" "  | xargs kubectl logs -n nkl --follow $1```
 
-At this point NKL should be up and running. Now would be a great time to go over to the [Installation Guide](docs/InstallationGuide.md) 
+At this point NKL should be up and running. Now would be a great time to go over to the [Installation Reference](docs/README.md) 
 and follow the instructions to deploy a demo application.
 
 ### Monitoring
