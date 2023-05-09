@@ -44,7 +44,7 @@ _**NKL is a Kubernetes controller that monitors Services and Nodes in your clust
 That's all well and good, but what does it mean? Kubernetes clusters require some tooling to handling routing traffic from the outside world (e.g.: the Internet, corporate network, etc.) to the cluster. 
 This is typically done with a load balancer. The load balancer is responsible for routing traffic to the appropriate worker node which then forwards the traffic to the appropriate Service / Pod.
 
-If you are using a hosted web solution -- Digital Ocean, AWS, Azure, etc. -- you can use the cloud provider's load balancer service. Those services will create a load balancer for you. 
+If you are using a hosted Kubernetes solution -- Digital Ocean, AWS, Azure, etc. -- you can use the cloud provider's load balancer service. Those services will create a load balancer for you. 
 You can use the cloud provider's API to manage the load balancer, or you can use the cloud provider's web console.
 
 If you are running Kubernetes on-premise and will need to manage your own load balancer, NKL can help.
@@ -64,7 +64,7 @@ you need to have at least one NGINX Plus host running outside your cluster (Plea
 
 #### RBAC
 
-As with everything Kubernetes, NKL requires RBAC permissions to function properly. The necessary resources are defined in the various YAML files in `deployement/rbac/`.
+As with everything Kubernetes, NKL requires RBAC permissions to function properly. The necessary resources are defined in the various YAML files in `deployment/rbac/`.
 
 For convenience, two scripts are included, `apply.sh`, and `unapply.sh`. These scripts will apply or remove the RBAC resources, respectively.
 
@@ -73,7 +73,7 @@ The Services and ConfigMap are restricted to a specific namespace (default: "nkl
 
 #### Configuration
 
-NKL is configured via a ConfigMap, the default settings are found in `deployment/configmap.yaml`. Presently there is a single configuration value exposed in the ConfigMap, `nginx-hosts`.
+NKL is configured via a ConfigMap, the default settings are found in `deployment/nkl-configmap.yaml`. Presently there is a single configuration value exposed in the ConfigMap, `nginx-hosts`.
 This contains a comma-separated list of NGINX Plus hosts that NKL will maintain.
 
 You will need to update this ConfigMap to reflect the NGINX Plus hosts you wish to manage.
@@ -97,21 +97,21 @@ There is a much more detailed [Installation Reference](docs/README.md) available
 
 ```git clone git@github.com:nginxinc/nginx-k8s-loadbalancer.git```
 
-2. Apply the RBAC resources
+2. Apply the Namespace
+
+```kubectl apply -f deployments/nkl-namespace.yaml```
+
+3. Apply the RBAC resources
 
 ```./deployments/rbac/apply.sh```
 
-3. Apply the Namespace
-
-```kubectl apply -f deployments/namespace.yaml```
-
 4. Update / Apply the ConfigMap (For best results update the `nginx-hosts` values first)
 
-```kubectl apply -f deployments/configmap.yaml```
+```kubectl apply -f deployments/nkl-configmap.yaml```
 
 5. Apply the Deployment
 
-```kubectl apply -f deployments/deployment.yaml```
+```kubectl apply -f deployments/nkl-deployment.yaml```
 
 6. Check the logs
 
