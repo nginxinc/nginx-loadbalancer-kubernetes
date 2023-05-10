@@ -9,16 +9,13 @@ on:
     branches:
       - "main"
 
-#  push:
-#    branches:
-#      - "trigger-image-build-and-push-1"
-
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build_and_sign_image:
+    if: ${{ github.event.pull_request.merged }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
