@@ -1,3 +1,10 @@
+[![CI](https://github.com/nginxinc/nginx-k8s-loadbalancer/actions/workflows/build-test.yml/badge.svg)](https://github.com/nginxinc/nginx-k8s-loadbalancers/actions/workflows/build-test.yml) 
+[![Go Report Card](https://goreportcard.com/badge/github.com/nginxinc/nginx-k8s-loadbalancer)](https://goreportcard.com/report/github.com/nginxinc/nginx-k8s-loadbalancer) 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) 
+[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/nginxinc/nginx-k8s-loadbalancer?logo=github&sort=semver)](https://github.com/nginxinc/nginx-k8s-loadbalancer/releases/latest) ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/nginxinc/nginx-k8s-loadbalancer?logo=go) 
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/nginxinc/nginx-k8s-loadbalancer/badge)](https://api.securityscorecards.dev/projects/github.com/nginxinc/nginx-k8s-loadbalancer)
+[![CodeQL](https://github.com/nginxinc/nginx-k8s-loadbalancer/workflows/codeql.yml/badge.svg?branch=main&event=push)](https://github.com/nginxinc/nginx-k8s-loadbalancer/actions/codeql.yml)
+
 <div style="margin-bottom: 5em;">
     <span>
         <img style="float: left;" src="nkl-logo.svg" width="124" />
