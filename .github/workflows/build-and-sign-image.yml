@@ -77,3 +77,5 @@ jobs:
         continue-on-error: true
         with:
           sarif_file: 'trivy-results-${{ inputs.image }}.sarif'
+          sha: ${{ github.sha }}
+          ref: ${{ github.ref }}
