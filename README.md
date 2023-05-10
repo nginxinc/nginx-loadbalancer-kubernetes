@@ -73,7 +73,7 @@ The Services and ConfigMap are restricted to a specific namespace (default: "nkl
 
 #### Configuration
 
-NKL is configured via a ConfigMap, the default settings are found in `deployment/nkl-configmap.yaml`. Presently there is a single configuration value exposed in the ConfigMap, `nginx-hosts`.
+NKL is configured via a ConfigMap, the default settings are found in `deployment/configmap.yaml`. Presently there is a single configuration value exposed in the ConfigMap, `nginx-hosts`.
 This contains a comma-separated list of NGINX Plus hosts that NKL will maintain.
 
 You will need to update this ConfigMap to reflect the NGINX Plus hosts you wish to manage.
@@ -99,7 +99,7 @@ There is a much more detailed [Installation Reference](docs/README.md) available
 
 2. Apply the Namespace
 
-```kubectl apply -f deployments/nkl-namespace.yaml```
+```kubectl apply -f deployments/namespace.yaml```
 
 3. Apply the RBAC resources
 
@@ -107,15 +107,15 @@ There is a much more detailed [Installation Reference](docs/README.md) available
 
 4. Update / Apply the ConfigMap (For best results update the `nginx-hosts` values first)
 
-```kubectl apply -f deployments/nkl-configmap.yaml```
+```kubectl apply -f deployments/configmap.yaml```
 
 5. Apply the Deployment
 
-```kubectl apply -f deployments/nkl-deployment.yaml```
+```kubectl apply -f deployments/deployment.yaml```
 
 6. Check the logs
 
-```kubectl -n nkl get pods | grep nkl-deployment | cut -f1 -d" "  | xargs kubectl logs -n nkl --follow $1```
+```kubectl -n nkl get pods | grep deployment | cut -f1 -d" "  | xargs kubectl logs -n nkl --follow $1```
 
 At this point NKL should be up and running. Now would be a great time to go over to the [Installation Reference](docs/README.md) 
 and follow the instructions to deploy a demo application.

@@ -581,13 +581,13 @@ After a new installation of NGINX Plus, make the following configuration changes
 1. Apply the updated ConfigMap:
 
     ```bash
-    kubectl apply -f nkl-configmap.yaml
+    kubectl apply -f configmap.yaml
     ```
 
 1. Deploy the NKL Controller:
 
     ```bash
-    kubectl apply -f nkl-deployment.yaml
+    kubectl apply -f deployment.yaml
     ```
 
 1. Check to see if the NKL Controller is running, with the updated ConfigMap:
