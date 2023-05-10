@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: nginx-k8s-loadbalancer
-          image: ciroque/nginx-k8s-loadbalancer:latest
+          image: ghcr.io/nginxinc/nginx-k8s-loadbalancer:latest
           imagePullPolicy: Always
           ports:
             - name: http
