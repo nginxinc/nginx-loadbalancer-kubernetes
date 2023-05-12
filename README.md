@@ -4,6 +4,7 @@
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/nginxinc/nginx-k8s-loadbalancer?logo=github&sort=semver)](https://github.com/nginxinc/nginx-k8s-loadbalancer/releases/latest) ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/nginxinc/nginx-k8s-loadbalancer?logo=go) 
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/nginxinc/nginx-k8s-loadbalancer/badge)](https://api.securityscorecards.dev/projects/github.com/nginxinc/nginx-k8s-loadbalancer)
 [![CodeQL](https://github.com/nginxinc/nginx-k8s-loadbalancer/workflows/codeql.yml/badge.svg?branch=main&event=push)](https://github.com/nginxinc/nginx-k8s-loadbalancer/actions/codeql.yml)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fnginxinc%2Fnginx-k8s-loadbalancer.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fnginxinc%2Fnginx-k8s-loadbalancer?ref=badge_shield)
 
 <div style="margin-bottom: 5em;">
     <span>
