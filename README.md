@@ -1,4 +1,5 @@
-[![CI](https://github.com/nginxinc/nginx-k8s-loadbalancer/actions/workflows/build-test.yml/badge.svg)](https://github.com/nginxinc/nginx-k8s-loadbalancers/actions/workflows/build-test.yml) 
+[![CI](https://github.com/nginxinc/nginx-k8s-loadbalancer/actions/workflows/build-test.yml/badge.svg)](https://github.com/nginxinc/nginx-k8s-loadbalancers/actions/workflows/build-test.yml) [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fnginxinc%2Fnginx-k8s-loadbalancer.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fnginxinc%2Fnginx-k8s-loadbalancer?ref=badge_shield)
+
 [![Go Report Card](https://goreportcard.com/badge/github.com/nginxinc/nginx-k8s-loadbalancer)](https://goreportcard.com/report/github.com/nginxinc/nginx-k8s-loadbalancer) 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) 
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/nginxinc/nginx-k8s-loadbalancer?logo=github&sort=semver)](https://github.com/nginxinc/nginx-k8s-loadbalancer/releases/latest) ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/nginxinc/nginx-k8s-loadbalancer?logo=go) 
@@ -165,3 +166,6 @@ when we are able to accept pull requests from the community.
 &copy; [F5, Inc.](https://www.f5.com/) 2023
 
 (but don't let that scare you, we're really nice people...)
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fnginxinc%2Fnginx-k8s-loadbalancer.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fnginxinc%2Fnginx-k8s-loadbalancer?ref=badge_large)
