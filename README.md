@@ -5,6 +5,10 @@
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/nginxinc/nginx-k8s-loadbalancer/badge)](https://api.securityscorecards.dev/projects/github.com/nginxinc/nginx-k8s-loadbalancer)
 [![CodeQL](https://github.com/nginxinc/nginx-k8s-loadbalancer/workflows/codeql.yml/badge.svg?branch=main&event=push)](https://github.com/nginxinc/nginx-k8s-loadbalancer/actions/codeql.yml)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fnginxinc%2Fnginx-k8s-loadbalancer.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fnginxinc%2Fnginx-k8s-loadbalancer?ref=badge_shield)
+[![Community Support](https://badgen.net/badge/support/community/cyan?icon=awesome)](https://github.com/nginxinc/nginx-s3-gateway/discussions)
+[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
+
+
 
 <div style="margin-bottom: 5em;">
     <span>
