@@ -1,10 +1,14 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 # NGINX Kubernetes Loadbalancer Solution
+=======
+# NGINX Loadbalancer for Kubernetes Solution
+>>>>>>> change NKL to NLK
 
 <br/>
 
-## This is the `TCP Installation Guide` for the NGINX Kubernetes Loadbalancer Controller Solution.  It contains detailed instructions for implementing the different components for the Solution.
+## This is the `TCP Installation Guide` for the NGINX Loadbalancer for Kubernetes Controller Solution.  It contains detailed instructions for implementing the different components for the Solution.
 
 <br/>
 
@@ -144,7 +148,7 @@ This Solution from Nginx provides Enterprise class features which address common
 - Demo application, this install guide uses the NGINX Cafe example, found here:  https://github.com/nginxinc/kubernetes-ingress/tree/main/examples/ingress-resources/complete-example
 - A bare metal Linux server or VM for the external NGINX LB Server, connected to a network external to the cluster.  Two of these will be required if High Availability is needed, as shown here.
 - NGINX Plus software loaded on the LB Server(s). This install guide follows the instructions for installing NGINX Plus on Centos 7, located here: https://docs.nginx.com/nginx/admin-guide/installing-nginx/installing-nginx-plus/
-- The NGINX Kubernetes Loadbalancer (NLK) Controller, new software from NGINX for this Solution.
+- The NGINX Loadbalancer for Kubernetes (NLK) Controller, new software from NGINX for this Solution.
 
 <br/>
 
@@ -161,6 +165,7 @@ This Solution from Nginx provides Enterprise class features which address common
 
 <br/>
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -181,6 +186,9 @@ A standard K8s cluster is all that is required.  There must be enough resources 
 =======
 A standard K8s cluster is all that is required.  There must be enough resources available to run the NGINX Ingress Controller, and the new NGINX Kubernetes Loadbalancer Controller, and test application like the Cafe Demo.  You must have administrative access to be able to create the namespace, services, and deployments for this Solution.  This Solution was tested on Kubernetes version 1.23.
 >>>>>>> update install guides
+=======
+A standard K8s cluster is all that is required.  There must be enough resources available to run the NGINX Ingress Controller, and the new NGINX Loadbalancer for Kubernetes Controller, and test application like the Cafe Demo.  You must have administrative access to be able to create the namespace, services, and deployments for this Solution.  This Solution was tested on Kubernetes version 1.23.
+>>>>>>> change NKL to NLK
 
 <br/>
 
@@ -914,7 +922,7 @@ stream {
 # NGINX K8sLB Stream configuration, for L4 load balancing
 # Chris Akker, Apr 2023
 # TCP Proxy and load balancing block
-# NGINX Kubernetes Loadbalancer
+# NGINX Loadbalancer for Kubernetes
 # State File for persistent reloads/restarts
 # Health Check Match example for cafe.example.com
 #
@@ -1185,7 +1193,7 @@ The name of the Service port is matched to the name of the upstream block in NGI
 
 <br/>
 
-## 7. Testing NLK NGINX Kubernetes Loadbalancer
+## 7. Testing NLK NGINX Loadbalancer for Kubernetes
 
 <br/>
 

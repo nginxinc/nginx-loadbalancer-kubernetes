@@ -154,7 +154,7 @@ This Solution provides a replacement, using an NGINX Server, and a new K8s Contr
    
 5. NGINX Plus software loaded on the LB Server(s). This install guide follows the instructions for installing NGINX Plus on Centos 7, located here: https://docs.nginx.com/nginx/admin-guide/installing-nginx/installing-nginx-plus/
    
-6. The NGINX Kubernetes Loadbalancer (NLK) Controller, new software from NGINX for this Solution.
+6. The NGINX Loadbalancer for Kubernetes (NLK) Controller, new software from NGINX for this Solution.
 
 <br/>
 
@@ -171,6 +171,7 @@ This Solution provides a replacement, using an NGINX Server, and a new K8s Contr
 
 <br/>
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -851,6 +852,9 @@ Use the `loadbalancer-cluster1.yaml` or `nodeport-cluster1.yaml` manifest file t
 ### Alternatively, if you want a Service Type NodePort
 
 1. Review the new `nodeport-cluster1.yaml` Service defintion file:
+=======
+A standard K8s cluster is all that is required, two or more Clusters if you want the `Active/Active MultiCluster Load Balancing Solution` using HTTP Split Clients.  There must be enough resources available to run the NGINX Ingress Controller, and the NGINX Loadbalancer for Kubernetes Controller, and test application like the Cafe Demo.  You must have administrative access to be able to create the namespace, services, and deployments for this Solution.  This Solution was tested on Kubernetes version 1.23.
+>>>>>>> change NKL to NLK
 
     ```yaml
     # NKL Nodeport Service file
@@ -1324,7 +1328,7 @@ After a new installation of NGINX Plus, make the following configuration changes
     # Chris Akker, Apr 2023
     # Stream Zone Sync block
     # 2 NGINX Plus nodes
-    # NGINX Kubernetes Loadbalancer
+    # NGINX Loadbalancer for Kubernetes
     # https://docs.nginx.com/nginx/admin-guide/high-availability/zone_sync/
     #
     #### zonesync.conf
@@ -1348,7 +1352,7 @@ After a new installation of NGINX Plus, make the following configuration changes
 
 <br/>
 
-## 5. Install NLK - NGINX Kubernetes Loadbalancer Controller
+## 5. Install NLK - NGINX Loadbalancer for Kubernetes Controller
 
 <br/>
 
@@ -1564,7 +1568,7 @@ Use the `loadbalancer-cluster1.yaml` or `nodeport-cluster1.yaml` manifest file t
 
 <br/>
 
-## 7. Testing NLK NGINX Kubernetes Loadbalancer
+## 7. Testing NLK NGINX Loadbalancer for Kubernetes
 
 <br/>
 
