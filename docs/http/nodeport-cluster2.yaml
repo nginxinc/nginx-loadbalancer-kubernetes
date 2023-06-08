@@ -1,6 +1,6 @@
-# NKL Nodeport Service file
+# NLK Nodeport Service file
 # NodePort -ports name must be in the format of
-# nkl-<upstream-block-name>
+# nlk-<upstream-block-name>
 # The nginxinc.io Annotation must be added
 # Chris Akker, Apr 2023
 #
@@ -10,14 +10,14 @@ metadata:
   name: nginx-ingress
   namespace: nginx-ingress
   annotations:
-    nginxinc.io/nkl-cluster2-https: "http"   # Must be added
+    nginxinc.io/nlk-cluster2-https: "http"   # Must be added
 spec:
   type: NodePort 
   ports:
   - port: 443
     targetPort: 443
     protocol: TCP
-    name: nkl-cluster2-https
+    name: nlk-cluster2-https
   selector:
     app: nginx-ingress
     

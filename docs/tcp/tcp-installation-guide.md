@@ -6,7 +6,7 @@
 
 <br/>
 
-![Kubernetes](../media/kubernetes-icon.png) | ![NKL](../media/nkl-logo.png) | ![NGINX Plus](../media/nginx-plus-icon.png) | ![NIC](../media/nginx-ingress-icon.png)
+![Kubernetes](../media/kubernetes-icon.png) | ![NLK](../media/nlk-logo.png) | ![NGINX Plus](../media/nginx-plus-icon.png) | ![NIC](../media/nginx-ingress-icon.png)
 --- | --- | --- | ---
 
 <br/>
@@ -21,7 +21,7 @@
 
 <br/>
 
-![NKL Solution Overview](../media/nkl-stream-diagram.png)
+![NLK Solution Overview](../media/nlk-stream-diagram.png)
 
 <br/>
 
@@ -31,9 +31,9 @@
 2. Install NGINX Cafe Demo Application in your Cluster
 3. Install NGINX Plus on the Loadbalancer Server(s)
 4. Configure NGINX Plus for TCP Load Balancing 
-5. Install NKL NGINX Kubernetes LB Controller in your Cluster
-6. Install NKL LoadBalancer or NodePort Service manifest
-7. Test out NKL
+5. Install NLK NGINX Kubernetes LB Controller in your Cluster
+6. Install NLK LoadBalancer or NodePort Service manifest
+7. Test out NLK
 
 <br/>
 
@@ -44,7 +44,7 @@
 - Demo application, this install guide uses the NGINX Cafe example, found here:  https://github.com/nginxinc/kubernetes-ingress/tree/main/examples/ingress-resources/complete-example
 - A bare metal Linux server or VM for the external NGINX LB Server, connected to a network external to the cluster.  Two of these will be required if High Availability is needed, as shown here.
 - NGINX Plus software loaded on the LB Server(s). This install guide follows the instructions for installing NGINX Plus on Centos 7, located here: https://docs.nginx.com/nginx/admin-guide/installing-nginx/installing-nginx-plus/
-- The NGINX Kubernetes Loadbalancer (NKL) Controller, new software from NGINX for this Solution.
+- The NGINX Kubernetes Loadbalancer (NLK) Controller, new software from NGINX for this Solution.
 
 <br/>
 
@@ -77,7 +77,7 @@ https://www.nginx.com/blog/guide-to-choosing-ingress-controller-part-4-nginx-ing
 
 <br/>
 
->>Important!  Do not complete the very last step in the NIC deployment with Manifests, `do not deploy the loadbalancer.yaml or nodeport.yaml Service file!`  You will apply a different loadbalancer or nodeport Service manifest later, after the NKL Controller is up and running.  `The nginx-ingress Service file must be changed` - it is not the default file. 
+>>Important!  Do not complete the very last step in the NIC deployment with Manifests, `do not deploy the loadbalancer.yaml or nodeport.yaml Service file!`  You will apply a different loadbalancer or nodeport Service manifest later, after the NLK Controller is up and running.  `The nginx-ingress Service file must be changed` - it is not the default file. 
 
 <br/>
 
@@ -158,8 +158,8 @@ https://www.nginx.com/free-trial-request/
     - dashboard.conf              | NGINX Plus API and Dashboard config
     - default-tcp.conf            | New default.conf config
     - nginx.conf                  | New nginx.conf
-    - loadbalancer-nkl.yaml       | LoadBalancer manifest
-    - nodeport-nkl.yaml           | NodePort manifest
+    - loadbalancer-nlk.yaml       | LoadBalancer manifest
+    - nodeport-nlk.yaml           | NodePort manifest
 
 >/etc/nginx/stream
        
@@ -207,7 +207,7 @@ server {
 - Enable the NGINX Plus dashboard.  Use the `dashboard.conf` file provided.  It will enable the /api endpoint, change the port to 9000, and provide access to the Plus Dashboard.  Note:  There is no security for the /api endpoint in this example config, it should be secured as approprite with TLS or IP allow list.
 - Place this file in the /etc/nginx/conf.d folder, and reload nginx.  The Plus dashboard is now accessible at http://nginx-lbserver-ip:9000/dashboard.html.  It should look similar to this:
 
-![NGINX Dashboard](../media/nkl-stream-dashboard.png)
+![NGINX Dashboard](../media/nlk-stream-dashboard.png)
 
 - Create a new folder for the NGINX stream .conf files.  `/etc/nginx/stream` is used in this Solution.
 
@@ -287,13 +287,13 @@ stream {
 
    upstream nginx-lb-http {
       zone nginx-lb-http 256k;
-      #servers managed by NKL Controller
+      #servers managed by NLK Controller
       state /var/lib/nginx/state/nginx-lb-http.state; 
     }
 
    upstream nginx-lb-https {
       zone nginx-lb-https 256k;
-      #servers managed by NKL Controller
+      #servers managed by NLK Controller
       state /var/lib/nginx/state/nginx-lb-https.state; 
     }
 
@@ -320,32 +320,32 @@ stream {
 
 - Check the NGINX Plus Dashboard, at http://nginx-lbserver-ip:9000/dashboard.html.  You should see something like this:
 
-![NKL Stream Upstreams](../media/nkl-stream-dashboard.png)
+![NLK Stream Upstreams](../media/nlk-stream-dashboard.png)
 
 - If you have 2 NGINX LB Servers for High Availability, repeat the previous NGINX Plus installation and configuration steps on the second LB Server.
 
 <br/>
 
-## 5. Install NKL - NGINX Kubernetes Loadbalancing Controller
+## 5. Install NLK - NGINX Kubernetes Loadbalancing Controller
 
 <br/>
 
-![NIC](../media/nkl-logo.png)
+![NIC](../media/nlk-logo.png)
 
 <br/>
 
 ### This is the new K8s Controller from NGINX, which is configured to watch the k8s environment, the `nginx-ingress` Service object, and send API updates to the NGINX LB Server(s) when there are changes.  It only requires three things:
 
 1. New Kubernetes namespace and RBAC
-2. NKL ConfigMap, to configure the Controller
-3. NKL Deployment, to deploy and run the Controller
+2. NLK ConfigMap, to configure the Controller
+3. NLK Deployment, to deploy and run the Controller
 
 <br/>
 
 - Create the new K8s namespace:
 
 ```bash
-kubectl create namespace nkl
+kubectl create namespace nlk
 ```
 
 - Apply the manifests for Secret, Service, ClusterRole, and ClusterRoleBinding:
@@ -364,71 +364,71 @@ data:
   nginx-hosts:
     "http://10.1.1.4:9000/api,http://10.1.1.5:9000/api"    # change IP(s) to match NGINX LB Server(s)
 metadata:
-  name: nkl-config
-  namespace: nkl
+  name: nlk-config
+  namespace: nlk
 
 ```
 
 Apply the updated ConfigMap:
 
 ```bash
-kubectl apply -f nkl-configmap.yaml
+kubectl apply -f nlk-configmap.yaml
 ```
 
-Deploy the NKL Controller:
+Deploy the NLK Controller:
 
 ```bash
-kubectl apply -f nkl-deployment.yaml
+kubectl apply -f nlk-deployment.yaml
 ```
 
-Check to see if the NKL Controller is running, with the updated ConfigMap:
+Check to see if the NLK Controller is running, with the updated ConfigMap:
 
 ```bash
-kubectl get pods -n nkl
+kubectl get pods -n nlk
 ```
 ```bash
-kubectl describe cm nkl-config -n nkl
+kubectl describe cm nlk-config -n nlk
 ```
 
 The status should show "running", your `nginx-hosts` should have the LB Server IP:Port/api.
 
-![NKL Running](../media/nkl-configmap.png)
+![NLK Running](../media/nlk-configmap.png)
 
-To make it easy to watch the NKL Controller's log messages, add the following bash alias:
+To make it easy to watch the NLK Controller's log messages, add the following bash alias:
 
 ```bash
-alias nkl-follow-logs='kubectl -n nkl get pods | grep nkl-deployment | cut -f1 -d" "  | xargs kubectl logs -n nkl --follow $1'
+alias nlk-follow-logs='kubectl -n nlk get pods | grep nlk-deployment | cut -f1 -d" "  | xargs kubectl logs -n nlk --follow $1'
 ```
 
-Using a Terminal, you can watch the NKL Controller log:
+Using a Terminal, you can watch the NLK Controller log:
 
 ```bash
-nkl-follow-logs
+nlk-follow-logs
 ```
 
 Leave this Terminal window open, so you can watch the log messages.
 
 <br/>
 
-## 6. Install NKL Loadbalancer or NodePort Service Manifest
+## 6. Install NLK Loadbalancer or NodePort Service Manifest
 
 <br/>
 
 Select which Service Type you would like, and follow the appropriate steps below.  Do not use both the LoadBalancer and NodePort Service files at the same time.
 
-Instead, use the `loadbalancer-nkl.yaml` or `nodeport-nkl.yaml` manifest file that is provided here with this Solution.  The "ports name" in the manifests `MUST` be in the correct format for this Solution to work correctly.  
+Instead, use the `loadbalancer-nlk.yaml` or `nodeport-nlk.yaml` manifest file that is provided here with this Solution.  The "ports name" in the manifests `MUST` be in the correct format for this Solution to work correctly.  
 >**`The port name is the mapping from NodePorts to the LB Server's upstream blocks.`**  The port names are intentionally changed to avoid conflicts with other NodePort definitions.
 
 <br/>
 
 ### If you want to run a Service Type LoadBalancer
 
-Review the new `loadbalancer-nkl.yaml` Service definition file:
+Review the new `loadbalancer-nlk.yaml` Service definition file:
 
 ```yaml
-# NKL LoadBalancer Service file
+# NLK LoadBalancer Service file
 # Spec -ports name must be in the format of
-# nkl-<upstream-block-name>
+# nlk-<upstream-block-name>
 # The nginxinc.io Annotation must be added
 # externalIPs are set to Nginx LB Servers
 # Chris Akker, Apr 2023
@@ -439,8 +439,8 @@ metadata:
   name: nginx-ingress
   namespace: nginx-ingress
   annotations:
-    nginxinc.io/nkl-nginx-lb-http: "stream"    # Must be added
-    nginxinc.io/nkl-nginx-lb-https: "stream"   # Must be added
+    nginxinc.io/nlk-nginx-lb-http: "stream"    # Must be added
+    nginxinc.io/nlk-nginx-lb-https: "stream"   # Must be added
 spec:
   type: LoadBalancer
   externalIPs:
@@ -450,20 +450,20 @@ spec:
   - port: 80
     targetPort: 80
     protocol: TCP
-    name: nkl-nginx-lb-http
+    name: nlk-nginx-lb-http
   - port: 443
     targetPort: 443
     protocol: TCP
-    name: nkl-nginx-lb-https
+    name: nlk-nginx-lb-https
   selector:
     app: nginx-ingress
 
 ```
 
-- Apply the NKL Compatible LoadBalancer `loadbalancer-nkl.yaml` Service Manifest:
+- Apply the NLK Compatible LoadBalancer `loadbalancer-nlk.yaml` Service Manifest:
 
 ```bash
-kubectl apply -f loadbalancer-nkl.yaml
+kubectl apply -f loadbalancer-nlk.yaml
 ```
 
 - Verify the LoadBalancer is now defined:
@@ -474,28 +474,28 @@ kubectl get svc nginx-ingress -n nginx-ingress
 
 The nginx-ingress Service, `ExternalIPs` should match your external NGINX LB Server IP(s):
 
-![NKL Stream Loadbalancer](..//media/nkl-stream-add-loadbalancer.png)
+![NLK Stream Loadbalancer](..//media/nlk-stream-add-loadbalancer.png)
 
 Legend:
 - Orange is the TYPE LoadBalancer Service
 - Red is the LoadBalancer Service `EXTERNAL-IP`, which are your NGINX LB Server IP(s); 10.1.1.4 and 10.1.1.5 in this example.
 - Blue is the `K8s NodePort mapping` for Port 80.
 - Indigo is the `K8s NodePort mapping` for Port 443.
-- Green is the NKL Log messages, creating the upstreams to match.
-- The new NKL Controller updates the NGINX LB Server upstreams with these, shown on the dashboard.
+- Green is the NLK Log messages, creating the upstreams to match.
+- The new NLK Controller updates the NGINX LB Server upstreams with these, shown on the dashboard.
 
-No Reload of NGINX needed!  The NKL Controller uses the Plus API to dynamically add/delete/modify the upstreams as nginx-ingress Service changes.
+No Reload of NGINX needed!  The NLK Controller uses the Plus API to dynamically add/delete/modify the upstreams as nginx-ingress Service changes.
 
 <br/>
 
 ### Alternatively, if you want a Service Type NodePort
 
-Review the new `nodeport-nkl.yaml` Service defintion file:
+Review the new `nodeport-nlk.yaml` Service defintion file:
 
 ```yaml
-# NKL Nodeport Service file
+# NLK Nodeport Service file
 # NodePort -ports name must be in the format of
-# nkl-<upstream-block-name>
+# nlk-<upstream-block-name>
 # The nginxinc.io Annotation must be added
 # Chris Akker, Apr 2023
 #
@@ -505,28 +505,28 @@ metadata:
   name: nginx-ingress
   namespace: nginx-ingress
   annotations:
-    nginxinc.io/nkl-nginx-lb-http: "stream"    # Must be added
-    nginxinc.io/nkl-nginx-lb-https: "stream"   # Must be added
+    nginxinc.io/nlk-nginx-lb-http: "stream"    # Must be added
+    nginxinc.io/nlk-nginx-lb-https: "stream"   # Must be added
 spec:
   type: NodePort 
   ports:
   - port: 80
     targetPort: 80
     protocol: TCP
-    name: nkl-nginx-lb-http
+    name: nlk-nginx-lb-http
   - port: 443
     targetPort: 443
     protocol: TCP
-    name: nkl-nginx-lb-https
+    name: nlk-nginx-lb-https
   selector:
     app: nginx-ingress
 
 ```
 
-- Create the NKL compatible NodePort Service, using the `nodeport-nkl.yaml` manifest provided:
+- Create the NLK compatible NodePort Service, using the `nodeport-nlk.yaml` manifest provided:
 
 ```bash
-kubectl apply -f nodeport-nkl.yaml
+kubectl apply -f nodeport-nlk.yaml
 ```
 
 - Verify the NodePort is now defined:
@@ -535,8 +535,8 @@ kubectl apply -f nodeport-nkl.yaml
 kubectl get svc nginx-ingress -n nginx-ingress
 ```
 
-![NKL NodePort](../media/nkl-stream-nodeport.png)
-![NKL Stream Upstreams Dashboard](../media/nkl-stream-upstreams.png)
+![NLK NodePort](../media/nlk-stream-nodeport.png)
+![NLK Stream Upstreams Dashboard](../media/nlk-stream-upstreams.png)
 
 ### NodePort mapping is 80:31681 and 443:31721,  K8s Workers are 10.1.1.8 and .10.
 
@@ -550,20 +550,20 @@ The name of the Service port is matched to the name of the upstream block in NGI
 
 <br/>
 
-## 7. Testing NKL NGINX Kubernetes Loadbalancer
+## 7. Testing NLK NGINX Kubernetes Loadbalancer
 
 <br/>
 
 When you are finished, the NGINX Plus Dashboard on the LB Server should look similar to the following image:
 
-![NGINX Upstreams Dashboard](../media/nkl-stream-upstreams.png)
+![NGINX Upstreams Dashboard](../media/nlk-stream-upstreams.png)
 
 Important items for reference:
 - Orange are the upstream server blocks, from the `etc/nginx/stream/nginxk8slb.conf` file.
 - Blue is the IP:Port of the nginx-ingress Service for http.
 - Indigo is the IP:Port of the nginx-ingress Service for https.
 
->Note: In this example, there is a 3-Node K8s cluster, with one Control Node, and 2 Worker Nodes.  The NKL Controller only configures `Worker Node` IP addresses, which are:
+>Note: In this example, there is a 3-Node K8s cluster, with one Control Node, and 2 Worker Nodes.  The NLK Controller only configures `Worker Node` IP addresses, which are:
 - 10.1.1.8
 - 10.1.1.10
 
@@ -585,20 +585,20 @@ The Dashboard's `TCP/UDP Upstreams Connection counters` will increase as you ref
 - Using a Terminal, delete the `nginx-ingress loadbalancer service` or `nginx-ingress nodeport service` definition. 
 
 ```bash
-kubectl delete -f loadbalancer-nkl.yaml
+kubectl delete -f loadbalancer-nlk.yaml
 ```
 or
 ```bash
-kubectl delete -f nodeport-nkl.yaml
+kubectl delete -f nodeport-nlk.yaml
 ```
 
 Now the `nginx-ingress` Service is gone, and the upstream lists will be empty in the Dashboard.
 
-![NGINX No NodePort](../media/nkl-stream-no-nodeport.png)
+![NGINX No NodePort](../media/nlk-stream-no-nodeport.png)
 
-The NKL log messages confirm the deletion of the upstreams:
+The NLK log messages confirm the deletion of the upstreams:
 
-![NKL Logs Deleted](../media/nkl-stream-logs-deleted.png)
+![NLK Logs Deleted](../media/nlk-stream-logs-deleted.png)
 
 - If you refresh the cafe.example.com browser page, it will Time Out.  There are NO upstreams for NGINX to send the request to!
 
@@ -607,11 +607,11 @@ The NKL log messages confirm the deletion of the upstreams:
 - Add the `nginx-ingress` Service back to the cluster:
 
 ```bash
-kubectl apply -f loadbalancer-nkl.yaml
+kubectl apply -f loadbalancer-nlk.yaml
 ```
 or
 ```bash
-kubectl apply -f nodeport-nkl.yaml
+kubectl apply -f nodeport-nlk.yaml
 ```
 
 - Verify the nginx-ingress Service is re-created.  Notice the the NodePort Numbers have changed!
@@ -620,15 +620,15 @@ kubectl apply -f nodeport-nkl.yaml
 kubectl get svc nginx-ingress -n nginx-ingress
 ```
 
-`The NKL Controller detects this change, and modifies the LB Server(s) upstreams to match.`  The Dashboard will show you the new Port numbers, matching the new LoadBalancer or NodePort definitions.  The NKL logs show these messages, confirming the changes:
+`The NLK Controller detects this change, and modifies the LB Server(s) upstreams to match.`  The Dashboard will show you the new Port numbers, matching the new LoadBalancer or NodePort definitions.  The NLK logs show these messages, confirming the changes:
 
-![NKL LoadBalancer](../media/nkl-stream-add-loadbalancer.png)
+![NLK LoadBalancer](../media/nlk-stream-add-loadbalancer.png)
 
 or
 
-![NKL NodePort](../media/nkl-stream-nodeport.png)
-![NKL Logs Created](../media/nkl-stream-logs-created.png)
-![NGINX Upstreams Dashboard](../media/nkl-stream-upstreams.png)
+![NLK NodePort](../media/nlk-stream-nodeport.png)
+![NLK Logs Created](../media/nlk-stream-logs-created.png)
+![NGINX Upstreams Dashboard](../media/nlk-stream-upstreams.png)
 
 <br/>
 
