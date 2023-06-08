@@ -816,7 +816,7 @@ After the new installation of NGINX Plus, make the following configuration chang
 
 ```bash
 cat /etc/nginx/conf.d/default.conf
-# NGINX K8s Loadbalancer Solution
+# NGINX Loadbalancer for Kubernetes Solution
 # Chris Akker, Apr 2023
 # Example default.conf
 # Change default_server to port 8080
@@ -863,7 +863,7 @@ mkdir /etc/nginx/stream
 ```bash
 cat /etc/nginx/nginx.conf
 
-# NGINX K8s Loadbalancer Solution
+# NGINX Loadbalancer for Kubernetes Solution
 # Chris Akker, Apr 2023
 # Example nginx.conf
 # Enable Stream context, add /var/log/nginx/stream.log
