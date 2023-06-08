@@ -1,5 +1,5 @@
 
-## NKL and MultiCluster Load Balancing with HTTP/S
+## NLK and MultiCluster Load Balancing with HTTP/S
 
 <br/>
 
@@ -35,34 +35,34 @@
 
 <br/>
 
-## Reference Diagram for NKL HTTP MultiCluster Load Balancing Solution
+## Reference Diagram for NLK HTTP MultiCluster Load Balancing Solution
 
 <br/>
 
-Multiple K8s Clusters, HA NGINX Plus LB Servers, NKL Controllers
+Multiple K8s Clusters, HA NGINX Plus LB Servers, NLK Controllers
 
-![NKL MultiCluster Diagram](../media/nkl-multicluster-config.png)
+![NLK MultiCluster Diagram](../media/nlk-multicluster-config.png)
 
 
 <br/>
 
-NKL Watching nginx-ingress Service and Updating HTTP Upstreams; Service Type Loadbalancer or NodePort:
+NLK Watching nginx-ingress Service and Updating HTTP Upstreams; Service Type Loadbalancer or NodePort:
 
-![NKL MultiCluster LoadBalancer](../media/nkl-cluster1-add-loadbalancer.png)
+![NLK MultiCluster LoadBalancer](../media/nlk-cluster1-add-loadbalancer.png)
 or
-![NKL MultiCluster NodePort](../media/nkl-cluster1-add-nodeport.png)
+![NLK MultiCluster NodePort](../media/nlk-cluster1-add-nodeport.png)
 
 <br/>
 
 MultiCluster Load Balancing
 
-![NKL MultiCluster Dashboard](../media/nkl-multicluster-upstreams.png)
+![NLK MultiCluster Dashboard](../media/nlk-multicluster-upstreams.png)
 
 <br/>
 
 NGINX HTTP Split Clients with Dynamic Ratio -- 10% Cluster1 : 90% Cluster2 
 
-![NGINX HTTP Split 10](../media/nkl-clusters-10.png)
+![NGINX HTTP Split 10](../media/nlk-clusters-10.png)
 
 =======
 - Nginx Zone Sync of KeyVal data

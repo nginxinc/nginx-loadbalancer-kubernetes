@@ -1,8 +1,12 @@
-# NKL Nodeport Service file
+# NLK Nodeport Service file
 # NodePort -ports name must be in the format of
+<<<<<<< HEAD
 # nkl-<upstream-block-name>
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+# nlk-<upstream-block-name>
+>>>>>>> change NKL to NLK
 # The nginxinc.io Annotation must be added
 =======
 >>>>>>> added http docs
@@ -24,15 +28,19 @@ metadata:
 >>>>>>> added http docs
 =======
   annotations:
+<<<<<<< HEAD
     nginxinc.io/nkl-cluster2-https: "http"   # Must be added
 >>>>>>> update install guides
+=======
+    nginxinc.io/nlk-cluster2-https: "http"   # Must be added
+>>>>>>> change NKL to NLK
 spec:
   type: NodePort 
   ports:
   - port: 443
     targetPort: 443
     protocol: TCP
-    name: nkl-cluster2-https
+    name: nlk-cluster2-https
   selector:
     app: nginx-ingress
     

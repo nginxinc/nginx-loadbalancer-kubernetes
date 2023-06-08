@@ -1,8 +1,12 @@
-# NKL Nodeport Service file
+# NLK Nodeport Service file
 # NodePort -ports name must be in the format of
+<<<<<<< HEAD
 # nkl-<upstream-block-name>
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+# nlk-<upstream-block-name>
+>>>>>>> change NKL to NLK
 # The nginxinc.io Annotation must be added
 =======
 >>>>>>> add loadbalancer files
@@ -17,18 +21,18 @@ metadata:
   name: nginx-ingress
   namespace: nginx-ingress
   annotations:
-    nginxinc.io/nkl-nginx-lb-http: "stream"    # Must be added
-    nginxinc.io/nkl-nginx-lb-https: "stream"   # Must be added
+    nginxinc.io/nlk-nginx-lb-http: "stream"    # Must be added
+    nginxinc.io/nlk-nginx-lb-https: "stream"   # Must be added
 spec:
   type: NodePort 
   ports:
   - port: 80
     targetPort: 80
     protocol: TCP
-    name: nkl-nginx-lb-http
+    name: nlk-nginx-lb-http
   - port: 443
     targetPort: 443
     protocol: TCP
-    name: nkl-nginx-lb-https
+    name: nlk-nginx-lb-https
   selector:
     app: nginx-ingress

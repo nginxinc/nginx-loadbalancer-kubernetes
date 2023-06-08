@@ -1,8 +1,12 @@
+<<<<<<< HEAD
 # NKL LoadBalancer Service file
 <<<<<<< HEAD
 <<<<<<< HEAD
+=======
+# NLK LoadBalancer Service file
+>>>>>>> change NKL to NLK
 # Spec -ports name must be in the format of
-# nkl-<upstream-block-name>
+# nlk-<upstream-block-name>
 # The nginxinc.io Annotation must be added
 <<<<<<< HEAD
 =======
@@ -35,9 +39,14 @@ spec:
 =======
 =======
   annotations:
+<<<<<<< HEAD
     nginxinc.io/nkl-nginx-lb-http: "stream"    # Must be added
     nginxinc.io/nkl-nginx-lb-https: "stream"   # Must be added
 >>>>>>> update install guides
+=======
+    nginxinc.io/nlk-nginx-lb-http: "stream"    # Must be added
+    nginxinc.io/nlk-nginx-lb-https: "stream"   # Must be added
+>>>>>>> change NKL to NLK
 spec:
   type: LoadBalancer
   externalIPs:
@@ -53,10 +62,10 @@ spec:
   - port: 80
     targetPort: 80
     protocol: TCP
-    name: nkl-nginx-lb-http
+    name: nlk-nginx-lb-http
   - port: 443
     targetPort: 443
     protocol: TCP
-    name: nkl-nginx-lb-https
+    name: nlk-nginx-lb-https
   selector:
     app: nginx-ingress
