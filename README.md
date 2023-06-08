@@ -23,7 +23,7 @@ This repo contains source code and documents for a new `Kubernetes Controller fr
 
 # Overview
 
-- `NLK - Nginx Kubernetes Loadbalancer` is a new K8s Controller from Nginx, that monitors specified K8s Services, and then sends API calls to an external Nginx Plus server to manage Nginx Upstream servers dynamically.  
+- `NLK - NGINX Loadbalancer for Kubernetes` is a new K8s Controller from Nginx, that monitors specified K8s Services, and then sends API calls to an external Nginx Plus server to manage Nginx Upstream servers dynamically.  
 - This will `synchronize` the K8s Service Endpoint list, with the Nginx LB Server's upstream list.  
 - The primary use case and Solution provided is for tracking the K8s` NodePort` IP:Port definitions for the Nginx Ingress Controller's `nginx-ingress Service`.  
 - NLK is a native Kubernetes Controller, running, configured and managed with standard K8s commands.
