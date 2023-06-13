@@ -2,10 +2,14 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 # NGINX Kubernetes Loadbalancer - HTTP MultiCluster LB Solution
 =======
 # NGINX Loadbalancer for Kubernetes - HTTP MultiCluster LB Solution
 >>>>>>> change NKL to NLK
+=======
+# NGINX Loadbalancer for Kubernetes - HTTP MultiCluster LB Solution
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 
 <br/>
 
@@ -13,6 +17,7 @@
 
 <br/>
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 ![Kubernetes](../media/kubernetes-icon.png) | ![NKL](../media/nkl-logo.png)| ![NGINX Plus](../media/nginx-plus-icon.png) | ![NIC](../media/nginx-ingress-icon.png)
 =======
@@ -39,6 +44,9 @@
 =======
 ![Kubernetes](../media/kubernetes-icon.png) | ![NLK](../media/nlk-logo.png)| ![NGINX Plus](../media/nginx-plus-icon.png) | ![NIC](../media/nginx-ingress-icon.png)
 >>>>>>> change NKL to NLK
+=======
+![Kubernetes](../media/kubernetes-icon.png) | ![NLK](../media/nlk-logo.png)| ![NGINX Plus](../media/nginx-plus-icon.png) | ![NIC](../media/nginx-ingress-icon.png)
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 --- | --- | --- | ---
 
 <br/>
@@ -47,11 +55,15 @@
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 ### This Solution from NGINX provides Enterprise class features which address common challenges with networking, traffic management, and High Availability for On-Premises Kubernetes Clusters.
 
 1. Provides a `replacement Loadbalancer Service.`  The Loadbalancer Service is a key component provided by most Cloud Providers.  However, when running a K8s Cluster On Premises, the `Loadbalancer Service is not available.`  
 This Solution provides a replacement, using an NGINX Server, and a new K8s Controller from NGINX.  These two components work together to watch the `nginx-ingress Service` in the cluster, and immediately update the NGINX LB Server when changes occur. 
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 2. Provides `MultiCluster Load Balancing`, traffic steering, health checks, TLS termination, advanced LB algorithms, and enhanced metrics.
    
@@ -111,6 +123,8 @@ This Solution from Nginx provides Enterprise class features which address common
 This Solution provides a replacement, using an NGINX Server, and a new K8s Controller from NGINX.  These two components work together to watch the `nginx-ingress Service` in the cluster, and immediately update the NGINX LB Server when changes occur.  
 =======
 >>>>>>> added numbering
+=======
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 2. Provides `MultiCluster Load Balancing`, traffic steering, health checks, TLS termination, advanced LB algorithms, and enhanced metrics.
    
 3. Provides dynamic, ratio-based Load Balancing for Multiple Clusters. This allows for advanced traffic steering, and operation efficiency with no Reloads or downtime.
@@ -159,11 +173,15 @@ This Solution provides a replacement, using an NGINX Server, and a new K8s Contr
 <br/>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 ## Kubernetes Clusters
 >>>>>>> added Grafana
 =======
 ### Kubernetes Clusters
 >>>>>>> change to NGINX
+=======
+### Kubernetes Clusters
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 
 <br/>
 
@@ -171,6 +189,7 @@ This Solution provides a replacement, using an NGINX Server, and a new K8s Contr
 
 <br/>
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -928,14 +947,57 @@ This is not part of the actual Solution, but it is useful to have a well-known a
 =======
 This is not a component of the actual Solution, but it is useful to have a well-known application running in the cluster, as a known-good target for test commands.  The example provided here is used by the Solution to demonstrate proper traffic flows. 
 >>>>>>> update install guides
+=======
+A standard K8s cluster is all that is required, two or more Clusters if you want the `Active/Active MultiCluster Load Balancing Solution` using HTTP Split Clients.  There must be enough resources available to run the NGINX Ingress Controller, and the NGINX Loadbalancer for Kubernetes Controller, and test application like the Cafe Demo.  You must have administrative access to be able to create the namespace, services, and deployments for this Solution.  This Solution was tested on Kubernetes version 1.23.
+
+<br/>
+
+## 1. Install NGINX Ingress Controller
+
+<br/>
+
+![NIC](../media/nginx-ingress-icon.png)
+
+<br/>
+
+The NGINX Ingress Controller in this Solution is the destination target for traffic (north-south) that is being sent to the cluster(s).  The installation of the actual Ingress Controller is outside the scope of this guide, but the links to the docs are included for your reference.  The `NIC installation using Manifests` must follow the documents exactly as written, as this Solution depends on the `nginx-ingress` namespace and service objects.  **Only the very last step is changed.**  
+
+1. Follow these instructions to deploy the Nginx Ingress Controller into your cluster:  https://docs.nginx.com/nginx-ingress-controller/installation/installation-with-manifests/
+
+   **NOTE:** This Solution only works with `nginx-ingress` from NGINX.  It will not work with the K8s Community version of Ingress, called ingress-nginx.  
+   
+1. If you are unsure which Ingress Controller you are running, check out the blog on nginx.com for more information:  
+    
+   https://www.nginx.com/blog/guide-to-choosing-ingress-controller-part-4-nginx-ingress-controller-options
+
+<br/>
+
+>Important!  Do not complete the very last step in the NIC deployment with Manifests, `do not deploy the loadbalancer.yaml or nodeport.yaml Service file!`  You will apply a different loadbalancer or nodeport Service manifest later, after the NLK Controller is up and running.  `The nginx-ingress Service file must be changed` - it is not the default file.  
+
+<br/>
+
+## 2. Install NGINX Cafe Demo Application
+
+<br/>
+
+![Cafe Dashboard](..//media/cafe-dashboard.png)
+
+<br/>
+
+This is not a component of the actual Solution, but it is useful to have a well-known application running in the cluster, as a known-good target for test commands.  The example provided here is used by the Solution to demonstrate proper traffic flows. 
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 
 Note: If you choose a different Application to test with, `the NGINX configurations and health checks provided here may not work,` and will need to be modified to work correctly.
 
 <br/>
 
+<<<<<<< HEAD
 - Use the provided Cafe Demo manifests in the docs/cafe-demo folder:
 =======
 >>>>>>> added step numbers
+=======
+  1. Use the provided Cafe Demo manifests in the docs/cafe-demo folder:
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 
       ```bash
       kubectl apply -f cafe-secret.yaml
@@ -1574,6 +1636,7 @@ Use the `loadbalancer-cluster1.yaml` or `nodeport-cluster1.yaml` manifest file t
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 When you are finished, the Nginx Plus Dashboard on the LB Server should look similar to the following image:
 >>>>>>> added Grafana
 =======
@@ -1582,6 +1645,9 @@ When you are finished, the NGINX Plus Dashboard on the LB Server should look sim
 =======
 When you are finished, the NGINX Plus Dashboard on the LB Server(s) should look similar to the following image:
 >>>>>>> added step numbers
+=======
+When you are finished, the NGINX Plus Dashboard on the LB Server(s) should look similar to the following image:
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 
 ![NGINX Upstreams Dashboard](../media/nlk-multicluster-upstreams.png)
 
@@ -1590,6 +1656,7 @@ Important items for reference:
 - If both NLK Controllers are working, it will update the correct `clusterX-https` upstream block. 
 - The IP addresses will match the K8s worker nodes, the port numbers will match the NodePort definitions for nginx-ingress Service from each cluster.
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1607,6 +1674,9 @@ Important items for reference:
 =======
 >Note: In this example, there is a 3-Node K8s cluster, with one Control Node, and 2 Worker Nodes.  The NLK Controller only configures NGINX upstreams with `Worker Node` IP addresses, from Cluster1, which are:
 >>>>>>> change NKL to NLK
+=======
+>Note: In this example, there is a 3-Node K8s cluster, with one Control Node, and 2 Worker Nodes.  The NLK Controller only configures NGINX upstreams with `Worker Node` IP addresses, from Cluster1, which are:
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 - 10.1.1.8
 - 10.1.1.10
 
@@ -1616,11 +1686,15 @@ Cluster2 Worker Node addresses are:
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 Note: K8s Control Nodes are excluded from the list intentionally.
 
 <br/>
 
 1. Configure DNS, or the local hosts file, for cafe.example.com > NGINXLB Server IP Address.  In this example:
+<<<<<<< HEAD
 <<<<<<< HEAD
 
     ```bash
@@ -1684,6 +1758,8 @@ Note: K8s Control Nodes are excluded from the list intentionally.
 Configure DNS, or the local hosts file, for cafe.example.com > NGINXLB Server IP Address.  In this example:
 =======
 >>>>>>> added step numbers
+=======
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 
     ```bash
     cat /etc/hosts
@@ -1737,6 +1813,7 @@ Configure DNS, or the local hosts file, for cafe.example.com > NGINXLB Server IP
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 `The NKL Controller detects this change, and modifies the LB Server upstreams.`  The Dashboard will show you the new Port numbers, matching the new NodePort definitions.  The NKL logs show these messages, confirming the changes:
 >>>>>>> added Grafana
 =======
@@ -1748,6 +1825,9 @@ Configure DNS, or the local hosts file, for cafe.example.com > NGINXLB Server IP
 =======
 `The NLK Controller detects this change, and modifies the LB Server(s)  upstreams to match.`  The Dashboard will show you the new Port numbers, matching the new LoadBalancer or NodePort definitions.  The NLK logs show these messages, confirming the changes:
 >>>>>>> change NKL to NLK
+=======
+`The NLK Controller detects this change, and modifies the LB Server(s)  upstreams to match.`  The Dashboard will show you the new Port numbers, matching the new LoadBalancer or NodePort definitions.  The NLK logs show these messages, confirming the changes:
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 
 ![NLK Add NodePort](../media/nlk-cluster1-add-nodeport.png)
 
@@ -1756,13 +1836,17 @@ Configure DNS, or the local hosts file, for cafe.example.com > NGINXLB Server IP
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> add loadbalancer files
+=======
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 ### MultiCluster Solution
 
 If you plan to implement and test the MultiCluster Load Balancing Solution, repeat all the steps to configure the second K8s cluster, identical to the first Cluster1 steps.  
 - There is only one change - you MUST use the appropriate `loadbalancer-clusterX.yaml` or `nodeport-clusterX.yaml` manifest to match the appropriate cluster.
 - Don't forget to check and set your ./kube Config Context when you change clusters!  
+<<<<<<< HEAD
 <<<<<<< HEAD
 - The NKL Controller in Cluster2 should be updating the `cluster2-https` upstreams.
 <<<<<<< HEAD
@@ -1844,6 +1928,9 @@ The only tool you need for this, is an HTTP load generation tool.  WRK, running 
 =======
 - The NLK Controller in Cluster2 should be updating the `cluster2-https` upstreams.
 >>>>>>> change NKL to NLK
+=======
+- The NLK Controller in Cluster2 should be updating the `cluster2-https` upstreams.
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 
 <br/>
 
@@ -1920,6 +2007,7 @@ The Completes the Testing Section.
 ## 9. Prometheus and Grafana Servers
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> added Grafana
 =======
 <br/>
@@ -1938,6 +2026,8 @@ Here are the instructions to run 2 Docker containers on a Monitor Server, which 
 <<<<<<< HEAD
 ## 9. Prometheus and Grafana Servers
 
+=======
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 <br/>
 
 ![](../media/prometheus-icon.png)  |![](../media/grafana-icon.png)
@@ -1952,6 +2042,7 @@ Here are the instructions to run 2 Docker containers on a Monitor Server, which 
 ### Prometheus
 
 1. Configure your Prometheus server to collect NGINX Plus statistics from the scraper page.  Use the prometheus.yml file provided, edit the IP addresses to match your NGINX LB Server(s).
+<<<<<<< HEAD
 <<<<<<< HEAD
 
     ```bash
@@ -2036,6 +2127,8 @@ Here are the instructions to run 2 Docker containers on a Monitor Server, which 
 - Configure your Prometheus server to collect NGINX Plus statistics from the scraper page.  Use the prometheus.yml file provided, edit the IP addresses to match your NGINX LB Server(s).
 =======
 >>>>>>> added step numbers
+=======
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 
     ```bash
     cat prometheus.yaml
@@ -2110,11 +2203,15 @@ Here are the instructions to run 2 Docker containers on a Monitor Server, which 
 <br/>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 ## End of Prometheus and Grafana Section
 >>>>>>> added Grafana
 =======
 ### End of Prometheus and Grafana Section
 >>>>>>> change to NGINX
+=======
+### End of Prometheus and Grafana Section
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 
 <br/>
 

@@ -1,10 +1,14 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 # NGINX Kubernetes Loadbalancer Solution
 =======
 # NGINX Loadbalancer for Kubernetes Solution
 >>>>>>> change NKL to NLK
+=======
+# NGINX Loadbalancer for Kubernetes Solution
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 
 <br/>
 
@@ -12,6 +16,7 @@
 
 <br/>
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 ![Kubernetes](../media/kubernetes-icon.png) | ![NKL](../media/nkl-logo.png) | ![NGINX Plus](../media/nginx-plus-icon.png) | ![NIC](../media/nginx-ingress-icon.png)
 <<<<<<< HEAD
@@ -38,12 +43,16 @@
 =======
 ![Kubernetes](../media/kubernetes-icon.png) | ![NLK](../media/nlk-logo.png) | ![NGINX Plus](../media/nginx-plus-icon.png) | ![NIC](../media/nginx-ingress-icon.png)
 >>>>>>> change NKL to NLK
+=======
+![Kubernetes](../media/kubernetes-icon.png) | ![NLK](../media/nlk-logo.png) | ![NGINX Plus](../media/nginx-plus-icon.png) | ![NIC](../media/nginx-ingress-icon.png)
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 --- | --- | --- | ---
 
 <br/>
 
 ## Solution Overview
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 ### This Solution from NGINX provides Enterprise class features which address common challenges with networking, traffic management, and High Availability for On-Premises Kubernetes Clusters.
@@ -64,16 +73,22 @@ This Solution from Nginx provides Enterprise class features which address common
   - Additional security features like App Protect Firewall, JWT auth, Rate Limiting, Service and Bandwidth controls, FIPS, advanced TLS features.
 >>>>>>> added Grafana
 =======
+=======
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 ### This Solution from NGINX provides Enterprise class features which address common challenges with networking, traffic management, and High Availability for On-Premises Kubernetes Clusters.
 
 1. Provides a `replacement Loadbalancer Service.`  The Loadbalancer Service is a key component provided by most Cloud Providers.  However, when running a K8s Cluster On Premises, the `Loadbalancer Service is not available`.  
 2. This Solution provides a replacement, using an NGINX Server, and a new K8s Controller from NGINX.  These two components work together to watch the `nginx-ingress Service` in the cluster, and immediately update the NGINX LB Server when changes occur.  
+<<<<<<< HEAD
 <<<<<<< HEAD
 - Provides automatic NGINX upstream config updates, application health checks, and enhanced metrics.
 >>>>>>> change to NGINX
 =======
 3. Provides automatic NGINX upstream config updates, application health checks, and enhanced metrics.
 >>>>>>> update install guides
+=======
+3. Provides automatic NGINX upstream config updates, application health checks, and enhanced metrics.
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 
 <br/>
 
@@ -83,12 +98,16 @@ This Solution from Nginx provides Enterprise class features which address common
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 ## Installation Steps
 
 1. Install NGINX Ingress Controller in your Cluster
 2. Install NGINX Cafe Demo Application in your Cluster
 3. Install NGINX Plus on the Loadbalancer Server(s)
 4. Configure NGINX Plus for TCP Load Balancing 
+<<<<<<< HEAD
 5. Install NKL NGINX Kubernetes LB Controller in your Cluster
 6. Install NKL LoadBalancer or NodePort Service manifest
 7. Test out NKL
@@ -117,10 +136,16 @@ This Solution from Nginx provides Enterprise class features which address common
 6. Install NLK LoadBalancer or NodePort Service manifest
 7. Test out NLK
 >>>>>>> change NKL to NLK
+=======
+5. Install NLK NGINX Kubernetes LB Controller in your Cluster
+6. Install NLK LoadBalancer or NodePort Service manifest
+7. Test out NLK
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 
 <br/>
 
 ### Pre-Requisites
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 1. Working Kubernetes cluster, with admin privleges
@@ -142,6 +167,8 @@ This Solution from Nginx provides Enterprise class features which address common
 ## Pre-Requisites
 =======
 >>>>>>> change to NGINX
+=======
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 
 - Working Kubernetes cluster, with admin privleges
 - Running `nginx-ingress controller`, either OSS or Plus. This install guide followed the instructions for deploying an NGINX Ingress Controller here:  https://docs.nginx.com/nginx-ingress-controller/installation/installation-with-manifests/
@@ -153,11 +180,15 @@ This Solution from Nginx provides Enterprise class features which address common
 <br/>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 ## Kubernetes Cluster
 >>>>>>> added Grafana
 =======
 ### Kubernetes Cluster
 >>>>>>> change to NGINX
+=======
+### Kubernetes Cluster
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 
 <br/>
 
@@ -165,6 +196,7 @@ This Solution from Nginx provides Enterprise class features which address common
 
 <br/>
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -198,6 +230,13 @@ A standard K8s cluster is all that is required.  There must be enough resources 
 =======
 ## 1. Install NGINX Ingress Controller
 >>>>>>> update install guides
+=======
+A standard K8s cluster is all that is required.  There must be enough resources available to run the NGINX Ingress Controller, and the new NGINX Loadbalancer for Kubernetes Controller, and test application like the Cafe Demo.  You must have administrative access to be able to create the namespace, services, and deployments for this Solution.  This Solution was tested on Kubernetes version 1.23.
+
+<br/>
+
+## 1. Install NGINX Ingress Controller
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 
 <br/>
 
@@ -205,6 +244,7 @@ A standard K8s cluster is all that is required.  There must be enough resources 
 
 <br/>
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -712,6 +752,9 @@ The NGINX Ingress Controller in this Solution is the destination target for traf
 =======
 The NGINX Ingress Controller in this Solution is the destination target for traffic (north-south) that is being sent to the cluster.  The installation of the actual Ingress Controller is outside the scope of this installation guide, but we include the links to the docs for your reference.  The NIC installation must follow the documents exactly as written, as this Solution refers to the `nginx-ingress` namespace and service objects.  **Only the very last step is changed.**  
 >>>>>>> update install guides
+=======
+The NGINX Ingress Controller in this Solution is the destination target for traffic (north-south) that is being sent to the cluster.  The installation of the actual Ingress Controller is outside the scope of this installation guide, but we include the links to the docs for your reference.  The NIC installation must follow the documents exactly as written, as this Solution refers to the `nginx-ingress` namespace and service objects.  **Only the very last step is changed.**  
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 
 **NOTE:** This Solution only works `with nginx-ingress` from NGINX.  It will not work with the Community version of Ingress, called ingress-nginx.  
 
@@ -1198,6 +1241,7 @@ The name of the Service port is matched to the name of the upstream block in NGI
 <br/>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 <<<<<<< HEAD
 When you are finished, the Nginx Plus Dashboard on the LB Server should look similar to the following image:
@@ -1207,11 +1251,15 @@ When you are finished, the Nginx Plus Dashboard on the LB Server should look sim
 >>>>>>> update install guides
 When you are finished, the NGINX Plus Dashboard on the LB Server should look similar to the following image:
 >>>>>>> change to NGINX
+=======
+When you are finished, the NGINX Plus Dashboard on the LB Server should look similar to the following image:
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 
 ![NGINX Upstreams Dashboard](../media/nlk-stream-upstreams.png)
 
 Important items for reference:
 - Orange are the upstream server blocks, from the `etc/nginx/stream/nginxk8slb.conf` file.
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 - Blue is the IP:Port of the nginx-ingress Service for http.
@@ -1224,6 +1272,10 @@ Important items for reference:
 - Blue is the IP:Port of the nginx-ingress Service for http.
 - Indigo is the IP:Port of the nginx-ingress Service for https.
 >>>>>>> update install guides
+=======
+- Blue is the IP:Port of the nginx-ingress Service for http.
+- Indigo is the IP:Port of the nginx-ingress Service for https.
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 
 >Note: In this example, there is a 3-Node K8s cluster, with one Control Node, and 2 Worker Nodes.  The NLK Controller only configures `Worker Node` IP addresses, which are:
 - 10.1.1.8
@@ -1233,6 +1285,7 @@ Note:  K8s Control Nodes are excluded intentionally.
 
 <br/>
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 1. Configure DNS, or your local hosts file, for cafe.example.com > NGINXLB Server IP Address.  In this example:
@@ -1300,6 +1353,9 @@ Configure DNS, or the local hosts file, for cafe.example.com > NginxLB Server IP
 =======
 Configure DNS, or your local hosts file, for cafe.example.com > NGINXLB Server IP Address.  In this example:
 >>>>>>> change to NGINX
+=======
+Configure DNS, or your local hosts file, for cafe.example.com > NGINXLB Server IP Address.  In this example:
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 
 ```bash
 cat /etc/hosts
@@ -1361,11 +1417,15 @@ or
 <br/>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 The Completes the Testing Section.
 >>>>>>> added Grafana
 =======
 This Completes the Testing Section.
 >>>>>>> change to NGINX
+=======
+This Completes the Testing Section.
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 
 <br/>
 
@@ -1374,8 +1434,11 @@ This Completes the Testing Section.
 - Steve Wagner - Solutions Architect - Community and Alliances @ F5, Inc.
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> added Grafana
 =======
 >>>>>>> change to NGINX
+=======
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655

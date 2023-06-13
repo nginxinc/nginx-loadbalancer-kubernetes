@@ -9,6 +9,7 @@
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 >With the NGINX Plus Servers located external to the Cluster, using NGINX's advanced HTTP/S features provide Enterprise class traffic management solutions.
 =======
 >With the Nginx Plus Servers located external to the Cluster, using Nginx's advanced HTTP/S features provide Enterprise traffic management solutions.
@@ -16,6 +17,9 @@
 =======
 >With the NGINX Plus Servers located external to the Cluster, using NGINX's advanced HTTP/S features provide Enterprise class traffic management solutions.
 >>>>>>> added step numbers
+=======
+>With the NGINX Plus Servers located external to the Cluster, using NGINX's advanced HTTP/S features provide Enterprise class traffic management solutions.
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
   
 - MultiCluster Active/Active Load Balancing
 - Horizontal Cluster Scaling
@@ -27,6 +31,9 @@
   - ^^ With NO downtime or reloads
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 - NGINX Zone Sync of KeyVal data
 - API Gateway functions
 - Advanced TLS Processing - MutualTLS, OCSP, FIPS, dynamic cert loading
@@ -64,6 +71,7 @@ NGINX HTTP Split Clients with Dynamic Ratio -- 10% Cluster1 : 90% Cluster2
 
 ![NGINX HTTP Split 10](../media/nlk-clusters-10.png)
 
+<<<<<<< HEAD
 =======
 - Nginx Zone Sync of KeyVal data
 =======
@@ -111,6 +119,8 @@ NGINX HTTP Split Clients with Dynamic Ratio -- 10% Cluster1 : 90% Cluster2
 ![NGINX HTTP Split 10](../media/nkl-clusters-10.png)
 
 >>>>>>> added step numbers
+=======
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 
 <br/>
 
@@ -119,6 +129,7 @@ The `Installation Guide` for HTTP MultiCluster Solution is located in the docs/h
 [HTTP MultiCluster Loadbalancing Guide](../http/http-installation-guide.md)
 
 <br/>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 
@@ -133,3 +144,9 @@ The `Installation Guide` for HTTP MultiCluster Solution is located in the docs/h
 - Chris Akker - Solutions Architect - Community and Alliances @ F5, Inc.
 - Steve Wagner - Solutions Architect - Community and Alliances @ F5, Inc.
 >>>>>>> added step numbers
+=======
+
+## Authors
+- Chris Akker - Solutions Architect - Community and Alliances @ F5, Inc.
+- Steve Wagner - Solutions Architect - Community and Alliances @ F5, Inc.
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655

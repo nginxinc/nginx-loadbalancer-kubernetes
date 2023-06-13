@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 # NKL LoadBalancer Service file
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -18,6 +19,12 @@
 >>>>>>> add loadbalancer files
 =======
 >>>>>>> update install guides
+=======
+# NLK LoadBalancer Service file
+# Spec -ports name must be in the format of
+# nlk-<upstream-block-name>
+# The nginxinc.io Annotation must be added
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 # externalIPs are set to Nginx LB Servers
 # Chris Akker, Apr 2023
 #
@@ -26,6 +33,7 @@ kind: Service
 metadata:
   name: nginx-ingress
   namespace: nginx-ingress
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
   annotations:
@@ -58,6 +66,16 @@ spec:
   - 10.1.1.4          #Nginx LB1 Server
   - 10.1.1.5          #Nginx LB2 Server
 >>>>>>> add loadbalancer files
+=======
+  annotations:
+    nginxinc.io/nlk-nginx-lb-http: "stream"    # Must be added
+    nginxinc.io/nlk-nginx-lb-https: "stream"   # Must be added
+spec:
+  type: LoadBalancer
+  externalIPs:
+  - 10.1.1.4          #Nginx LB1 Server
+  - 10.1.1.5          #Nginx LB2 Server
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
   ports:
   - port: 80
     targetPort: 80

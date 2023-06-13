@@ -1,6 +1,7 @@
 # NLK Nodeport Service file
 # NodePort -ports name must be in the format of
 <<<<<<< HEAD
+<<<<<<< HEAD
 # nkl-<upstream-block-name>
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -13,6 +14,10 @@
 =======
 # The nginxinc.io Annotation must be added
 >>>>>>> update install guides
+=======
+# nlk-<upstream-block-name>
+# The nginxinc.io Annotation must be added
+>>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 # Chris Akker, Apr 2023
 #
 apiVersion: v1
