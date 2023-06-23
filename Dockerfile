@@ -18,6 +18,10 @@ FROM alpine:3.16
 
 WORKDIR /opt/nginx-k8s-loadbalancer
 
+RUN adduser -u 11115 -D -H  nlk
+
+USER nlk
+
 COPY --from=builder /app/nginx-k8s-loadbalancer .
 
 ENTRYPOINT ["/opt/nginx-k8s-loadbalancer/nginx-k8s-loadbalancer"]
