@@ -253,7 +253,7 @@ etc/
     ├── conf.d/
     │   ├── clusters.conf.......... MultiCluster Loadbalancing and split clients config
     │   ├── dashboard.conf......... NGINX Plus API and Dashboard config
-    │   ├── default.conf........... New default.conf config
+    │   ├── default-http.conf...... New default.conf config
     │   └── prometheus.conf........ NGINX Prometheus config
     ├── nginx.conf................. New nginx.conf
     └── stream
@@ -268,7 +268,7 @@ After a new installation of NGINX Plus, make the following configuration changes
 
     ```bash
     cat /etc/nginx/conf.d/default.conf
-    # NGINX K8s Loadbalancer Solution
+    # NGINX Loadbalancer for Kubernetes Solution
     # Chris Akker, Apr 2023
     # Example default.conf
     # Change default_server to port 8080
@@ -304,7 +304,7 @@ After a new installation of NGINX Plus, make the following configuration changes
     ```bash
     cat /etc/nginx/nginx.conf
 
-    # NGINX K8s Loadbalancer Solution
+    # NGINX Loadbalancer for Kubernetes Solution
     # Chris Akker, Apr 2023
     # Example nginx.conf
     # Enable Prometheus NJS module, increase output buffer size
@@ -379,7 +379,7 @@ After a new installation of NGINX Plus, make the following configuration changes
     ```bash
     cat /etc/nginx/conf.d/clusters.conf
 
-    # NGINX K8sLoadbalancing HTTP configuration, for L7 load balancing
+    # NGINX Loadbalancer for Kubernetes HTTP configuration, for L7 load balancing
     # Chris Akker, Apr 2023
     # HTTP Proxy and load balancing
     # MultiCluster Load Balancing with http split clients 0-100%
@@ -534,7 +534,7 @@ After a new installation of NGINX Plus, make the following configuration changes
     ```bash
     cat /etc/nginx/conf.d/prometheus.conf
 
-    # NGINX K8sLoadbalancing Prometheus configuration, for HTTP scraper page
+    # NGINX Loadbalancer for Kubernetes Prometheus configuration, for HTTP scraper page
     # Chris Akker, Apr 2023
     # https://www.nginx.com/blog/how-to-visualize-nginx-plus-with-prometheus-and-grafana/
     #
@@ -560,7 +560,7 @@ After a new installation of NGINX Plus, make the following configuration changes
     ```bash
     cat zonesync.conf
 
-    # NGINX K8sLoadbalancing Zone Sync configuration, for KeyVal split
+    # NGINX Loadbalancer for Kubernetes Zone Sync configuration, for KeyVal split
     # Chris Akker, Apr 2023
     # Stream Zone Sync block
     # 2 NGINX Plus nodes
