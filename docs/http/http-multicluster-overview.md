@@ -1,5 +1,10 @@
 
-## NLK and MultiCluster Load Balancing with HTTP/S
+## NLK and Kuberentes MultiCluster Load Balancing with HTTP/S
+
+<br/>
+
+![Kubernetes](../media/kubernetes-icon.png) | ![NLK](../media/nlk-logo.png)| ![NGINX Plus](../media/nginx-plus-icon.png)
+--- | --- | ---
 
 <br/>
 
@@ -7,15 +12,15 @@
 
 <br/>
 
-With the NGINX Plus Servers located external to the Cluster, using NGINX's advanced HTTP/S features provide Enterprise class traffic management solutions.  Using NGINX in HTTP mode allows for many solutions, some of are:
+With the NGINX Plus Servers located external to the Cluster, using NGINX's advanced HTTP/S features provide Enterprise class traffic management Solutions.  Using NGINX in HTTP mode allows for many solutions, some of are:
   
 - MultiCluster Active/Active Load Balancing
 - Horizontal Cluster Scaling
 - HTTP Split Clients - for `A/B, Blue/Green, and Canary` test and production traffic steering.  Allows Cluster operations/maintainence like:
-  - Node upgrades
+  - Node upgrades / additions
   - Software upgrades/security patches
-  - Cluster resource expansions - memory, compute, storage, network
-  - Troubleshooting, using Live Traffic if needed
+  - Cluster resource expansions - memory, compute, storage, network, nodes
+  - Troubleshooting, `using Live Traffic if needed`
   - ^^ With NO downtime or reloads
 - NGINX Zone Sync of KeyVal data
 - API Gateway functions
@@ -25,7 +30,7 @@ With the NGINX Plus Servers located external to the Cluster, using NGINX's advan
 
 <br/>
 
-## Reference Diagram for NLK HTTP MultiCluster Load Balancing Solution
+## Reference Diagram for NGINX NLK HTTP MultiCluster Load Balancing Solution
 
 <br/>
 
@@ -36,7 +41,7 @@ Multiple K8s Clusters, HA NGINX Plus LB Servers, NLK Controllers
 
 <br/>
 
-NLK Watching nginx-ingress Service and Updating HTTP Upstreams; Service Type Loadbalancer or NodePort:
+NLK Controller watching nginx-ingress Service and Updating HTTP Upstreams; for Service Type Loadbalancer or NodePort:
 
 ![NLK MultiCluster LoadBalancer](../media/nlk-cluster1-add-loadbalancer.png)
 or
@@ -93,7 +98,7 @@ NGINX HTTP Split Clients with Dynamic Ratio -- 10% Cluster1 : 90% Cluster2
 
 <br/>
 
-### Grafana Charts - Showing 10, 90, 50% Ratios
+### Grafana Charts - Examples showing 10, 90, 50% Split Ratios
 
 <br/>
 
