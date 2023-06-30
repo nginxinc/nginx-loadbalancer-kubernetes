@@ -4,5 +4,5 @@ data:
   nginx-hosts:
     "http://10.1.1.4:9000/api,http://10.1.1.5:9000/api"
 metadata:
-  name: nkl-config
-  namespace: nkl
+  name: nlk-config
+  namespace: nlk

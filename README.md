@@ -163,6 +163,12 @@ We look forward to building a community around NKL and value all feedback and su
 diverse ideas will be key to NKL becoming a solution that is useful to the community. We will consider it a success
 when we are able to accept pull requests from the community.
 
+## Authors
+- Chris Akker - Solutions Architect - Community and Alliances @ F5, Inc.
+- Steve Wagner - Solutions Architect - Community and Alliances @ F5, Inc.
+
+<br/>
+
 ## License
 
 [Apache License, Version 2.0](https://github.com/nginxinc/nginx-k8s-loadbalancer/blob/main/LICENSE)
