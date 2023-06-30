@@ -4,7 +4,7 @@
  */
 
 /*
-Package main includes the entrypoint for the nginx-k8s-loadbalancer.
+Package main includes the entrypoint for the nginx-loadbalancer-kubernetes.
 */
 
 package main

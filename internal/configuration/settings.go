@@ -20,15 +20,15 @@ import (
 
 const (
 	// ConfigMapsNamespace is the value used to filter the ConfigMaps Resource in the Informer.
-	ConfigMapsNamespace = "nkl"
+	ConfigMapsNamespace = "nlk"
 
 	// ResyncPeriod is the value used to set the resync period for the Informer.
 	ResyncPeriod = 0
 
-	// NklPrefix is used to determine if a Port definition should be handled and used to update a Border Server.
+	// NlkPrefix is used to determine if a Port definition should be handled and used to update a Border Server.
 	// The Port name () must start with this prefix, e.g.:
-	//   nkl-<my-upstream-name>
-	NklPrefix = ConfigMapsNamespace + "-"
+	//   nlk-<my-upstream-name>
+	NlkPrefix = ConfigMapsNamespace + "-"
 
 	// PortAnnotationPrefix defines the prefix used when looking up a Port in the Service Annotations.
 	// The value of the annotation determines which BorderServer implementation will be used.
@@ -38,8 +38,8 @@ const (
 
 // WorkQueueSettings contains the configuration values needed by the Work Queues.
 // There are two work queues in the application:
-// 1. nkl-handler queue, used to move messages between the Watcher and the Handler.
-// 2. nkl-synchronizer queue, used to move message between the Handler and the Synchronizer.
+// 1. nlk-handler queue, used to move messages between the Watcher and the Handler.
+// 2. nlk-synchronizer queue, used to move message between the Handler and the Synchronizer.
 // The queues are NamedDelayingQueue objects that use an ItemExponentialFailureRateLimiter as the underlying rate limiter.
 type WorkQueueSettings struct {
 	// Name is the name of the queue.
@@ -134,7 +134,7 @@ func NewSettings(ctx context.Context, k8sClient *kubernetes.Clientset) (*Setting
 			WorkQueueSettings: WorkQueueSettings{
 				RateLimiterBase: time.Second * 2,
 				RateLimiterMax:  time.Second * 60,
-				Name:            "nkl-handler",
+				Name:            "nlk-handler",
 			},
 		},
 		Synchronizer: SynchronizerSettings{
@@ -145,7 +145,7 @@ func NewSettings(ctx context.Context, k8sClient *kubernetes.Clientset) (*Setting
 			WorkQueueSettings: WorkQueueSettings{
 				RateLimiterBase: time.Second * 2,
 				RateLimiterMax:  time.Second * 60,
-				Name:            "nkl-synchronizer",
+				Name:            "nlk-synchronizer",
 			},
 		},
 		Watcher: WatcherSettings{

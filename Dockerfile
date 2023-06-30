@@ -12,16 +12,16 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o nginx-k8s-loadbalancer ./cmd/nginx-k8s-loadbalancer/main.go
+RUN go build -o nginx-loadbalancer-kubernetes ./cmd/nginx-loadbalancer-kubernetes/main.go
 
 FROM alpine:3.16
 
-WORKDIR /opt/nginx-k8s-loadbalancer
+WORKDIR /opt/nginx-loadbalancer-kubernetes
 
 RUN adduser -u 11115 -D -H  nlk
 
 USER nlk
 
-COPY --from=builder /app/nginx-k8s-loadbalancer .
+COPY --from=builder /app/nginx-loadbalancer-kubernetes .
 
-ENTRYPOINT ["/opt/nginx-k8s-loadbalancer/nginx-k8s-loadbalancer"]
+ENTRYPOINT ["/opt/nginx-loadbalancer-kubernetes/nginx-loadbalancer-kubernetes"]

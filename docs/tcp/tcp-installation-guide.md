@@ -173,7 +173,7 @@ https://www.nginx.com/free-trial-request/
 For easy installation/configuration, Git Clone this repository onto the Loadbalancing Server, it contains all the example files that are used here.
 
 ```bash
-https://github.com/nginxinc/nginx-k8s-loadbalancer.git
+https://github.com/nginxinc/nginx-loadbalancer-kubernetes.git
 ```
 
 <br/>
@@ -191,7 +191,7 @@ etc/
 ```
 
 ``` bash
-nginx-k8s-loadbalancer/
+nginx-loadbalancer-kubernetes/
 └── docs/
     └── tcp/
         ├── loadbalancer-nlk.yaml........ LoadBalancer manifest

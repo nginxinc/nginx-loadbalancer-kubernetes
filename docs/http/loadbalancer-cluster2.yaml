@@ -20,6 +20,6 @@ spec:
   - port: 443
     targetPort: 443
     protocol: TCP
-    name: nkl-cluster2-https     # Must match Nginx upstream name
+    name: nlk-cluster2-https     # Must match Nginx upstream name
   selector:
     app: nginx-ingress

@@ -34,7 +34,7 @@ type Interface interface {
 }
 
 // Synchronizer is responsible for synchronizing the state of the Border Servers.
-// Operating against the "nkl-synchronizer", it handles events by creating a Border Client as specified in the
+// Operating against the "nlk-synchronizer", it handles events by creating a Border Client as specified in the
 // Service annotation for the Upstream. see application/border_client.go and application/application_constants.go for details.
 type Synchronizer struct {
 	eventQueue workqueue.RateLimitingInterface
@@ -100,7 +100,7 @@ func (s *Synchronizer) ShutDown() {
 }
 
 // buildBorderClient creates a Border Client for the specified event.
-// NOTE: There is an open issue (https://github.com/nginxinc/nginx-k8s-loadbalancer/issues/36) to move creation
+// NOTE: There is an open issue (https://github.com/nginxinc/nginx-loadbalancer-kubernetes/issues/36) to move creation
 // of the underlying Border Server client to the NewBorderClient function.
 func (s *Synchronizer) buildBorderClient(event *core.ServerUpdateEvent) (application.Interface, error) {
 	logrus.Debugf(`Synchronizer::buildBorderClient`)

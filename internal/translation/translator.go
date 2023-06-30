@@ -25,12 +25,12 @@ func Translate(event *core.Event) (core.ServerUpdateEvents, error) {
 	return buildServerUpdateEvents(portsOfInterest, event)
 }
 
-// filterPorts returns a list of ports that have the NklPrefix in the port name.
+// filterPorts returns a list of ports that have the NlkPrefix in the port name.
 func filterPorts(ports []v1.ServicePort) []v1.ServicePort {
 	var portsOfInterest []v1.ServicePort
 
 	for _, port := range ports {
-		if strings.HasPrefix(port.Name, configuration.NklPrefix) {
+		if strings.HasPrefix(port.Name, configuration.NlkPrefix) {
 			portsOfInterest = append(portsOfInterest, port)
 		}
 	}
@@ -84,7 +84,7 @@ func buildUpstreamServers(nodeIps []string, port v1.ServicePort) (core.UpstreamS
 	return servers, nil
 }
 
-// fixIngressName removes the NklPrefix from the port name
+// fixIngressName removes the NlkPrefix from the port name
 func fixIngressName(name string) string {
 	return name[4:]
 }

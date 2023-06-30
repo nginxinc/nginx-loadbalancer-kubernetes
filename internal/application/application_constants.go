@@ -10,7 +10,7 @@ package application
 // To use these values, add the following annotation to the Service definition:
 //
 //	annotations:
-//	  nginxinc.io/nkl-<upstream name>: <value>
+//	  nginxinc.io/nlk-<upstream name>: <value>
 //
 // where <upstream name> is the name of the upstream in the NGINX Plus configuration and <value> is one of the constants below.
 //

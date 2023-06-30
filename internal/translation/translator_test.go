@@ -655,7 +655,7 @@ func generateUpdatablePorts(portCount int, updatableCount int) []v1.ServicePort 
 	nonupdatable := make([]string, portCount-updatableCount)
 
 	for i := range updatable {
-		updatable[i] = configuration.NklPrefix
+		updatable[i] = configuration.NlkPrefix
 	}
 
 	for j := range nonupdatable {
