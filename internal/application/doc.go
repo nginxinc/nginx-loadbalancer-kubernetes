@@ -25,7 +25,7 @@ Both of these implementations use the NGINX Plus client module to communicate wi
 Selection of the appropriate client is based on the Annotations present on the Service definition, e.g.:
 
 	annotations:
-	  nginxinc.io/nkl-<upstream name>: <value>
+	  nginxinc.io/nlk-<upstream name>: <value>
 
 where <upstream name> is the name of the upstream in the NGINX Plus configuration and <value> is one of the constants in application_constants.go.
 */

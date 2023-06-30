@@ -1,6 +1,6 @@
 # Overview
 
-The nginx-k8s-loadbalancer runs in a Kubernetes Cluster and responds to changes in resources of interest, updating designated NGINX Plus hosts with the appropriate configuration.
+The nginx-loadbalancer-kubernetes runs in a Kubernetes Cluster and responds to changes in resources of interest, updating designated NGINX Plus hosts with the appropriate configuration.
 
 ## Basic Architecture
 
@@ -44,8 +44,8 @@ adding each `core.ServerUpdateEvent` to the "nlk-synchronizer" queue.
 ### Translator
 
 The Translator is responsible for converting the `core.Event` event into an `nginxClient.UpstreamServer` event.
-This involves filtering out the `core.Event` instances that are not of interest to the controller by accepting only Port names starting with the NklPrefix value (currently _nlk-_).
-The event is then fanned-out based on the defined Ports, one event per defined Port. Each port is then augmented with the Ingress name (the name configured in the Port definition with the NklPrefix value removed), 
+This involves filtering out the `core.Event` instances that are not of interest to the controller by accepting only Port names starting with the NlkPrefix value (currently _nlk-_).
+The event is then fanned-out based on the defined Ports, one event per defined Port. Each port is then augmented with the Ingress name (the name configured in the Port definition with the NlkPrefix value removed), 
 and the list of the Node's IP addresses.
 
 The Translator passes the list of events to the Synchronizer by calling the `AddEvents` method. 

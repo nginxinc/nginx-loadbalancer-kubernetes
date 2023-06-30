@@ -10,11 +10,11 @@ The following is a set of guidelines for contributing to the nginx_k8s_loadbalan
 
 [Code Guidelines](#code-guidelines)
 
-[Code of Conduct](https://github.com/nginxinc/nginx-k8s-loadbalancer/blob/main/CODE_OF_CONDUCT.md)
+[Code of Conduct](https://github.com/nginxinc/nginx-loadbalancer-kubernetes/blob/main/CODE_OF_CONDUCT.md)
 
 ## Getting Started
 
-Follow our [Installation Guide](https://github.com/nginxinc/nginx-k8s-loadbalancer/blob/main/README.md#Installation) to get the nginx_k8s_loadbalancer up and running.
+Follow our [Installation Guide](https://github.com/nginxinc/nginx-loadbalancer-kubernetes/blob/main/README.md#Installation) to get the nginx_k8s_loadbalancer up and running.
 
 <!-- ### Project Structure (OPTIONAL) -->
 

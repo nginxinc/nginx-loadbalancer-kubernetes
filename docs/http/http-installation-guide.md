@@ -242,7 +242,7 @@ This can be any standard Linux OS system, based on the Linux Distro and Technica
 For easy installation/configuration, Git Clone this repository onto the Loadbalancing Server, it contains all the example files that are used here.
 
 ```bash
-https://github.com/nginxinc/nginx-k8s-loadbalancer.git
+https://github.com/nginxinc/nginx-loadbalancer-kubernetes.git
 ```
 
 Nginx Config Files
@@ -684,7 +684,7 @@ Use the `loadbalancer-cluster1.yaml` or `nodeport-cluster1.yaml` manifest file t
 From the Git Repo, reference the provided Kubernetes Config Files
 
 ``` bash
-nginx-k8s-loadbalancer/
+nginx-loadbalancer-kubernetes/
 └── docs/
     └── http/
         ├── grafana-dashboard.json............ NGINX Plus Grafana dashboard

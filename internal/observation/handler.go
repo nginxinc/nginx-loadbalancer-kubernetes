@@ -29,7 +29,7 @@ type HandlerInterface interface {
 	ShutDown()
 }
 
-// Handler is responsible for processing events in the "nkl-handler" queue.
+// Handler is responsible for processing events in the "nlk-handler" queue.
 // When processing a message the Translation module is used to translate the event into an internal representation.
 // The translation process may result in multiple events being generated. This fan-out mainly supports the differences
 // in NGINX Plus API calls for creating/updating Upstreams and deleting Upstreams.

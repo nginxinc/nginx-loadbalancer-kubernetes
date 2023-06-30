@@ -16,8 +16,8 @@ spec:
         app: nlk
     spec:
       containers:
-        - name: nginx-k8s-loadbalancer
-          image: ghcr.io/nginxinc/nginx-k8s-loadbalancer:latest
+        - name: nginx-loadbalancer-kubernetes
+          image: ghcr.io/nginxinc/nginx-loadbalancer-kubernetes:latest
           imagePullPolicy: Always
           ports:
             - name: http
@@ -35,4 +35,4 @@ spec:
               port: 51031
             initialDelaySeconds: 5
             periodSeconds: 2
-      serviceAccountName: nginx-k8s-loadbalancer
+      serviceAccountName: nginx-loadbalancer-kubernetes
