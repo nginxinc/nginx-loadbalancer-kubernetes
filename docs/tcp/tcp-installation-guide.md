@@ -7,7 +7,6 @@
 <br/>
 
 ![Kubernetes](../media/kubernetes-icon.png) | ![NLK](../media/nlk-logo.png) | ![NGINX Plus](../media/nginx-plus-icon.png) | ![NIC](../media/nginx-ingress-icon.png)
-
 --- | --- | --- | ---
 
 <br/>
