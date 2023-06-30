@@ -15,8 +15,8 @@
 
 ### This Solution from NGINX provides Enterprise class features which address common challenges with networking, traffic management, and High Availability for On-Premises Kubernetes Clusters.
 
-1. Provides a `replacement Loadbalancer Service.`  The Loadbalancer Service is a key component provided by most Cloud Providers.  However, when running a K8s Cluster On Premises, the `Loadbalancer Service is not available.`  
-This Solution provides a replacement, using an NGINX Server, and a new K8s Controller from NGINX.  These two components work together to watch the `nginx-ingress Service` in the cluster, and immediately update the NGINX Loadbalancing Server when changes occur. 
+1. Provides a `replacement Loadbalancer Service.`  The Loadbalancer Service is a key component provided by most Cloud Providers.  However, when running a Kubernetes Cluster On Premises, the `Loadbalancer Service is not available.`  
+This Solution provides a replacement, using an NGINX Server, and a new Kubernetes Controller from NGINX.  These two components work together to watch the `nginx-ingress Service` in the cluster, and immediately update the NGINX Loadbalancing Server when changes occur. 
 
 2. Provides `MultiCluster Load Balancing`, traffic steering, health checks, TLS termination, advanced Loadbalancing algorithms, and enhanced metrics.
    
@@ -73,8 +73,8 @@ This Solution provides a replacement, using an NGINX Server, and a new K8s Contr
 
 <br/>
 
-1. Provides a `replacement Loadbalancer Service.`  The Loadbalancer Service is a key component provided by most Cloud Providers.  However, when running a K8s Cluster On Premises, the `Loadbalancer Service is not available.`  
-This Solution provides a replacement, using an NGINX Server, and a new K8s Controller from NGINX.  These two components work together to watch the `nginx-ingress Service` in the cluster, and immediately update the NGINX Loadbalancing Server when changes occur.  
+1. Provides a `replacement Loadbalancer Service.`  The Loadbalancer Service is a key component provided by most Cloud Providers.  However, when running a Kubernetes Cluster On Premises, the `Loadbalancer Service is not available.`  
+This Solution provides a replacement, using an NGINX Server, and a new Kubernetes Controller from NGINX.  These two components work together to watch the `nginx-ingress Service` in the cluster, and immediately update the NGINX Loadbalancing Server when changes occur.  
 
 2. Provides `MultiCluster Load Balancing`, traffic steering, health checks, TLS termination, advanced Loadbalancing algorithms, and enhanced metrics.
    
@@ -127,7 +127,7 @@ This Solution provides a replacement, using an NGINX Server, and a new K8s Contr
 
 <br/>
 
-A standard K8s cluster is all that is required, two or more Clusters if you want the `Active/Active MultiCluster Load Balancing Solution` using HTTP Split Clients.  There must be enough resources available to run the NGINX Ingress Controller, and the NGINX Loadbalancer for Kubernetes Controller, and test application like the Cafe Demo.  You must have administrative access to be able to create the namespace, services, and deployments for this Solution.  This Solution was tested on Kubernetes version 1.23.
+A standard Kubernetes cluster is all that is required, two or more Clusters if you want the `Active/Active MultiCluster Load Balancing Solution` using HTTP Split Clients.  There must be enough resources available to run the NGINX Ingress Controller, and the NGINX Loadbalancer for Kubernetes Controller, and test application like the Cafe Demo.  You must have administrative access to be able to create the namespace, services, and deployments for this Solution.  This Solution was tested on Kubernetes version 1.23.
 
 <br/>
 
@@ -143,7 +143,7 @@ The NGINX Ingress Controller in this Solution is the destination target for traf
 
 1. Follow these instructions to deploy the NGINX Ingress Controller into your cluster:  https://docs.nginx.com/nginx-ingress-controller/installation/installation-with-manifests/
 
-   **NOTE:** This Solution only works with `nginx-ingress` from NGINX.  It will not work with the K8s Community version of Ingress, called ingress-nginx.  
+   **NOTE:** This Solution only works with `nginx-ingress` from NGINX.  It will not work with the Kubernetes Community version of Ingress, called ingress-nginx.  
    
 1. If you are unsure which Ingress Controller you are running, check out the blog on nginx.com for more information:  
     
@@ -596,7 +596,7 @@ After a new installation of NGINX Plus, make the following configuration changes
 
 <br/>
 
-### This is the new K8s Controller from NGINX, which is configured to watch the k8s environment, the `nginx-ingress` Service object, and send API updates to the NGINX Loadbalancing Server(s) when there are changes.  It only requires three things:
+### This is the new Kubernetes Controller from NGINX, which is configured to watch the Kubernetes environment, the `nginx-ingress` Service object, and send API updates to the NGINX Loadbalancing Server(s) when there are changes.  It only requires three things:
 
 1. New Kubernetes namespace and RBAC
 2. NLK ConfigMap, to configure the Controller
@@ -604,7 +604,7 @@ After a new installation of NGINX Plus, make the following configuration changes
 
 <br/>
 
-1. Create the new `nlk` K8s namespace:
+1. Create the new `nlk` Kubernetes namespace:
 
     ```bash
     kubectl create namespace nlk
@@ -741,11 +741,11 @@ nginx-k8s-loadbalancer/
 
     Legend:
     - Orange is the LoadBalancer Service `External-IP`, which are your NGINX Loadbalancing Server IP(s).
-    - Blue is the `NodePort mapping` created by K8s.  The new NLK Controller updates the NGINX Loadbalancing Server upstreams with these, shown on the dashboard.
+    - Blue is the `NodePort mapping` created by Kubernetes.  The new NLK Controller updates the NGINX Loadbalancing Server upstreams with these, shown on the dashboard.
 
 <br/>
 
-**NOTE:** If you have a second K8s cluster, and you want to Load Balance both Clusters using the MultiCluster Solution, repeat the previous setup on your second cluster.  
+**NOTE:** If you have a second Kubernetes cluster, and you want to Load Balance both Clusters using the MultiCluster Solution, repeat the previous setup on your second cluster.  
 
 **IMPORTANT:  Do not mix and match loadbalancer-clusterX.yaml files!**  
 
@@ -803,11 +803,11 @@ nginx-k8s-loadbalancer/
     ![NGINX Ingress NodePort Service](../media/nlk-cluster1-nodeport.png)
     ![NGINX Ingress NodePort Service](../media/nlk-cluster1-upstreams.png)
 
-### NodePort mapping is 443:30267,  K8s Workers are 10.1.1.8 and .10.
+### NodePort mapping is 443:30267,  Kubernetes Workers are 10.1.1.8 and .10.
 
 <br/>
 
-**NOTE:** If you have a second K8s cluster, and you want to Load Balance both Clusters using the MultiCluster Solution, repeat the appropriate setup on your second cluster.  
+**NOTE:** If you have a second Kubernetes cluster, and you want to Load Balance both Clusters using the MultiCluster Solution, repeat the appropriate setup on your second cluster.  
 
 **IMPORTANT:  Do not mix and match nodeport-clusterX.yaml files.**  
 
@@ -831,9 +831,9 @@ When you are finished, the NGINX Plus Dashboard on the Loadbalancing Server(s) s
 Important items for reference:
 - Orange are the upstream server blocks, from the `etc/nginx/conf.d/clusters.conf` file.
 - If both NLK Controllers are working, it will update the correct `clusterX-https` upstream block. 
-- The IP addresses will match the K8s worker nodes, the port numbers will match the NodePort definitions for nginx-ingress Service from each cluster.
+- The IP addresses will match the Kubernetes worker nodes, the port numbers will match the NodePort definitions for nginx-ingress Service from each cluster.
 
->Note: In this example, there is a 3-Node K8s cluster, with one Control Node, and 2 Worker Nodes.  The NLK Controller only configures NGINX upstreams with `Worker Node` IP addresses, from Cluster1, which are:
+>Note: In this example, there is a 3-Node Kubernetes cluster, with one Control Node, and 2 Worker Nodes.  The NLK Controller only configures NGINX upstreams with `Worker Node` IP addresses, from Cluster1, which are:
 
 - 10.1.1.8
 - 10.1.1.10
@@ -842,7 +842,7 @@ Cluster2 Worker Node addresses are:
 - 10.1.1.11
 - 10.1.1.12
 
-Note: K8s Control Nodes are excluded from the list intentionally.
+Note: Kubernetes Control Nodes are excluded from the list intentionally.
 
 <br/>
 
@@ -905,7 +905,7 @@ Note: K8s Control Nodes are excluded from the list intentionally.
 
 ### MultiCluster Solution
 
-If you plan to implement and test the MultiCluster Load Balancing Solution, repeat all the steps to configure the second K8s cluster, identical to the first Cluster1 steps.  
+If you plan to implement and test the MultiCluster Load Balancing Solution, repeat all the steps to configure the second Kubernetes cluster, identical to the first Cluster1 steps.  
 - There is only one change - you MUST use the appropriate `loadbalancer-clusterX.yaml` or `nodeport-clusterX.yaml` manifest to match the appropriate cluster.
 - Don't forget to check and set your ./kube Config Context when you change clusters!  
 - Test and Verify that the NLK Controller in Cluster2 should be updating the `cluster2-https` upstreams.
@@ -974,7 +974,7 @@ The only tool you need for this, is an HTTP/S load generation tool.  WRK, runnin
 
 1. Try a few more ratios, see how it works.  If you review the `clusters.conf` file, you will discover what Ratios are provided for you.  You can edit these to suit your needs.  Also notice the Map directive has a "default" set to "50".  So if the Value is blank or set incorrectly, it will Split at a default ratio of 50:50.
 
-    As you can see, if you set the Ratio to "0", `Cluster1 receives NO TRAFFIC`, and you can perform K8s maintenance, troubleshooting, upgrades, etc, with no impact to live traffic.  Alternatively, you can set the Ratio to "100", and now `Cluster2 receives NO TRAFFIC`, and you can work on that cluster - with NO disruption to traffic and downtime required.
+    As you can see, if you set the Ratio to "0", `Cluster1 receives NO TRAFFIC`, and you can perform Kubernetes maintenance, troubleshooting, upgrades, etc, with no impact to live traffic.  Alternatively, you can set the Ratio to "100", and now `Cluster2 receives NO TRAFFIC`, and you can work on that cluster - with NO disruption to traffic and downtime required.
 
 1. Set the Split back to "50" when your testing is completed, and ask the boss for a raise.
 

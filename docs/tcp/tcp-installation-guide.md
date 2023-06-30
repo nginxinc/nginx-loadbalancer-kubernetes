@@ -15,12 +15,12 @@
 
 ### This Solution from NGINX provides Enterprise class features which address common challenges with networking, traffic management, and High Availability for On-Premises Kubernetes Clusters.
 
-1. Provides a `replacement Loadbalancer Service.`  The Loadbalancer Service is a key component provided by most Cloud Providers.  However, when running a cluster On Premises, the `Loadbalancer Service is not available`.  This Solution provides a replacement, using an NGINX Server, and a new K8s Controller.  These two components work together to watch the NodePort Service in the cluster, and immediately update the NGINX Loadbalancing Server when changes occur.  No more static `ExternalIP` needed in your `loadbalancer.yaml` Manifests!
+1. Provides a `replacement Loadbalancer Service.`  The Loadbalancer Service is a key component provided by most Cloud Providers.  However, when running a cluster On Premises, the `Loadbalancer Service is not available`.  This Solution provides a replacement, using an NGINX Server, and a new Kubernetes Controller.  These two components work together to watch the NodePort Service in the cluster, and immediately update the NGINX Loadbalancing Server when changes occur.  No more static `ExternalIP` needed in your `loadbalancer.yaml` Manifests!
 2. Provides automatic NGINX upstream config updates, application health checks, advanced Loadbalancing algorithms, and enhanced metrics.
 3. Provides an upgrade option to NGINX's powerful HTTP processing - `dynamic, ratio-based Load Balancing for Multiple Clusters.`  This allows for advanced traffic steering, and operation efficiency with no Reloads or downtime.  See the HTTP Install Guide for additional details on the advanced HTTP Solution, which can provide:
   - MultiCluster Loadbalancing and High Availability
   - Horizontal Cluster scaling
-  - Non-stop seemless K8s Cluster upgrades, migrations, patching
+  - Non-stop seemless Kubernetes Cluster upgrades, migrations, patching
   - HTTP Split clients for `A/B, Blue/Green, and Canary testing` and production traffic
   - Additional security features like App Protect Firewall, JWT auth, Rate Limiting, Service and Bandwidth controls, FIPS, advanced TLS features.
 
@@ -66,7 +66,7 @@
 
 <br/>
 
-A standard K8s cluster is all that is required.  There must be enough resources available to run the NGINX Ingress Controller, and the new NGINX Loadbalancer for Kubernetes Controller, and test application like the Cafe Demo.  You must have administrative access to be able to create the namespace, services, and deployments for this Solution.  This Solution was tested on Kubernetes version 1.23.
+A standard Kubernetes cluster is all that is required.  There must be enough resources available to run the NGINX Ingress Controller, and the new NGINX Loadbalancer for Kubernetes Controller, and test application like the Cafe Demo.  You must have administrative access to be able to create the namespace, services, and deployments for this Solution.  This Solution was tested on Kubernetes version 1.23.
 
 <br/>
 
@@ -367,7 +367,7 @@ After the new installation of NGINX Plus, make the following configuration chang
 
 <br/>
 
-### This is the new K8s Controller from NGINX, which is configured to watch the k8s environment, the `nginx-ingress` Service object, and send API updates to the NGINX Loadbalancing Server(s) when there are changes.  It only requires three things:
+### This is the new Kubernetes Controller from NGINX, which is configured to watch the k8s environment, the `nginx-ingress` Service object, and send API updates to the NGINX Loadbalancing Server(s) when there are changes.  It only requires three things:
 
 1. New Kubernetes namespace and RBAC
 2. NLK ConfigMap, to configure the Controller
@@ -375,7 +375,7 @@ After the new installation of NGINX Plus, make the following configuration chang
 
 <br/>
 
-- Create the new K8s namespace:
+- Create the new Kubernetes namespace:
 
 ```bash
 kubectl create namespace nlk
@@ -512,8 +512,8 @@ The nginx-ingress Service, `ExternalIPs` should match your external NGINX Loadba
 Legend:
 - Orange is the `TYPE LoadBalancer` Service.
 - Red is the LoadBalancer Service `EXTERNAL-IP`, which are your NGINX Loadbalancing Server IP(s); 10.1.1.4 and 10.1.1.5 in this example.
-- Blue is the `K8s NodePort mapping` for Port 80.
-- Indigo is the `K8s NodePort mapping` for Port 443.
+- Blue is the `Kubernetes NodePort mapping` for Port 80.
+- Indigo is the `Kubernetes NodePort mapping` for Port 443.
 - Green is the NLK Log messages, creating the upstreams to match.
 - The new NLK Controller updates the NGINX Loadbalancing Server upstreams with these, shown on the dashboard.
 
@@ -574,10 +574,10 @@ kubectl get svc nginx-ingress -n nginx-ingress
 Legend:
 - Orange is the `TYPE NodePort` Service.
 - Notice the EXTERNAL-IP is blank, as expected.
-- Blue is the `K8s NodePort mapping` for Port 80.
-- Indigo is the `K8s NodePort mapping` for Port 443.
+- Blue is the `Kubernetes NodePort mapping` for Port 80.
+- Indigo is the `Kubernetes NodePort mapping` for Port 443.
 
-### NodePort mapping is 80:31681 and 443:31721,  K8s Workers are 10.1.1.8 and .10.
+### NodePort mapping is 80:31681 and 443:31721,  Kubernetes Workers are 10.1.1.8 and .10.
 
 <br/>
 
@@ -602,11 +602,11 @@ Important items for reference:
 - Blue is the IP:Port of the nginx-ingress Service for http.
 - Indigo is the IP:Port of the nginx-ingress Service for https.
 
->Note: In this example, there is a 3-Node K8s cluster, with one Control Node, and 2 Worker Nodes.  The NLK Controller only configures `Worker Node` IP addresses, which are:
+>Note: In this example, there is a 3-Node Kubernetes cluster, with one Control Node, and 2 Worker Nodes.  The NLK Controller only configures `Worker Node` IP addresses, which are:
 - 10.1.1.8
 - 10.1.1.10
 
-Note:  K8s Control Nodes are excluded intentionally.
+Note:  Kubernetes Control Nodes are excluded intentionally.
 
 <br/>
 

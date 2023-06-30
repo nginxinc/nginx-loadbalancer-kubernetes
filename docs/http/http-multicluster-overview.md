@@ -34,7 +34,7 @@ With the NGINX Plus Servers located external to the Cluster, using NGINX's advan
 
 <br/>
 
-Multiple K8s Clusters, HA NGINX Plus LB Servers, NLK Controllers
+Multiple Kubernetes Clusters, HA NGINX Plus LB Servers, NLK Controllers
 
 ![NLK MultiCluster Diagram](../media/nlk-multicluster-config.png)
 
@@ -71,7 +71,7 @@ NGINX HTTP Split Clients with Dynamic Ratio -- 10% Cluster1 : 90% Cluster2
 
 <br/>
 
-Multiple K8s Clusters, HA NGINX Plus LB Servers, NLK Controllers
+Multiple Kubernetes Clusters, HA NGINX Plus LB Servers, NLK Controllers
 
 ![NLK MultiCluster Diagram](../media/nlk-multicluster-config.png)
 

@@ -6,7 +6,7 @@
 
 <br/>
 
-![Nginx K8s LB](media/nkl-logo.png) | ![Nginx K8s LB](media/nginx-2020.png)
+![Nginx Kubernetes LB](media/nlk-logo.png) | ![Nginx Kubernetes LB](media/nginx-2020.png)
 --- | ---
 
 <br/>
@@ -23,11 +23,11 @@ This repo contains source code and documents for a new `Kubernetes Controller fr
 
 # Overview
 
-- `NKL - Nginx Kubernetes Loadbalancer` is a new K8s Controller from Nginx, that monitors specified K8s Services, and then sends API calls to an external Nginx Plus server to manage Nginx Upstream servers dynamically.
-- This will `synchronize` the K8s Service Endpoint list, with the Nginx LB Server's upstream list.
-- The primary use case and Solution provided is for tracking the K8s` NodePort` IP:Port definitions for the Nginx Ingress Controller's `nginx-ingress Service`.
-- NKL is a native Kubernetes Controller, running, configured and managed with standard K8s commands.
-- NKL paired with the Nginx Plus Server located external to the K8s cluster, this new controller LB function will provide a `TCP Load Balancer Service` for On Premises K8s clusters, which do not have access to a Cloud providers "Service Type LoadBalancer".
+- `NKL - Nginx Kubernetes Loadbalancer` is a new Kubernetes Controller from Nginx, that monitors specified Kubernetes Services, and then sends API calls to an external Nginx Plus server to manage Nginx Upstream servers dynamically.
+- This will `synchronize` the Kubernetes Service Endpoint list, with the Nginx LB Server's upstream list.
+- The primary use case and Solution provided is for tracking the Kubernetes` NodePort` IP:Port definitions for the Nginx Ingress Controller's `nginx-ingress Service`.
+- NKL is a native Kubernetes Controller, running, configured and managed with standard Kubernetes commands.
+- NKL paired with the Nginx Plus Server located external to the Kubernetes cluster, this new controller LB function will provide a `TCP Load Balancer Service` for On Premises Kubernetes clusters, which do not have access to a Cloud providers "Service Type LoadBalancer".
 - NKL paired with the Nginx Plus Server located external to the Cluster, using Nginx's advanced HTTP features, provide an `HTTP Load Balancer Service` for Enterprise traffic management solutions, such as:
     - MultiCluster Active/Active Load Balancing
     - Horizontal Cluster Scaling
