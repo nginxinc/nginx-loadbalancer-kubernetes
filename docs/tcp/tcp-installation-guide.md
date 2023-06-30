@@ -423,7 +423,7 @@ kubectl get pods -n nlk
 kubectl describe cm nlk-config -n nlk
 ```
 
-The status should show "running", your `nginx-hosts` should have the Loadbalancing Server IP:Port/api.
+The status should show "running", your `nginx-hosts` should have the Loadbalancing Server IP:9000/api.
 
 ![NLK Running](../media/nlk-configmap.png)
 
@@ -483,11 +483,11 @@ spec:
   - port: 80
     targetPort: 80
     protocol: TCP
-    name: nlk-nginx-lb-http
+    name: nlk-nginx-lb-http      # Must be changed
   - port: 443
     targetPort: 443
     protocol: TCP
-    name: nlk-nginx-lb-https
+    name: nlk-nginx-lb-https     # Must be changed
   selector:
     app: nginx-ingress
 
@@ -510,14 +510,14 @@ The nginx-ingress Service, `ExternalIPs` should match your external NGINX Loadba
 ![NLK Stream Loadbalancer](..//media/nlk-stream-add-loadbalancer.png)
 
 Legend:
-- Orange is the TYPE LoadBalancer Service
+- Orange is the `TYPE LoadBalancer` Service.
 - Red is the LoadBalancer Service `EXTERNAL-IP`, which are your NGINX Loadbalancing Server IP(s); 10.1.1.4 and 10.1.1.5 in this example.
 - Blue is the `K8s NodePort mapping` for Port 80.
 - Indigo is the `K8s NodePort mapping` for Port 443.
 - Green is the NLK Log messages, creating the upstreams to match.
 - The new NLK Controller updates the NGINX Loadbalancing Server upstreams with these, shown on the dashboard.
 
-No Reload of NGINX needed!  The NLK Controller uses the Plus API to dynamically add/delete/modify the upstreams as nginx-ingress Service changes.
+>>No Reload of NGINX needed!  The NLK Controller uses the Plus API to dynamically add/delete/modify the upstreams as the `nginx-ingress Service` changes.
 
 <br/>
 
@@ -546,11 +546,11 @@ spec:
   - port: 80
     targetPort: 80
     protocol: TCP
-    name: nlk-nginx-lb-http
+    name: nlk-nginx-lb-http     # Must be changed
   - port: 443
     targetPort: 443
     protocol: TCP
-    name: nlk-nginx-lb-https
+    name: nlk-nginx-lb-https    # Must be changed
   selector:
     app: nginx-ingress
 
@@ -570,6 +570,12 @@ kubectl get svc nginx-ingress -n nginx-ingress
 
 ![NLK NodePort](../media/nlk-stream-nodeport.png)
 ![NLK Stream Upstreams Dashboard](../media/nlk-stream-upstreams.png)
+
+Legend:
+- Orange is the `TYPE NodePort` Service.
+- Notice the EXTERNAL-IP is blank, as expected.
+- Blue is the `K8s NodePort mapping` for Port 80.
+- Indigo is the `K8s NodePort mapping` for Port 443.
 
 ### NodePort mapping is 80:31681 and 443:31721,  K8s Workers are 10.1.1.8 and .10.
 

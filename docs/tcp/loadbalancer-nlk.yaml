@@ -21,10 +21,10 @@ spec:
   - port: 80
     targetPort: 80
     protocol: TCP
-    name: nlk-nginx-lb-http
+    name: nlk-nginx-lb-http      # Must be changed
   - port: 443
     targetPort: 443
     protocol: TCP
-    name: nlk-nginx-lb-https
+    name: nlk-nginx-lb-https     # Must be changed
   selector:
     app: nginx-ingress
