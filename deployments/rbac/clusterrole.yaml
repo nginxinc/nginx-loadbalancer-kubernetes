@@ -1,7 +1,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: ingress-resource-get-watch-list
+  name: resource-get-watch-list
   namespace: nlk
 rules:
   - apiGroups:

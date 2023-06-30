@@ -111,7 +111,7 @@ There is a much more detailed [Installation Reference](docs/README.md) available
 
 2. Apply the Namespace
 
-```kubectl apply -f deployments/namespace.yaml```
+```kubectl apply -f deployments/deployment/namespace.yaml```
 
 3. Apply the RBAC resources
 
@@ -119,11 +119,11 @@ There is a much more detailed [Installation Reference](docs/README.md) available
 
 4. Update / Apply the ConfigMap (For best results update the `nginx-hosts` values first)
 
-```kubectl apply -f deployments/configmap.yaml```
+```kubectl apply -f deployments/deployment/configmap.yaml```
 
 5. Apply the Deployment
 
-```kubectl apply -f deployments/deployment.yaml```
+```kubectl apply -f deployments/deployment/deployment.yaml```
 
 6. Check the logs
 
