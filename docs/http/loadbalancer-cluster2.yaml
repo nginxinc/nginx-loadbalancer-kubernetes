@@ -1,58 +1,16 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-# NKL LoadBalancer Service file
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 # NLK LoadBalancer Service file
->>>>>>> change NKL to NLK
-=======
-# NLK LoadBalancer Service file
->>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 # Spec -ports name must be in the format of
 # nlk-<upstream-block-name>
 # externalIPs are set to Nginx LB Servers
 # Chris Akker, Apr 2023
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-# NodePort -ports name must be in the format of
-=======
-# Spec -ports name must be in the format of
->>>>>>> add loadbalancer files
-# nkl-<upstream-block-name>
-# externalIPs are set to Nginx LB Servers
-# Chris Akker, Jan 2023
->>>>>>> add loadbalancer files
-=======
->>>>>>> update install guides
-=======
->>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 #
 apiVersion: v1
 kind: Service
 metadata:
   name: nginx-ingress
   namespace: nginx-ingress
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-  annotations:
-<<<<<<< HEAD
-    nginxinc.io/nkl-cluster2-https: "http"   # Must be added
-=======
->>>>>>> add loadbalancer files
-=======
-  annotations:
-    nginxinc.io/nkl-cluster2-https: "http"   # Must be added
->>>>>>> update install guides
-=======
-    nginxinc.io/nlk-cluster2-https: "http"   # Must be added
->>>>>>> change NKL to NLK
-=======
   annotations:
     nginxinc.io/nlk-cluster2-https: "http"   # Must be added
->>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 spec:
   type: LoadBalancer
   externalIPs:
@@ -62,22 +20,6 @@ spec:
   - port: 443
     targetPort: 443
     protocol: TCP
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
     name: nkl-cluster2-https     # Must match Nginx upstream name
-=======
-    name: nkl-cluster2-https
->>>>>>> add loadbalancer files
-=======
-    name: nkl-cluster2-https     # Must match Nginx upstream name
->>>>>>> add loadbalancer files
-=======
-    name: nlk-cluster2-https     # Must match Nginx upstream name
->>>>>>> change NKL to NLK
-=======
-    name: nlk-cluster2-https     # Must match Nginx upstream name
->>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
   selector:
     app: nginx-ingress

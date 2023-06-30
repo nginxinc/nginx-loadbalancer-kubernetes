@@ -1,23 +1,7 @@
 # NLK Nodeport Service file
 # NodePort -ports name must be in the format of
-<<<<<<< HEAD
-<<<<<<< HEAD
-# nkl-<upstream-block-name>
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-# nlk-<upstream-block-name>
->>>>>>> change NKL to NLK
-# The nginxinc.io Annotation must be added
-=======
->>>>>>> added http docs
-=======
-# The nginxinc.io Annotation must be added
->>>>>>> update install guides
-=======
 # nlk-<upstream-block-name>
 # The nginxinc.io Annotation must be added
->>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 # Chris Akker, Apr 2023
 #
 apiVersion: v1
@@ -25,25 +9,8 @@ kind: Service
 metadata:
   name: nginx-ingress
   namespace: nginx-ingress
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-  annotations:
-    nginxinc.io/nkl-cluster2-https: "http"   # Must be added
-=======
->>>>>>> added http docs
-=======
-  annotations:
-<<<<<<< HEAD
-    nginxinc.io/nkl-cluster2-https: "http"   # Must be added
->>>>>>> update install guides
-=======
-    nginxinc.io/nlk-cluster2-https: "http"   # Must be added
->>>>>>> change NKL to NLK
-=======
   annotations:
     nginxinc.io/nlk-cluster2-https: "http"   # Must be added
->>>>>>> 89f7bcc4786e8d14d6416fa64d4b049a11fbe655
 spec:
   type: NodePort 
   ports:
