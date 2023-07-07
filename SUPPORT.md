@@ -4,7 +4,7 @@
 
 We use GitHub for tracking bugs and feature requests related to this project.
 
-Don't know how something in the nginx_k8s_loadbalancer works? Curious if the nginx_k8s_loadbalancer can achieve your desired functionality? Please open an Issue on GitHub with the label `question`.
+Don't know how something in the nginx_loadbalancer_kubernetes works? Curious if the nginx_loadbalancer_kubernetes can achieve your desired functionality? Please open an Issue on GitHub with the label `question`.
 
 ## NGINX Specific Questions and/or Issues
 

@@ -13,7 +13,7 @@ A clear and concise description of what the bug is.
 
 Steps to reproduce the behavior:
 
-1. Deploy nginx_k8s_loadbalancer using
+1. Deploy nginx_loadbalancer_kubernetes using
 2. View output/logs/configuration on '...'
 3. See error
 
@@ -23,7 +23,7 @@ A clear and concise description of what you expected to happen.
 
 ### Your environment
 
-- Version of the nginx_k8s_loadbalancer or specific commit
+- Version of the nginx_loadbalancer_kubernetes or specific commit
 <!-- - Version of project language -->
 - Target deployment platform
 
