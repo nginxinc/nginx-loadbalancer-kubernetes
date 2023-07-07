@@ -2,7 +2,7 @@
 
 ## Latest Versions
 
-We advise users to run or update to the most recent release of the nginx_k8s_loadbalancer. Older versions of the nginx_k8s_loadbalancer may not have all enhancements and/or bug fixes applied to them.
+We advise users to run or update to the most recent release of the nginx_loadbalancer_kubernetes. Older versions of the nginx_loadbalancer_kubernetes may not have all enhancements and/or bug fixes applied to them.
 
 ## Reporting a Vulnerability
 

@@ -1,6 +1,6 @@
 # Contributing Guidelines
 
-The following is a set of guidelines for contributing to the nginx_k8s_loadbalancer. We really appreciate that you are considering contributing!
+The following is a set of guidelines for contributing to the nginx_loadbalancer_kubernetes. We really appreciate that you are considering contributing!
 
 #### Table Of Contents
 
@@ -14,7 +14,7 @@ The following is a set of guidelines for contributing to the nginx_k8s_loadbalan
 
 ## Getting Started
 
-Follow our [Installation Guide](https://github.com/nginxinc/nginx-loadbalancer-kubernetes/blob/main/README.md#Installation) to get the nginx_k8s_loadbalancer up and running.
+Follow our [Installation Guide](https://github.com/nginxinc/nginx-loadbalancer-kubernetes/blob/main/README.md#Installation) to get the nginx_loadbalancer_kubernetes up and running.
 
 <!-- ### Project Structure (OPTIONAL) -->
 
