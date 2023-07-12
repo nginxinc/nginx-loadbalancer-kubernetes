@@ -2,7 +2,7 @@
 
 <br/>
 
-# Welcome to the Nginx Kubernetes Load Balancer Solution!
+# Welcome to the Nginx LoadBalancer for Kubernetes Solution!
 
 <br/>
 
