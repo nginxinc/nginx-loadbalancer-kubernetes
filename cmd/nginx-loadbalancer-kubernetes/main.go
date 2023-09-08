@@ -19,6 +19,7 @@ import (
 )
 
 func main() {
+	logrus.SetLevel(logrus.DebugLevel)
 	err := run()
 	if err != nil {
 		logrus.Fatal(err)
@@ -43,6 +44,8 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf(`error occurred initializing settings: %w`, err)
 	}
+
+	go settings.Run()
 
 	synchronizerWorkqueue, err := buildWorkQueue(settings.Synchronizer.WorkQueueSettings)
 	if err != nil {
@@ -71,7 +74,6 @@ func run() error {
 		return fmt.Errorf(`error occurred initializing the watcher: %w`, err)
 	}
 
-	go settings.Run()
 	go handler.Run(ctx.Done())
 	go synchronizer.Run(ctx.Done())
 

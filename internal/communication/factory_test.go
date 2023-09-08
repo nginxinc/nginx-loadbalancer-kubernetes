@@ -6,11 +6,16 @@
 package communication
 
 import (
+	"context"
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
+	"k8s.io/client-go/kubernetes/fake"
 	"testing"
 )
 
 func TestNewHttpClient(t *testing.T) {
-	client, err := NewHttpClient()
+	k8sClient := fake.NewSimpleClientset()
+	settings, err := configuration.NewSettings(context.Background(), k8sClient)
+	client, err := NewHttpClient(settings)
 
 	if err != nil {
 		t.Fatalf(`Unexpected error: %v`, err)
@@ -41,20 +46,10 @@ func TestNewHeaders(t *testing.T) {
 	}
 }
 
-func TestNewTlsConfig(t *testing.T) {
-	config := NewTlsConfig()
-
-	if config == nil {
-		t.Fatalf(`config should not be nil`)
-	}
-
-	if !config.InsecureSkipVerify {
-		t.Fatalf(`config.InsecureSkipVerify should be true`)
-	}
-}
-
 func TestNewTransport(t *testing.T) {
-	config := NewTlsConfig()
+	k8sClient := fake.NewSimpleClientset()
+	settings, _ := configuration.NewSettings(context.Background(), k8sClient)
+	config := NewTlsConfig(settings)
 	transport := NewTransport(config)
 
 	if transport == nil {

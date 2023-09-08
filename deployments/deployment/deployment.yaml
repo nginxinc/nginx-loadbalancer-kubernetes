@@ -17,7 +17,8 @@ spec:
     spec:
       containers:
         - name: nginx-loadbalancer-kubernetes
-          image: ghcr.io/nginxinc/nginx-loadbalancer-kubernetes:latest
+          image: ciroque/nginx-loadbalancer-kubernetes:dev-11
+#          image: ghcr.io/nginxinc/nginx-loadbalancer-kubernetes:125
           imagePullPolicy: Always
           ports:
             - name: http

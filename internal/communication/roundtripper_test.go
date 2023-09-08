@@ -7,13 +7,18 @@ package communication
 
 import (
 	"bytes"
+	"context"
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
+	"k8s.io/client-go/kubernetes/fake"
 	netHttp "net/http"
 	"testing"
 )
 
 func TestNewRoundTripper(t *testing.T) {
+	k8sClient := fake.NewSimpleClientset()
+	settings, _ := configuration.NewSettings(context.Background(), k8sClient)
 	headers := NewHeaders()
-	transport := NewTransport(NewTlsConfig())
+	transport := NewTransport(NewTlsConfig(settings))
 	roundTripper := NewRoundTripper(headers, transport)
 
 	if roundTripper == nil {
@@ -42,8 +47,10 @@ func TestNewRoundTripper(t *testing.T) {
 }
 
 func TestRoundTripperRoundTrip(t *testing.T) {
+	k8sClient := fake.NewSimpleClientset()
+	settings, err := configuration.NewSettings(context.Background(), k8sClient)
 	headers := NewHeaders()
-	transport := NewTransport(NewTlsConfig())
+	transport := NewTransport(NewTlsConfig(settings))
 	roundTripper := NewRoundTripper(headers, transport)
 
 	request, err := NewRequest("GET", "http://example.com", nil)

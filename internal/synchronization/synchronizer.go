@@ -107,7 +107,7 @@ func (s *Synchronizer) buildBorderClient(event *core.ServerUpdateEvent) (applica
 
 	var err error
 
-	httpClient, err := communication.NewHttpClient()
+	httpClient, err := communication.NewHttpClient(s.settings)
 	if err != nil {
 		return nil, fmt.Errorf(`error creating HTTP client: %v`, err)
 	}
