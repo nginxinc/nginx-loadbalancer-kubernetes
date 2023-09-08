@@ -6,5 +6,5 @@ metadata:
 rules:
   - apiGroups:
         - ""
-    resources: ["services", "nodes", "configmaps"]
+    resources: ["services", "nodes", "configmaps", "secrets"]
     verbs: ["get", "watch", "list"]
