@@ -5,12 +5,12 @@
 
 package certification
 
-type Certificate struct {
+type Certificates struct {
 	caCertificate     string
 	clientCertificate string
 	clientKey         string
 }
 
-func NewCertificate() (*Certificate, error) {
-	return &Certificate{}, nil
+func NewCertificates() (*Certificates, error) {
+	return &Certificates{}, nil
 }
