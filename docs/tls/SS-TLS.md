@@ -38,7 +38,7 @@ NLK is configured via a ConfigMap. The ConfigMap is named `nlk-config` and is lo
 
 Depending on which mode is chosen, certain fields will need to be updated in the NLK ConfigMap.
 
-For this mode, both the `mode` and `caCertificates` fields need to be included. The `mode` field should be set to `ss-tls`, 
+For this mode, both the `tlsMode` and `caCertificates` fields need to be included. The `tlsMode` field should be set to `ss-tls`, 
 and the `caCertificates` field should be set to the name of the Kubernetes Secret containing the CA certificate created above.
 
 The following is an example of a ConfigMap for this mode (be sure to update the `nginx-hosts` field with the correct NGINX Plus API endpoints):
@@ -52,7 +52,7 @@ metadata:
   namespace: nlk
 data:
   nginx-hosts: "http://10.1.1.4:9000/api,http://10.1.1.5:9000/api"
-  mode: "ss-tls"
+  tlsMode: "ss-tls"
   caCertificate: "nlk-tls-ca-secret"
 ```
 
