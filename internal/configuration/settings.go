@@ -8,6 +8,7 @@ package configuration
 import (
 	"context"
 	"fmt"
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/certification"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -103,6 +104,12 @@ type Settings struct {
 
 	// NginxPlusHosts is a list of Nginx Plus hosts that will be used to update the Border Servers.
 	NginxPlusHosts []string
+
+	// TlsMode is the value used to determine which of the five TLS modes will be used to communicate with the Border Servers (see: ../../docs/tls/README.md).
+	TlsMode string
+
+	// Certificates is the object used to retrieve the certificates and keys used to communicate with the Border Servers.
+	Certificates *certification.Certificates
 
 	// K8sClient is the Kubernetes client used to communicate with the Kubernetes API.
 	K8sClient *kubernetes.Clientset

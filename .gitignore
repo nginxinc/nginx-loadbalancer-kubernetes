@@ -18,3 +18,5 @@ Thumbs.db
 ########
 *.log
 /misc-dev/
+
+cover*

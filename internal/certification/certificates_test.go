@@ -8,7 +8,7 @@ package certification
 import "testing"
 
 func TestNewCertificate(t *testing.T) {
-	cert, err := NewCertificate()
+	cert, err := NewCertificates()
 
 	if err != nil {
 		t.Fatalf(`Unexpected error: %v`, err)
