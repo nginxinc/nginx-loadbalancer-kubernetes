@@ -133,8 +133,10 @@ type Settings struct {
 // NewSettings creates a new Settings object with default values.
 func NewSettings(ctx context.Context, k8sClient *kubernetes.Clientset) (*Settings, error) {
 	settings := &Settings{
-		Context:   ctx,
-		K8sClient: k8sClient,
+		Context:      ctx,
+		K8sClient:    k8sClient,
+		TlsMode:      "",
+		Certificates: nil,
 		Handler: HandlerSettings{
 			RetryCount: 5,
 			Threads:    1,
