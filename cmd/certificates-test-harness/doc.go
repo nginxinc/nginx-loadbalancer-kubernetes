@@ -7,4 +7,4 @@
 Package certificates_test_harness includes functionality boostrap and test the certification.Certificates implplementation.
 */
 
-package certificates_test_harness
+package main
