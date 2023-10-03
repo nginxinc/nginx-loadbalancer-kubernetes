@@ -21,17 +21,22 @@ import (
 const (
 	// SecretsNamespace is the value used to filter the Secrets Resource in the Informer.
 	SecretsNamespace = "nlk"
+
+	// CaCertificateSecretKey is the name of the Secret that contains the Certificate Authority certificate.
+	CaCertificateSecretKey = "nlk-tls-ca-cert-secret"
+
+	// ClientCertificateSecretKey is the name of the Secret that contains the Client certificate.
+	ClientCertificateSecretKey = "nlk-tls-client-cert-secret"
+
+	// CertificateKey is the key for the certificate in the Secret.
+	CertificateKey = "tls.crt"
+
+	// CertificateKeyKey is the key for the certificate key in the Secret.
+	CertificateKeyKey = "tls.key"
 )
 
 type Certificates struct {
-	// CACertificate is the PEM formatted Certificate Authority certificate.
-	CACertificate string
-
-	// ClientCertificate is the PEM formatted Client certificate.
-	ClientCertificate string
-
-	// ClientKey is the PEM formatted Client key.
-	ClientKey string
+	Certificates map[string]map[string][]byte
 
 	// Context is the context used to control the application.
 	Context context.Context
@@ -40,30 +45,37 @@ type Certificates struct {
 	informer cache.SharedInformer
 
 	// K8sClient is the Kubernetes client used to communicate with the Kubernetes API.
-	k8sClient *kubernetes.Clientset
+	k8sClient kubernetes.Interface
 
 	// eventHandlerRegistration is the object used to track the event handlers with the SharedInformer.
 	eventHandlerRegistration cache.ResourceEventHandlerRegistration
 }
 
-func NewCertificates(ctx context.Context, k8sClient *kubernetes.Clientset) (*Certificates, error) {
+func NewCertificates(ctx context.Context, k8sClient kubernetes.Interface) (*Certificates, error) {
 	return &Certificates{
-		k8sClient: k8sClient,
-		Context:   ctx,
+		k8sClient:    k8sClient,
+		Context:      ctx,
+		Certificates: map[string]map[string][]byte{},
 	}, nil
 }
 
 // GetCACertificate returns the Certificate Authority certificate.
 func (c *Certificates) GetCACertificate() []byte {
-	return []byte(c.CACertificate)
+	bytes := c.Certificates[CaCertificateSecretKey][CertificateKey]
+
+	logrus.Infof("Certificates::GetCACertificate: %v", bytes)
+
+	return bytes
 }
 
 // GetClientCertificate returns the Client certificate and key.
 func (c *Certificates) GetClientCertificate() ([]byte, []byte) {
-	clientKey := []byte(c.ClientKey)
-	clientCertificate := []byte(c.ClientCertificate)
+	keyBytes := c.Certificates[ClientCertificateSecretKey][CertificateKeyKey]
+	certificateBytes := c.Certificates[ClientCertificateSecretKey][CertificateKey]
 
-	return clientKey, clientCertificate
+	logrus.Infof("Certificates::GetClientCertificate: %v, %v", keyBytes, certificateBytes)
+
+	return keyBytes, certificateBytes
 }
 
 // Initialize initializes the Certificates object. Sets up a SharedInformer for the Secrets Resource.
@@ -87,12 +99,18 @@ func (c *Certificates) Initialize() error {
 	return nil
 }
 
-func (c *Certificates) Run() {
+func (c *Certificates) Run() error {
 	logrus.Info("Certificates::Run")
+
+	if c.informer == nil {
+		return fmt.Errorf(`initialize must be called before Run`)
+	}
 
 	c.informer.Run(c.Context.Done())
 
 	<-c.Context.Done()
+
+	return nil
 }
 
 func (c *Certificates) buildInformer() (cache.SharedInformer, error) {
@@ -133,7 +151,13 @@ func (c *Certificates) handleAddEvent(obj interface{}) {
 		return
 	}
 
-	logrus.Warnf("Certificates::handleAddEvent: secret name: %v", secret.Name)
+	c.Certificates[secret.Name] = map[string][]byte{}
+
+	for k, v := range secret.Data {
+		c.Certificates[secret.Name][k] = v
+	}
+
+	logrus.Warnf("Certificates::handleAddEvent: certificates (%d): %v", len(c.Certificates), c.Certificates)
 }
 
 func (c *Certificates) handleDeleteEvent(obj interface{}) {
@@ -145,21 +169,25 @@ func (c *Certificates) handleDeleteEvent(obj interface{}) {
 		return
 	}
 
-	logrus.Warnf("Certificates::handleDeleteEvent: secret name: %v", secret.Name)
+	if c.Certificates[secret.Name] != nil {
+		delete(c.Certificates, secret.Name)
+	}
+
+	logrus.Warnf("Certificates::handleDeleteEvent: certificates (%d): %v", len(c.Certificates), c.Certificates)
 }
 
 func (c *Certificates) handleUpdateEvent(obj interface{}, obj2 interface{}) {
 	logrus.Debug("Certificates::handleUpdateEvent")
-	prevSecret, ok := obj.(*corev1.Secret)
-	if !ok {
-		logrus.Errorf("Certificates::handleUpdateEvent: unable to cast object to Secret")
-		return
-	}
-	newSecret, ok := obj.(*corev1.Secret)
+
+	secret, ok := obj.(*corev1.Secret)
 	if !ok {
 		logrus.Errorf("Certificates::handleUpdateEvent: unable to cast object to Secret")
 		return
 	}
 
-	logrus.Warnf("Certificates::handleUpdateEvent: previous secret name: %v, new secret name: %v", prevSecret.Name, newSecret.Name)
+	for k, v := range secret.Data {
+		c.Certificates[secret.Name][k] = v
+	}
+
+	logrus.Warnf("Certificates::handleUpdateEvent: certificates (%d): %v", len(c.Certificates), c.Certificates)
 }

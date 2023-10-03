@@ -48,10 +48,13 @@ func TestTlsFactory_UnspecifiedModeDefaultsToNoTls(t *testing.T) {
 }
 
 func TestTlsFactory_SelfSignedTlsMode(t *testing.T) {
+	certificates := make(map[string]map[string][]byte)
+	certificates[certification.CaCertificateSecretKey] = buildCaCertificateEntry(caCertificatePEM())
+
 	settings := configuration.Settings{
 		TlsMode: "ss-tls",
 		Certificates: &certification.Certificates{
-			CACertificate: caCertificatePEM(),
+			Certificates: certificates,
 		},
 	}
 
@@ -78,10 +81,13 @@ func TestTlsFactory_SelfSignedTlsMode(t *testing.T) {
 }
 
 func TestTlsFactory_SelfSignedTlsModeCertPoolError(t *testing.T) {
+	certificates := make(map[string]map[string][]byte)
+	certificates[certification.CaCertificateSecretKey] = buildCaCertificateEntry(invalidCertificatePEM())
+
 	settings := configuration.Settings{
 		TlsMode: "ss-tls",
 		Certificates: &certification.Certificates{
-			CACertificate: invalidCertificatePEM(),
+			Certificates: certificates,
 		},
 	}
 
@@ -96,10 +102,13 @@ func TestTlsFactory_SelfSignedTlsModeCertPoolError(t *testing.T) {
 }
 
 func TestTlsFactory_SelfSignedTlsModeCertPoolCertificateParseError(t *testing.T) {
+	certificates := make(map[string]map[string][]byte)
+	certificates[certification.CaCertificateSecretKey] = buildCaCertificateEntry(invalidCertificateDataPEM())
+
 	settings := configuration.Settings{
 		TlsMode: "ss-tls",
 		Certificates: &certification.Certificates{
-			CACertificate: invalidCertificateDataPEM(),
+			Certificates: certificates,
 		},
 	}
 
@@ -114,12 +123,14 @@ func TestTlsFactory_SelfSignedTlsModeCertPoolCertificateParseError(t *testing.T)
 }
 
 func TestTlsFactory_SelfSignedMtlsMode(t *testing.T) {
+	certificates := make(map[string]map[string][]byte)
+	certificates[certification.CaCertificateSecretKey] = buildCaCertificateEntry(caCertificatePEM())
+	certificates[certification.ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
+
 	settings := configuration.Settings{
 		TlsMode: "ss-mtls",
 		Certificates: &certification.Certificates{
-			CACertificate:     caCertificatePEM(),
-			ClientCertificate: clientCertificatePEM(),
-			ClientKey:         clientKeyPEM(),
+			Certificates: certificates,
 		},
 	}
 
@@ -146,12 +157,14 @@ func TestTlsFactory_SelfSignedMtlsMode(t *testing.T) {
 }
 
 func TestTlsFactory_SelfSignedMtlsModeCertPoolError(t *testing.T) {
+	certificates := make(map[string]map[string][]byte)
+	certificates[certification.CaCertificateSecretKey] = buildCaCertificateEntry(invalidCertificatePEM())
+	certificates[certification.ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
+
 	settings := configuration.Settings{
 		TlsMode: "ss-mtls",
 		Certificates: &certification.Certificates{
-			CACertificate:     invalidCertificatePEM(),
-			ClientCertificate: clientCertificatePEM(),
-			ClientKey:         clientKeyPEM(),
+			Certificates: certificates,
 		},
 	}
 
@@ -166,12 +179,14 @@ func TestTlsFactory_SelfSignedMtlsModeCertPoolError(t *testing.T) {
 }
 
 func TestTlsFactory_SelfSignedMtlsModeClientCertificateError(t *testing.T) {
+	certificates := make(map[string]map[string][]byte)
+	certificates[certification.CaCertificateSecretKey] = buildCaCertificateEntry(caCertificatePEM())
+	certificates[certification.ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), invalidCertificatePEM())
+
 	settings := configuration.Settings{
 		TlsMode: "ss-mtls",
 		Certificates: &certification.Certificates{
-			CACertificate:     caCertificatePEM(),
-			ClientCertificate: invalidCertificatePEM(),
-			ClientKey:         clientKeyPEM(),
+			Certificates: certificates,
 		},
 	}
 
@@ -213,11 +228,13 @@ func TestTlsFactory_CaTlsMode(t *testing.T) {
 }
 
 func TestTlsFactory_CaMtlsMode(t *testing.T) {
+	certificates := make(map[string]map[string][]byte)
+	certificates[certification.ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
+
 	settings := configuration.Settings{
 		TlsMode: "ca-mtls",
 		Certificates: &certification.Certificates{
-			ClientCertificate: clientCertificatePEM(),
-			ClientKey:         clientKeyPEM(),
+			Certificates: certificates,
 		},
 	}
 
@@ -244,12 +261,14 @@ func TestTlsFactory_CaMtlsMode(t *testing.T) {
 }
 
 func TestTlsFactory_CaMtlsModeClientCertificateError(t *testing.T) {
+	certificates := make(map[string]map[string][]byte)
+	certificates[certification.CaCertificateSecretKey] = buildCaCertificateEntry(caCertificatePEM())
+	certificates[certification.ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), invalidCertificatePEM())
+
 	settings := configuration.Settings{
 		TlsMode: "ca-mtls",
 		Certificates: &certification.Certificates{
-			CACertificate:     caCertificatePEM(),
-			ClientCertificate: invalidCertificatePEM(),
-			ClientKey:         clientKeyPEM(),
+			Certificates: certificates,
 		},
 	}
 
@@ -394,4 +413,17 @@ mMgqRga/Qu3b149M3wigDjK+RAcyuNGZN98bqU/UjJLjqH6IMutt59+9XNspcD96
 z/3KkMx4uqJXZyvQrmkolSg=
 -----END PRIVATE KEY-----
 `
+}
+
+func buildClientCertificateEntry(keyPEM, certificatePEM string) map[string][]byte {
+	return map[string][]byte{
+		certification.CertificateKey:    []byte(certificatePEM),
+		certification.CertificateKeyKey: []byte(keyPEM),
+	}
+}
+
+func buildCaCertificateEntry(certificatePEM string) map[string][]byte {
+	return map[string][]byte{
+		certification.CertificateKey: []byte(certificatePEM),
+	}
 }
