@@ -5,10 +5,15 @@
 
 package certification
 
-import "testing"
+import (
+	"context"
+	"testing"
+)
 
 func TestNewCertificate(t *testing.T) {
-	cert, err := NewCertificates()
+	ctx := context.Background()
+
+	cert, err := NewCertificates(ctx, nil)
 
 	if err != nil {
 		t.Fatalf(`Unexpected error: %v`, err)
