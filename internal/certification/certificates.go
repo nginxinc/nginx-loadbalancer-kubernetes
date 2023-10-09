@@ -51,6 +51,7 @@ type Certificates struct {
 	eventHandlerRegistration cache.ResourceEventHandlerRegistration
 }
 
+// NewCertificates factory method that returns a new Certificates object.
 func NewCertificates(ctx context.Context, k8sClient kubernetes.Interface) (*Certificates, error) {
 	return &Certificates{
 		k8sClient:    k8sClient,
@@ -63,8 +64,6 @@ func NewCertificates(ctx context.Context, k8sClient kubernetes.Interface) (*Cert
 func (c *Certificates) GetCACertificate() []byte {
 	bytes := c.Certificates[CaCertificateSecretKey][CertificateKey]
 
-	logrus.Infof("Certificates::GetCACertificate: %v", bytes)
-
 	return bytes
 }
 
@@ -72,8 +71,6 @@ func (c *Certificates) GetCACertificate() []byte {
 func (c *Certificates) GetClientCertificate() ([]byte, []byte) {
 	keyBytes := c.Certificates[ClientCertificateSecretKey][CertificateKeyKey]
 	certificateBytes := c.Certificates[ClientCertificateSecretKey][CertificateKey]
-
-	logrus.Infof("Certificates::GetClientCertificate: %v, %v", keyBytes, certificateBytes)
 
 	return keyBytes, certificateBytes
 }
@@ -99,6 +96,7 @@ func (c *Certificates) Initialize() error {
 	return nil
 }
 
+// Run starts the SharedInformer.
 func (c *Certificates) Run() error {
 	logrus.Info("Certificates::Run")
 
@@ -157,7 +155,7 @@ func (c *Certificates) handleAddEvent(obj interface{}) {
 		c.Certificates[secret.Name][k] = v
 	}
 
-	logrus.Warnf("Certificates::handleAddEvent: certificates (%d): %v", len(c.Certificates), c.Certificates)
+	logrus.Debugf("Certificates::handleAddEvent: certificates (%d): %v", len(c.Certificates), c.Certificates)
 }
 
 func (c *Certificates) handleDeleteEvent(obj interface{}) {
@@ -173,7 +171,7 @@ func (c *Certificates) handleDeleteEvent(obj interface{}) {
 		delete(c.Certificates, secret.Name)
 	}
 
-	logrus.Warnf("Certificates::handleDeleteEvent: certificates (%d): %v", len(c.Certificates), c.Certificates)
+	logrus.Debugf("Certificates::handleDeleteEvent: certificates (%d): %v", len(c.Certificates), c.Certificates)
 }
 
 func (c *Certificates) handleUpdateEvent(obj interface{}, obj2 interface{}) {
@@ -189,5 +187,5 @@ func (c *Certificates) handleUpdateEvent(obj interface{}, obj2 interface{}) {
 		c.Certificates[secret.Name][k] = v
 	}
 
-	logrus.Warnf("Certificates::handleUpdateEvent: certificates (%d): %v", len(c.Certificates), c.Certificates)
+	logrus.Debugf("Certificates::handleUpdateEvent: certificates (%d): %v", len(c.Certificates), c.Certificates)
 }
