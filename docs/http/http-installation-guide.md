@@ -207,6 +207,12 @@ This can be any standard Linux OS system, based on the Linux Distro and Technica
 
       >NOTE:  This Solution will only work with NGINX Plus, as NGINX OpenSource does not have the API that is used in this Solution.  Installation on unsupported Linux Distros is not recommended.
 
+  1. Install the NGINX Javascript module (njs).  This is required for exporting Prometheus Metrics from NGINX Plus.
+  
+  ```bash
+  yum install nginx-plus-module-njs
+  ```
+
   1. If you need a license for NGINX Plus, a 30-day Trial license is available here:
 
       https://www.nginx.com/free-trial-request/
@@ -1078,6 +1084,20 @@ Here are the instructions to run 2 Docker containers on a Monitor Server, which 
 <br/>
 
 ### End of Prometheus and Grafana Section
+
+<br/>
+
+## References ##
+
+[NGINX Ingress Controller](https://docs.nginx.com/nginx-ingress-controller/)
+[NGINX Cafe Demo](https://github.com/nginxinc/kubernetes-ingress/tree/main/examples/ingress-resources/complete-example)
+[Installing NGINX Plus](https://docs.nginx.com/nginx/admin-guide/installing-nginx/installing-nginx-plus/)
+[NGINX Loadbalancer for Kubernetes Overview](https://github.com/nginxinc/nginx-loadbalancer-kubernetes/tree/main/docs)
+[NGINX Split Clients Module](https://nginx.org/en/docs/http/ngx_http_split_clients_module.html)
+[NGINX Dynamic Split Clients Blog](https://www.nginx.com/blog/dynamic-a-b-testing-with-nginx-plus/)
+[NGINX njs Module](https://docs.nginx.com/nginx/admin-guide/dynamic-modules/nginscript/)
+[Prometheus](https://prometheus.io/)
+[Grafana](https://grafana.com/)
 
 <br/>
 
