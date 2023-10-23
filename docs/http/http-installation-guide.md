@@ -1089,15 +1089,15 @@ Here are the instructions to run 2 Docker containers on a Monitor Server, which 
 
 ## References ##
 
-[NGINX Ingress Controller](https://docs.nginx.com/nginx-ingress-controller/)
-[NGINX Cafe Demo](https://github.com/nginxinc/kubernetes-ingress/tree/main/examples/ingress-resources/complete-example)
-[Installing NGINX Plus](https://docs.nginx.com/nginx/admin-guide/installing-nginx/installing-nginx-plus/)
-[NGINX Loadbalancer for Kubernetes Overview](https://github.com/nginxinc/nginx-loadbalancer-kubernetes/tree/main/docs)
-[NGINX Split Clients Module](https://nginx.org/en/docs/http/ngx_http_split_clients_module.html)
-[NGINX Dynamic Split Clients Blog](https://www.nginx.com/blog/dynamic-a-b-testing-with-nginx-plus/)
-[NGINX njs Module](https://docs.nginx.com/nginx/admin-guide/dynamic-modules/nginscript/)
-[Prometheus](https://prometheus.io/)
-[Grafana](https://grafana.com/)
+- [NGINX Ingress Controller](https://docs.nginx.com/nginx-ingress-controller/)
+- [NGINX Cafe Demo](https://github.com/nginxinc/kubernetes-ingress/tree/main/examples/ingress-resources/complete-example)
+- [Installing NGINX Plus](https://docs.nginx.com/nginx/admin-guide/installing-nginx/installing-nginx-plus/)
+- [NGINX Loadbalancer for Kubernetes Overview](https://github.com/nginxinc/nginx-loadbalancer-kubernetes/tree/main/docs)
+- [NGINX Split Clients Module](https://nginx.org/en/docs/http/ngx_http_split_clients_module.html)
+- [NGINX Dynamic Split Clients Blog](https://www.nginx.com/blog/dynamic-a-b-testing-with-nginx-plus/)
+- [NGINX njs Module](https://docs.nginx.com/nginx/admin-guide/dynamic-modules/nginscript/)
+- [Prometheus](https://prometheus.io/)
+- [Grafana](https://grafana.com/)
 
 <br/>
 
