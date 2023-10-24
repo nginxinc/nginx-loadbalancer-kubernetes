@@ -19,7 +19,6 @@ import (
 )
 
 func main() {
-	logrus.SetLevel(logrus.DebugLevel)
 	err := run()
 	if err != nil {
 		logrus.Fatal(err)

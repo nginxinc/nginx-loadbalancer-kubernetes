@@ -53,7 +53,7 @@ metadata:
 data:
   nginx-hosts: "http://10.1.1.4:9000/api,http://10.1.1.5:9000/api"
   tls-mode: "ss-tls"
-  caCertificate: "nlk-tls-ca-secret"
+  ca-certificate: "nlk-tls-ca-secret"
 ```
 
 ## Deployment
