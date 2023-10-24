@@ -312,6 +312,8 @@ func (s *Settings) handleUpdateEvent(_ interface{}, obj interface{}) {
 		logrus.Warnf("Settings::handleUpdateEvent: client-certificate key not found in ConfigMap")
 	}
 
+	setLogLevel(configMap.Data["log-level"])
+
 	logrus.Debugf("Settings::handleUpdateEvent: \n\tHosts: %v,\n\tSettings: %v ", s.NginxPlusHosts, configMap)
 }
 
@@ -326,4 +328,33 @@ func (s *Settings) updateHosts(hosts []string) {
 func isOurConfig(obj interface{}) (*corev1.ConfigMap, bool) {
 	configMap, ok := obj.(*corev1.ConfigMap)
 	return configMap, ok && configMap.Name == ConfigMapName && configMap.Namespace == ConfigMapsNamespace
+}
+
+func setLogLevel(logLevel string) {
+	logrus.Debugf("Settings::setLogLevel: %s", logLevel)
+	switch logLevel {
+	case "panic":
+		logrus.SetLevel(logrus.PanicLevel)
+
+	case "fatal":
+		logrus.SetLevel(logrus.FatalLevel)
+
+	case "error":
+		logrus.SetLevel(logrus.ErrorLevel)
+
+	case "warn":
+		logrus.SetLevel(logrus.WarnLevel)
+
+	case "info":
+		logrus.SetLevel(logrus.InfoLevel)
+
+	case "debug":
+		logrus.SetLevel(logrus.DebugLevel)
+
+	case "trace":
+		logrus.SetLevel(logrus.TraceLevel)
+
+	default:
+		logrus.SetLevel(logrus.WarnLevel)
+	}
 }
