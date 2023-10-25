@@ -7,6 +7,8 @@ package probation
 
 import (
 	"github.com/nginxinc/kubernetes-nginx-ingress/test/mocks"
+	"github.com/sirupsen/logrus"
+	"net/http"
 	"testing"
 )
 
@@ -50,4 +52,22 @@ func TestHealthServer_HandleFailCheck(t *testing.T) {
 	if body != "Service Not Available" {
 		t.Errorf("Expected 'Service Not Available', got %v", body)
 	}
+}
+
+func TestHealthServer_Start(t *testing.T) {
+	server := NewHealthServer()
+	server.Start()
+
+	response, err := http.Get("http://localhost:51031/livez")
+	if err != nil {
+		t.Error(err)
+	}
+
+	if response.StatusCode != http.StatusOK {
+		t.Errorf("Expected status code %v, got %v", http.StatusAccepted, response.StatusCode)
+	}
+
+	logrus.Infof("recevied a response from the probe server: %v", response)
+
+	server.Stop()
 }

@@ -51,6 +51,9 @@ func TestRoundTripperRoundTrip(t *testing.T) {
 		t.Fatalf(`Unexpected error: %v`, err)
 	}
 
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("x-nginx-loadbalancer-kubernetes", "nlk")
+
 	response, err := roundTripper.RoundTrip(request)
 	if err != nil {
 		t.Fatalf(`Unexpected error: %v`, err)

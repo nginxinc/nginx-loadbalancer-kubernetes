@@ -18,3 +18,11 @@ Thumbs.db
 ########
 *.log
 /misc-dev/
+
+cover.html
+cover.out
+tmp/
+
+cover.out
+cover.html
+tmp/
