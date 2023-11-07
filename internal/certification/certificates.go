@@ -178,10 +178,10 @@ func (c *Certificates) handleDeleteEvent(obj interface{}) {
 	logrus.Debugf("Certificates::handleDeleteEvent: certificates (%d)", len(c.Certificates))
 }
 
-func (c *Certificates) handleUpdateEvent(obj interface{}, obj2 interface{}) {
+func (c *Certificates) handleUpdateEvent(oldValue interface{}, newValue interface{}) {
 	logrus.Debug("Certificates::handleUpdateEvent")
 
-	secret, ok := obj.(*corev1.Secret)
+	secret, ok := newValue.(*corev1.Secret)
 	if !ok {
 		logrus.Errorf("Certificates::handleUpdateEvent: unable to cast object to Secret")
 		return
