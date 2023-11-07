@@ -100,7 +100,6 @@ func TestCertificates_ExerciseHandlers(t *testing.T) {
 	_ = certificates.Initialize()
 
 	certificates.CaCertificateSecretKey = CaCertificateSecretKey
-	//certificates.ClientCertificateSecretKey = "nlk-tls-client-secret"
 
 	go func() {
 		err := certificates.Run()
