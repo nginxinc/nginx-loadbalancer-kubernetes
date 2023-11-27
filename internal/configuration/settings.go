@@ -266,10 +266,10 @@ func (s *Settings) handleDeleteEvent(obj interface{}) {
 	}
 }
 
-func (s *Settings) handleUpdateEvent(_ interface{}, obj interface{}) {
+func (s *Settings) handleUpdateEvent(_ interface{}, newValue interface{}) {
 	logrus.Debug("Settings::handleUpdateEvent")
 
-	configMap, yes := isOurConfig(obj)
+	configMap, yes := isOurConfig(newValue)
 	if !yes {
 		return
 	}
