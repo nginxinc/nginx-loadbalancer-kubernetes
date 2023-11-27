@@ -177,10 +177,7 @@ func (s *Settings) Initialize() error {
 
 	var err error
 
-	certificates, err := certification.NewCertificates(s.Context, s.K8sClient)
-	if err != nil {
-		return fmt.Errorf(`error occurred creating certificates: %w`, err)
-	}
+	certificates := certification.NewCertificates(s.Context, s.K8sClient)
 
 	err = certificates.Initialize()
 	if err != nil {
