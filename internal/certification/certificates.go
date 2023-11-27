@@ -54,12 +54,12 @@ type Certificates struct {
 }
 
 // NewCertificates factory method that returns a new Certificates object.
-func NewCertificates(ctx context.Context, k8sClient kubernetes.Interface) (*Certificates, error) {
+func NewCertificates(ctx context.Context, k8sClient kubernetes.Interface) *Certificates {
 	return &Certificates{
 		k8sClient:    k8sClient,
 		Context:      ctx,
 		Certificates: nil,
-	}, nil
+	}
 }
 
 // GetCACertificate returns the Certificate Authority certificate.
