@@ -18,8 +18,6 @@ import (
 	"k8s.io/client-go/tools/cache"
 )
 
-// TODO: This needs to use the settings for the secret names...
-
 const (
 	// SecretsNamespace is the value used to filter the Secrets Resource in the Informer.
 	SecretsNamespace = "nlk"
