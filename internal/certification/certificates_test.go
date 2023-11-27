@@ -22,11 +22,7 @@ const (
 func TestNewCertificate(t *testing.T) {
 	ctx := context.Background()
 
-	certificates, err := NewCertificates(ctx, nil)
-
-	if err != nil {
-		t.Fatalf(`Unexpected error: %v`, err)
-	}
+	certificates := NewCertificates(ctx, nil)
 
 	if certificates == nil {
 		t.Fatalf(`certificates should not be nil`)
@@ -34,24 +30,18 @@ func TestNewCertificate(t *testing.T) {
 }
 
 func TestCertificates_Initialize(t *testing.T) {
-	certificates, err := NewCertificates(context.Background(), nil)
-	if err != nil {
-		t.Fatalf(`Unexpected error: %v`, err)
-	}
+	certificates := NewCertificates(context.Background(), nil)
 
-	err = certificates.Initialize()
+	err := certificates.Initialize()
 	if err != nil {
 		t.Fatalf(`Unexpected error: %v`, err)
 	}
 }
 
 func TestCertificates_RunWithoutInitialize(t *testing.T) {
-	certificates, err := NewCertificates(context.Background(), nil)
-	if err != nil {
-		t.Fatalf(`Unexpected error: %v`, err)
-	}
+	certificates := NewCertificates(context.Background(), nil)
 
-	err = certificates.Run()
+	err := certificates.Run()
 	if err == nil {
 		t.Fatalf(`Expected error`)
 	}
@@ -62,12 +52,9 @@ func TestCertificates_RunWithoutInitialize(t *testing.T) {
 }
 
 func TestCertificates_EmptyCertificates(t *testing.T) {
-	certificates, err := NewCertificates(context.Background(), nil)
-	if err != nil {
-		t.Fatalf(`error building Certificates: %v`, err)
-	}
+	certificates := NewCertificates(context.Background(), nil)
 
-	err = certificates.Initialize()
+	err := certificates.Initialize()
 	if err != nil {
 		t.Fatalf(`error Initializing Certificates: %v`, err)
 	}
@@ -92,10 +79,7 @@ func TestCertificates_ExerciseHandlers(t *testing.T) {
 
 	k8sClient := fake.NewSimpleClientset()
 
-	certificates, err := NewCertificates(ctx, k8sClient)
-	if err != nil {
-		t.Fatalf(`error building Certificates: %v`, err)
-	}
+	certificates := NewCertificates(ctx, k8sClient)
 
 	_ = certificates.Initialize()
 
