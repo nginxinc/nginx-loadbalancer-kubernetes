@@ -176,7 +176,7 @@ func (c *Certificates) handleDeleteEvent(obj interface{}) {
 	logrus.Debugf("Certificates::handleDeleteEvent: certificates (%d)", len(c.Certificates))
 }
 
-func (c *Certificates) handleUpdateEvent(oldValue interface{}, newValue interface{}) {
+func (c *Certificates) handleUpdateEvent(_ interface{}, newValue interface{}) {
 	logrus.Debug("Certificates::handleUpdateEvent")
 
 	secret, ok := newValue.(*corev1.Secret)
