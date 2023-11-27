@@ -38,7 +38,7 @@ func NewTlsConfig(settings *configuration.Settings) (*tls.Config, error) {
 }
 
 func buildSelfSignedTlsConfig(certificates *certification.Certificates) (*tls.Config, error) {
-	logrus.Debugf("authentication::buildSelfSignedTlsConfig Building self-signed TLS config, CA Secret Key(%v)", certificates.CaCertificateSecretKey)
+	logrus.Debug("authentication::buildSelfSignedTlsConfig Building self-signed TLS config")
 	certPool, err := buildCaCertificatePool(certificates.GetCACertificate())
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func buildSelfSignedTlsConfig(certificates *certification.Certificates) (*tls.Co
 }
 
 func buildSelfSignedMtlsConfig(certificates *certification.Certificates) (*tls.Config, error) {
-	logrus.Debugf("authentication::buildSelfSignedMtlsConfig Building self-signed mTLS config, CA Secret Key(%v), Client Certificate Key(%v)", certificates.CaCertificateSecretKey, certificates.ClientCertificateSecretKey)
+	logrus.Debug("authentication::buildSelfSignedMtlsConfig Building self-signed mTLS config")
 	certPool, err := buildCaCertificatePool(certificates.GetCACertificate())
 	if err != nil {
 		return nil, err
@@ -79,7 +79,7 @@ func buildBasicTlsConfig(skipVerify bool) *tls.Config {
 }
 
 func buildCaTlsConfig(certificates *certification.Certificates) (*tls.Config, error) {
-	logrus.Debugf("authentication::buildCaTlsConfig, Client Certificate Key(%v)", certificates.ClientCertificateSecretKey)
+	logrus.Debug("authentication::buildCaTlsConfig")
 	certificate, err := buildCertificates(certificates.GetClientCertificate())
 	if err != nil {
 		return nil, err
@@ -92,12 +92,12 @@ func buildCaTlsConfig(certificates *certification.Certificates) (*tls.Config, er
 }
 
 func buildCertificates(privateKeyPEM []byte, certificatePEM []byte) (tls.Certificate, error) {
-	logrus.Debugf("authentication::buildCertificates, Private Key(%v), Certificate(%v)", privateKeyPEM, certificatePEM)
+	logrus.Debug("authentication::buildCertificates")
 	return tls.X509KeyPair(certificatePEM, privateKeyPEM)
 }
 
 func buildCaCertificatePool(caCert []byte) (*x509.CertPool, error) {
-	logrus.Debugf("authentication::buildCaCertificatePool, CA Certificate(%v)", caCert)
+	logrus.Debug("authentication::buildCaCertificatePool")
 	block, _ := pem.Decode(caCert)
 	if block == nil {
 		return nil, fmt.Errorf("failed to decode PEM block containing CA certificate")
