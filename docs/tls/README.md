@@ -1,8 +1,5 @@
 # Securing communication between NLK and NGINX Plus with TLS / mTLS
 
-> [!WARNING]
-> THIS FEATURE IS IN DEVELOPMENT. THIS NOTICE WILL BE REMOVED WHEN THE IMPLEMENTATION IS COMPLETE.  
-
 This document describes how to configure TLS / mTLS to secure communication between NLK and NGINX Plus.
 
 For development and test environments, using secure communication may not be necessary; however, in production environments
