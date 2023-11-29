@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-nlk
+  namespace: nlk
+  labels:
+    app: nlk
+spec:
+  replicas: {{ .Values.nlk.replicaCount }}
+  selector:
+    matchLabels:
+      app: nlk
+  template:
+    metadata:
+      labels:
+        app: nlk
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.nlk.image.repository }}:{{ .Values.nlk.image.tag }}"
+          imagePullPolicy: {{ .Values.nlk.image.pullPolicy }}
+          ports:
+{{- range $key, $value := .Values.nlk.containerPort }}
+            - name: {{ $key }}
+              containerPort: {{ $value }}
+              protocol: TCP
+{{- end }}
+{{- if .Values.nlk.liveStatus.enable }}
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: {{ .Values.nlk.liveStatus.port }}
+            initialDelaySeconds: {{ .Values.nlk.liveStatus.initialDelaySeconds }}
+            periodSeconds: {{ .Values.nlk.readyStatus.periodSeconds }}
+{{- end }}
+{{- if .Values.nlk.readyStatus.enable }}
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: {{ .Values.nlk.readyStatus.port }}
+            initialDelaySeconds: {{ .Values.nlk.readyStatus.initialDelaySeconds }}
+            periodSeconds: {{ .Values.nlk.readyStatus.periodSeconds }}
+{{- end }}
+      serviceAccountName: {{ .Values.nlk.serviceAccount.name }}
