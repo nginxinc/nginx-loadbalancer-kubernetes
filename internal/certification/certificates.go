@@ -11,11 +11,14 @@ package certification
 import (
 	"context"
 	"fmt"
+
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
+
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 )
 
 const (
@@ -30,7 +33,12 @@ const (
 )
 
 type Certificates struct {
-	Certificates map[string]map[string][]byte
+	// {
+	// 		ClientCertificateSecretKey: {
+	// 			"tls.crt": []byte
+	// 		}
+	// }
+	Certificates map[string]map[string]core.SecretBytes
 
 	// Context is the context used to control the application.
 	Context context.Context
@@ -61,14 +69,14 @@ func NewCertificates(ctx context.Context, k8sClient kubernetes.Interface) *Certi
 }
 
 // GetCACertificate returns the Certificate Authority certificate.
-func (c *Certificates) GetCACertificate() []byte {
+func (c *Certificates) GetCACertificate() core.SecretBytes {
 	bytes := c.Certificates[c.CaCertificateSecretKey][CertificateKey]
 
 	return bytes
 }
 
 // GetClientCertificate returns the Client certificate and key.
-func (c *Certificates) GetClientCertificate() ([]byte, []byte) {
+func (c *Certificates) GetClientCertificate() (core.SecretBytes, core.SecretBytes) {
 	keyBytes := c.Certificates[c.ClientCertificateSecretKey][CertificateKeyKey]
 	certificateBytes := c.Certificates[c.ClientCertificateSecretKey][CertificateKey]
 
@@ -81,7 +89,7 @@ func (c *Certificates) Initialize() error {
 
 	var err error
 
-	c.Certificates = make(map[string]map[string][]byte)
+	c.Certificates = make(map[string]map[string]core.SecretBytes)
 
 	informer, err := c.buildInformer()
 	if err != nil {
@@ -151,10 +159,14 @@ func (c *Certificates) handleAddEvent(obj interface{}) {
 		return
 	}
 
-	c.Certificates[secret.Name] = map[string][]byte{}
+	c.Certificates[secret.Name] = map[string]core.SecretBytes{}
 
+	// Input from the secret comes in the form
+	//   tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUVCVEN...
+	//   tls.key: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2Z0l...
+	// Where the keys are `tls.crt` and `tls.key` and the values are []byte
 	for k, v := range secret.Data {
-		c.Certificates[secret.Name][k] = v
+		c.Certificates[secret.Name][k] = core.SecretBytes(v)
 	}
 
 	logrus.Debugf("Certificates::handleAddEvent: certificates (%d)", len(c.Certificates))

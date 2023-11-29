@@ -179,6 +179,7 @@ func (s *Settings) Initialize() error {
 
 	certificates := certification.NewCertificates(s.Context, s.K8sClient)
 
+	// q. Why is this a separate step?
 	err = certificates.Initialize()
 	if err != nil {
 		return fmt.Errorf(`error occurred initializing certificates: %w`, err)
