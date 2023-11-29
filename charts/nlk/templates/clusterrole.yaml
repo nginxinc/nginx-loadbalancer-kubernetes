@@ -1,0 +1,19 @@
+{{- if .Values.rbac.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: resource-get-watch-list
+  namespace: nlk
+rules:
+  - apiGroups:
+    - ""
+    resources:
+    - configmaps
+    - nodes
+    - secrets
+    - services
+    verbs:
+    - get
+    - list
+    - watch
+{{- end }}

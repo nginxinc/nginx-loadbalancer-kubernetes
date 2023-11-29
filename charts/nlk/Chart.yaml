@@ -1,0 +1,16 @@
+apiVersion: v2
+appVersion: 0.1.0
+description: NGINX LoadBalancer for Kubernetes
+name: nginx-loadbalancer-kubernetes
+home: https://github.com/nginxinc/nginx-loadbalancer-kubernetes
+icon: https://raw.githubusercontent.com/nginxinc/nginx-loadbalancer-kubernetes/main/nlk-logo.svg
+keywords:
+- nginx
+- loadbalancer
+- ingress
+kubeVersion: '>= 1.22.0-0'
+maintainers:
+  name: "@ciroque"
+  name: "@chrisakker"
+type: application
+version: 0.0.1
