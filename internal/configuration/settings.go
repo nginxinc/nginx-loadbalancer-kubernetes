@@ -110,7 +110,7 @@ type Settings struct {
 	NginxPlusHosts []string
 
 	// TlsMode is the value used to determine which of the five TLS modes will be used to communicate with the Border Servers (see: ../../docs/tls/README.md).
-	TlsMode string
+	TlsMode TLSMode
 
 	// Certificates is the object used to retrieve the certificates and keys used to communicate with the Border Servers.
 	Certificates *certification.Certificates
@@ -139,7 +139,7 @@ func NewSettings(ctx context.Context, k8sClient kubernetes.Interface) (*Settings
 	settings := &Settings{
 		Context:      ctx,
 		K8sClient:    k8sClient,
-		TlsMode:      "",
+		TlsMode:      NoTLS,
 		Certificates: nil,
 		Handler: HandlerSettings{
 			RetryCount: 5,
@@ -282,13 +282,12 @@ func (s *Settings) handleUpdateEvent(_ interface{}, newValue interface{}) {
 		logrus.Warnf("Settings::handleUpdateEvent: nginx-hosts key not found in ConfigMap")
 	}
 
-	tlsMode, found := configMap.Data["tls-mode"]
-	if found {
-		s.TlsMode = tlsMode
-		logrus.Debugf("Settings::handleUpdateEvent: tls-mode: %s", s.TlsMode)
+	tlsMode, err := validateTlsMode(configMap)
+	if err != nil {
+		// NOTE: the TLSMode defaults to NoTLS on startup, or the last known good value if previously set.
+		logrus.Errorf("There was an error with the configured TLS Mode. TLS Mode has NOT been changed. The current mode is: '%v'. Error: %v. ", s.TlsMode, err)
 	} else {
-		s.TlsMode = "no-tls"
-		logrus.Warnf("Settings::handleUpdateEvent: tls-mode key not found in ConfigMap, defaulting to 'no-tls'")
+		s.TlsMode = tlsMode
 	}
 
 	caCertificateSecretKey, found := configMap.Data["ca-certificate"]
@@ -312,6 +311,19 @@ func (s *Settings) handleUpdateEvent(_ interface{}, newValue interface{}) {
 	setLogLevel(configMap.Data["log-level"])
 
 	logrus.Debugf("Settings::handleUpdateEvent: \n\tHosts: %v,\n\tSettings: %v ", s.NginxPlusHosts, configMap)
+}
+
+func validateTlsMode(configMap *corev1.ConfigMap) (TLSMode, error) {
+	tlsConfigMode, tlsConfigModeFound := configMap.Data["tls-mode"]
+	if !tlsConfigModeFound {
+		return NoTLS, fmt.Errorf(`tls-mode key not found in ConfigMap`)
+	}
+
+	if tlsMode, tlsModeFound := TLSModeMap[tlsConfigMode]; tlsModeFound {
+		return tlsMode, nil
+	}
+
+	return NoTLS, fmt.Errorf(`invalid tls-mode value: %s`, tlsConfigMode)
 }
 
 func (s *Settings) parseHosts(hosts string) []string {

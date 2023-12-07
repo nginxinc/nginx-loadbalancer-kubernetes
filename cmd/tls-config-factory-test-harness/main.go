@@ -87,7 +87,7 @@ func ssTlsConfig() configuration.Settings {
 	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
 
 	return configuration.Settings{
-		TlsMode: "ss-tls",
+		TlsMode: configuration.SelfSignedTLS,
 		Certificates: &certification.Certificates{
 			Certificates: certificates,
 		},
@@ -100,7 +100,7 @@ func ssMtlsConfig() configuration.Settings {
 	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
 
 	return configuration.Settings{
-		TlsMode: "ss-mtls",
+		TlsMode: configuration.SelfSignedMutualTLS,
 		Certificates: &certification.Certificates{
 			Certificates: certificates,
 		},
@@ -109,7 +109,7 @@ func ssMtlsConfig() configuration.Settings {
 
 func caTlsConfig() configuration.Settings {
 	return configuration.Settings{
-		TlsMode: "ca-tls",
+		TlsMode: configuration.CertificateAuthorityTLS,
 	}
 }
 
@@ -118,7 +118,7 @@ func caMtlsConfig() configuration.Settings {
 	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
 
 	return configuration.Settings{
-		TlsMode: "ca-mtls",
+		TlsMode: configuration.CertificateAuthorityMutualTLS,
 		Certificates: &certification.Certificates{
 			Certificates: certificates,
 		},

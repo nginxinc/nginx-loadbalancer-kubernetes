@@ -16,25 +16,6 @@ const (
 	ClientCertificateSecretKey = "nlk-tls-client-secret"
 )
 
-func TestTlsFactory_EmptyStringModeDefaultsToNoTls(t *testing.T) {
-	settings := configuration.Settings{
-		TlsMode: "",
-	}
-
-	tlsConfig, err := NewTlsConfig(&settings)
-	if err != nil {
-		t.Fatalf(`Unexpected error: %v`, err)
-	}
-
-	if tlsConfig == nil {
-		t.Fatalf(`tlsConfig should not be nil`)
-	}
-
-	if tlsConfig.InsecureSkipVerify != true {
-		t.Fatalf(`tlsConfig.InsecureSkipVerify should be true`)
-	}
-}
-
 func TestTlsFactory_UnspecifiedModeDefaultsToNoTls(t *testing.T) {
 	settings := configuration.Settings{}
 
@@ -57,7 +38,7 @@ func TestTlsFactory_SelfSignedTlsMode(t *testing.T) {
 	certificates[CaCertificateSecretKey] = buildCaCertificateEntry(caCertificatePEM())
 
 	settings := configuration.Settings{
-		TlsMode: "ss-tls",
+		TlsMode: configuration.SelfSignedTLS,
 		Certificates: &certification.Certificates{
 			Certificates:               certificates,
 			CaCertificateSecretKey:     CaCertificateSecretKey,
@@ -92,7 +73,7 @@ func TestTlsFactory_SelfSignedTlsModeCertPoolError(t *testing.T) {
 	certificates[CaCertificateSecretKey] = buildCaCertificateEntry(invalidCertificatePEM())
 
 	settings := configuration.Settings{
-		TlsMode: "ss-tls",
+		TlsMode: configuration.SelfSignedTLS,
 		Certificates: &certification.Certificates{
 			Certificates: certificates,
 		},
@@ -113,7 +94,7 @@ func TestTlsFactory_SelfSignedTlsModeCertPoolCertificateParseError(t *testing.T)
 	certificates[CaCertificateSecretKey] = buildCaCertificateEntry(invalidCertificateDataPEM())
 
 	settings := configuration.Settings{
-		TlsMode: "ss-tls",
+		TlsMode: configuration.SelfSignedTLS,
 		Certificates: &certification.Certificates{
 			Certificates:               certificates,
 			CaCertificateSecretKey:     CaCertificateSecretKey,
@@ -137,7 +118,7 @@ func TestTlsFactory_SelfSignedMtlsMode(t *testing.T) {
 	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
 
 	settings := configuration.Settings{
-		TlsMode: "ss-mtls",
+		TlsMode: configuration.SelfSignedMutualTLS,
 		Certificates: &certification.Certificates{
 			Certificates:               certificates,
 			CaCertificateSecretKey:     CaCertificateSecretKey,
@@ -173,7 +154,7 @@ func TestTlsFactory_SelfSignedMtlsModeCertPoolError(t *testing.T) {
 	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
 
 	settings := configuration.Settings{
-		TlsMode: "ss-mtls",
+		TlsMode: configuration.SelfSignedMutualTLS,
 		Certificates: &certification.Certificates{
 			Certificates: certificates,
 		},
@@ -195,7 +176,7 @@ func TestTlsFactory_SelfSignedMtlsModeClientCertificateError(t *testing.T) {
 	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), invalidCertificatePEM())
 
 	settings := configuration.Settings{
-		TlsMode: "ss-mtls",
+		TlsMode: configuration.SelfSignedMutualTLS,
 		Certificates: &certification.Certificates{
 			Certificates:               certificates,
 			CaCertificateSecretKey:     CaCertificateSecretKey,
@@ -215,7 +196,7 @@ func TestTlsFactory_SelfSignedMtlsModeClientCertificateError(t *testing.T) {
 
 func TestTlsFactory_CaTlsMode(t *testing.T) {
 	settings := configuration.Settings{
-		TlsMode: "ca-tls",
+		TlsMode: configuration.CertificateAuthorityTLS,
 	}
 
 	tlsConfig, err := NewTlsConfig(&settings)
@@ -245,7 +226,7 @@ func TestTlsFactory_CaMtlsMode(t *testing.T) {
 	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
 
 	settings := configuration.Settings{
-		TlsMode: "ca-mtls",
+		TlsMode: configuration.CertificateAuthorityMutualTLS,
 		Certificates: &certification.Certificates{
 			Certificates:               certificates,
 			CaCertificateSecretKey:     CaCertificateSecretKey,
@@ -281,7 +262,7 @@ func TestTlsFactory_CaMtlsModeClientCertificateError(t *testing.T) {
 	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), invalidCertificatePEM())
 
 	settings := configuration.Settings{
-		TlsMode: "ca-mtls",
+		TlsMode: configuration.CertificateAuthorityMutualTLS,
 		Certificates: &certification.Certificates{
 			Certificates: certificates,
 		},

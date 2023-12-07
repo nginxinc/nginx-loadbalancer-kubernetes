@@ -20,20 +20,24 @@ import (
 func NewTlsConfig(settings *configuration.Settings) (*tls.Config, error) {
 	logrus.Debugf("authentication::NewTlsConfig Creating TLS config for mode: '%s'", settings.TlsMode)
 	switch settings.TlsMode {
-	case "ss-tls": // needs ca cert
+
+	case configuration.NoTLS:
+		return buildBasicTlsConfig(true), nil
+
+	case configuration.SelfSignedTLS: // needs ca cert
 		return buildSelfSignedTlsConfig(settings.Certificates)
 
-	case "ss-mtls": // needs ca cert and client cert
+	case configuration.SelfSignedMutualTLS: // needs ca cert and client cert
 		return buildSelfSignedMtlsConfig(settings.Certificates)
 
-	case "ca-tls": // needs nothing
+	case configuration.CertificateAuthorityTLS: // needs nothing
 		return buildBasicTlsConfig(false), nil
 
-	case "ca-mtls": // needs client cert
+	case configuration.CertificateAuthorityMutualTLS: // needs client cert
 		return buildCaTlsConfig(settings.Certificates)
 
-	default: // no-tls, needs nothing
-		return buildBasicTlsConfig(true), nil
+	default:
+		return nil, fmt.Errorf("unknown TLS mode: %s", settings.TlsMode)
 	}
 }
 
