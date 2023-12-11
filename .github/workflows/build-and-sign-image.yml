@@ -64,7 +64,7 @@ jobs:
       # NOTE: This runs statically against the latest tag in Docker Hub which was not produced by this workflow
       # This should be updated once this workflow is fully implemented
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@2b6a709cf9c4025c5438138008beaddbb02086f0 # 0.14.0
+        uses: aquasecurity/trivy-action@91713af97dc80187565512baba96e4364e983601 # 0.16.0
         continue-on-error: true
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
