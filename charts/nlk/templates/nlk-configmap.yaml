@@ -7,7 +7,8 @@ data:
 {{- if .Values.nlk.config.entries.hosts }}
   nginx-hosts: "{{ .Values.nlk.config.entries.hosts }}"
 {{- end }}
-  tls-mode: "{{ .Values.nlk.defaultTLS.tls-mode }}"
-  ca-certificate: "{{ .Values.nlk.defaultTLS.ca-certificate }}"
-  client-certificate: "{{ .Values.nlk.defaultTLS.client-certificate }}"
+  tls-mode: "{{ index .Values.nlk.defaultTLS "tls-mode" }}"
+  ca-certificate: "{{ index .Values.nlk.defaultTLS "ca-certificate" }}"
+  client-certificate: "{{ index .Values.nlk.defaultTLS "client-certificate" }}"
   log-level: "{{ .Values.nlk.logLevel }}"
+

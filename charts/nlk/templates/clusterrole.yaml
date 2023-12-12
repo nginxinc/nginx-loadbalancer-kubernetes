@@ -2,8 +2,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: resource-get-watch-list
-  namespace: nlk
+  name: {{ .Release.Namespace }}-{{ include "nlk.fullname" . }}
 rules:
   - apiGroups:
     - ""

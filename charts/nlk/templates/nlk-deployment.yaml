@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-nlk
+  name: {{ include "nlk.fullname" . }}
   namespace: nlk
   labels:
     app: nlk
@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: {{ .Chart.Name }}
-          image: "{{ .Values.nlk.image.repository }}:{{ .Values.nlk.image.tag }}"
+          image: {{ include "nlk.image" .}}
           imagePullPolicy: {{ .Values.nlk.image.pullPolicy }}
           ports:
 {{- range $key, $value := .Values.nlk.containerPort }}
@@ -41,4 +41,4 @@ spec:
             initialDelaySeconds: {{ .Values.nlk.readyStatus.initialDelaySeconds }}
             periodSeconds: {{ .Values.nlk.readyStatus.periodSeconds }}
 {{- end }}
-      serviceAccountName: {{ .Values.nlk.serviceAccount.name }}
+      serviceAccountName: {{ include "nlk.fullname" . }}

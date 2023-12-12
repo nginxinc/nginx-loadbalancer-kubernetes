@@ -2,14 +2,13 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: "nginx-loadbalancer-kubernetes:resource-get-watch-list"
-  namespace: nlk
+  name: {{ .Release.Namespace }}-{{ include "nlk.fullname" . }}
 subjects:
 - kind: ServiceAccount
-  name: {{ .Values.nlk.serviceAccount.name }}
+  name: {{ include "nlk.fullname" . }}
   namespace: nlk
 roleRef:
   kind: ClusterRole
-  name: resource-get-watch-list
+  name: {{ .Release.Namespace }}-{{ include "nlk.fullname" . }}
   apiGroup: rbac.authorization.k8s.io
 {{- end }}

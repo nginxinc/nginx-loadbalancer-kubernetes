@@ -99,9 +99,9 @@ Expand image name.
 */}}
 {{- define "nlk.image" -}}
 {{- if .Values.nlk.image.digest -}}
-{{- printf "%s@%s" .Values.nlk.image.repository .Values.nlk.image.digest -}}
+{{- printf "%s/%s@%s" .Values.nlk.image.registry .Values.nlk.image.repository .Values.nlk.image.digest -}}
 {{- else -}}
-{{- printf "%s:%s" .Values.nlk.image.repository (include "nlk.tag" .) -}}
+{{- printf "%s/%s:%s" .Values.nlk.image.registry .Values.nlk.image.repository (include "nlk.tag" .) -}}
 {{- end -}}
 {{- end -}}
 

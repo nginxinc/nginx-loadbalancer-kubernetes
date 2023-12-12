@@ -1,3 +1,4 @@
+---
 apiVersion: v2
 appVersion: 0.1.0
 description: NGINX LoadBalancer for Kubernetes
@@ -10,7 +11,9 @@ keywords:
 - ingress
 kubeVersion: '>= 1.22.0-0'
 maintainers:
-  name: "@ciroque"
-  name: "@chrisakker"
+- name: "@ciroque"
+- name: "@chrisakker"
+- name: "@abdennour"
+
 type: application
 version: 0.0.1
