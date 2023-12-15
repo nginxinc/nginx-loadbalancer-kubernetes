@@ -33,11 +33,6 @@ const (
 )
 
 type Certificates struct {
-	// {
-	// 		ClientCertificateSecretKey: {
-	// 			"tls.crt": []byte
-	// 		}
-	// }
 	Certificates map[string]map[string]core.SecretBytes
 
 	// Context is the context used to control the application.
