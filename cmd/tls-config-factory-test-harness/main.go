@@ -6,6 +6,7 @@ import (
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/authentication"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/certification"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	"github.com/sirupsen/logrus"
 	"os"
 )
@@ -82,7 +83,7 @@ func buildConfigMap() map[string]TlsConfiguration {
 }
 
 func ssTlsConfig() configuration.Settings {
-	certificates := make(map[string]map[string][]byte)
+	certificates := make(map[string]map[string]core.SecretBytes)
 	certificates[CaCertificateSecretKey] = buildCaCertificateEntry(caCertificatePEM())
 	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
 
@@ -95,7 +96,7 @@ func ssTlsConfig() configuration.Settings {
 }
 
 func ssMtlsConfig() configuration.Settings {
-	certificates := make(map[string]map[string][]byte)
+	certificates := make(map[string]map[string]core.SecretBytes)
 	certificates[CaCertificateSecretKey] = buildCaCertificateEntry(caCertificatePEM())
 	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
 
@@ -114,7 +115,7 @@ func caTlsConfig() configuration.Settings {
 }
 
 func caMtlsConfig() configuration.Settings {
-	certificates := make(map[string]map[string][]byte)
+	certificates := make(map[string]map[string]core.SecretBytes)
 	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
 
 	return configuration.Settings{
@@ -215,15 +216,15 @@ z/3KkMx4uqJXZyvQrmkolSg=
 `
 }
 
-func buildClientCertificateEntry(keyPEM, certificatePEM string) map[string][]byte {
-	return map[string][]byte{
-		certification.CertificateKey:    []byte(certificatePEM),
-		certification.CertificateKeyKey: []byte(keyPEM),
+func buildClientCertificateEntry(keyPEM, certificatePEM string) map[string]core.SecretBytes {
+	return map[string]core.SecretBytes{
+		certification.CertificateKey:    core.SecretBytes([]byte(certificatePEM)),
+		certification.CertificateKeyKey: core.SecretBytes([]byte(keyPEM)),
 	}
 }
 
-func buildCaCertificateEntry(certificatePEM string) map[string][]byte {
-	return map[string][]byte{
-		certification.CertificateKey: []byte(certificatePEM),
+func buildCaCertificateEntry(certificatePEM string) map[string]core.SecretBytes {
+	return map[string]core.SecretBytes{
+		certification.CertificateKey: core.SecretBytes([]byte(certificatePEM)),
 	}
 }

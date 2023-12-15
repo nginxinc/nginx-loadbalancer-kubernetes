@@ -6,9 +6,11 @@
 package authentication
 
 import (
+	"testing"
+
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/certification"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
-	"testing"
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 )
 
 const (
@@ -34,7 +36,7 @@ func TestTlsFactory_UnspecifiedModeDefaultsToNoTls(t *testing.T) {
 }
 
 func TestTlsFactory_SelfSignedTlsMode(t *testing.T) {
-	certificates := make(map[string]map[string][]byte)
+	certificates := make(map[string]map[string]core.SecretBytes)
 	certificates[CaCertificateSecretKey] = buildCaCertificateEntry(caCertificatePEM())
 
 	settings := configuration.Settings{
@@ -69,7 +71,7 @@ func TestTlsFactory_SelfSignedTlsMode(t *testing.T) {
 }
 
 func TestTlsFactory_SelfSignedTlsModeCertPoolError(t *testing.T) {
-	certificates := make(map[string]map[string][]byte)
+	certificates := make(map[string]map[string]core.SecretBytes)
 	certificates[CaCertificateSecretKey] = buildCaCertificateEntry(invalidCertificatePEM())
 
 	settings := configuration.Settings{
@@ -90,7 +92,7 @@ func TestTlsFactory_SelfSignedTlsModeCertPoolError(t *testing.T) {
 }
 
 func TestTlsFactory_SelfSignedTlsModeCertPoolCertificateParseError(t *testing.T) {
-	certificates := make(map[string]map[string][]byte)
+	certificates := make(map[string]map[string]core.SecretBytes)
 	certificates[CaCertificateSecretKey] = buildCaCertificateEntry(invalidCertificateDataPEM())
 
 	settings := configuration.Settings{
@@ -113,7 +115,7 @@ func TestTlsFactory_SelfSignedTlsModeCertPoolCertificateParseError(t *testing.T)
 }
 
 func TestTlsFactory_SelfSignedMtlsMode(t *testing.T) {
-	certificates := make(map[string]map[string][]byte)
+	certificates := make(map[string]map[string]core.SecretBytes)
 	certificates[CaCertificateSecretKey] = buildCaCertificateEntry(caCertificatePEM())
 	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
 
@@ -149,7 +151,7 @@ func TestTlsFactory_SelfSignedMtlsMode(t *testing.T) {
 }
 
 func TestTlsFactory_SelfSignedMtlsModeCertPoolError(t *testing.T) {
-	certificates := make(map[string]map[string][]byte)
+	certificates := make(map[string]map[string]core.SecretBytes)
 	certificates[CaCertificateSecretKey] = buildCaCertificateEntry(invalidCertificatePEM())
 	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
 
@@ -171,7 +173,7 @@ func TestTlsFactory_SelfSignedMtlsModeCertPoolError(t *testing.T) {
 }
 
 func TestTlsFactory_SelfSignedMtlsModeClientCertificateError(t *testing.T) {
-	certificates := make(map[string]map[string][]byte)
+	certificates := make(map[string]map[string]core.SecretBytes)
 	certificates[CaCertificateSecretKey] = buildCaCertificateEntry(caCertificatePEM())
 	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), invalidCertificatePEM())
 
@@ -222,7 +224,7 @@ func TestTlsFactory_CaTlsMode(t *testing.T) {
 }
 
 func TestTlsFactory_CaMtlsMode(t *testing.T) {
-	certificates := make(map[string]map[string][]byte)
+	certificates := make(map[string]map[string]core.SecretBytes)
 	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
 
 	settings := configuration.Settings{
@@ -257,7 +259,7 @@ func TestTlsFactory_CaMtlsMode(t *testing.T) {
 }
 
 func TestTlsFactory_CaMtlsModeClientCertificateError(t *testing.T) {
-	certificates := make(map[string]map[string][]byte)
+	certificates := make(map[string]map[string]core.SecretBytes)
 	certificates[CaCertificateSecretKey] = buildCaCertificateEntry(caCertificatePEM())
 	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), invalidCertificatePEM())
 
@@ -411,15 +413,15 @@ z/3KkMx4uqJXZyvQrmkolSg=
 `
 }
 
-func buildClientCertificateEntry(keyPEM, certificatePEM string) map[string][]byte {
-	return map[string][]byte{
-		certification.CertificateKey:    []byte(certificatePEM),
-		certification.CertificateKeyKey: []byte(keyPEM),
+func buildClientCertificateEntry(keyPEM, certificatePEM string) map[string]core.SecretBytes {
+	return map[string]core.SecretBytes{
+		certification.CertificateKey:    core.SecretBytes([]byte(certificatePEM)),
+		certification.CertificateKeyKey: core.SecretBytes([]byte(keyPEM)),
 	}
 }
 
-func buildCaCertificateEntry(certificatePEM string) map[string][]byte {
-	return map[string][]byte{
-		certification.CertificateKey: []byte(certificatePEM),
+func buildCaCertificateEntry(certificatePEM string) map[string]core.SecretBytes {
+	return map[string]core.SecretBytes{
+		certification.CertificateKey: core.SecretBytes([]byte(certificatePEM)),
 	}
 }
