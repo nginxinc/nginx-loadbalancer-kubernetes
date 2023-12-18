@@ -44,6 +44,8 @@ func run() error {
 		return fmt.Errorf(`error occurred initializing settings: %w`, err)
 	}
 
+	go settings.Run()
+
 	synchronizerWorkqueue, err := buildWorkQueue(settings.Synchronizer.WorkQueueSettings)
 	if err != nil {
 		return fmt.Errorf(`error occurred building a workqueue: %w`, err)
@@ -71,7 +73,6 @@ func run() error {
 		return fmt.Errorf(`error occurred initializing the watcher: %w`, err)
 	}
 
-	go settings.Run()
 	go handler.Run(ctx.Done())
 	go synchronizer.Run(ctx.Done())
 

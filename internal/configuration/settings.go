@@ -8,8 +8,10 @@ package configuration
 import (
 	"context"
 	"fmt"
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/certification"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
@@ -21,6 +23,9 @@ import (
 const (
 	// ConfigMapsNamespace is the value used to filter the ConfigMaps Resource in the Informer.
 	ConfigMapsNamespace = "nlk"
+
+	// ConfigMapName is the name of the ConfigMap that contains the configuration for the application.
+	ConfigMapName = "nlk-config"
 
 	// ResyncPeriod is the value used to set the resync period for the Informer.
 	ResyncPeriod = 0
@@ -104,8 +109,14 @@ type Settings struct {
 	// NginxPlusHosts is a list of Nginx Plus hosts that will be used to update the Border Servers.
 	NginxPlusHosts []string
 
+	// TlsMode is the value used to determine which of the five TLS modes will be used to communicate with the Border Servers (see: ../../docs/tls/README.md).
+	TlsMode TLSMode
+
+	// Certificates is the object used to retrieve the certificates and keys used to communicate with the Border Servers.
+	Certificates *certification.Certificates
+
 	// K8sClient is the Kubernetes client used to communicate with the Kubernetes API.
-	K8sClient *kubernetes.Clientset
+	K8sClient kubernetes.Interface
 
 	// informer is the SharedInformer used to watch for changes to the ConfigMap .
 	informer cache.SharedInformer
@@ -124,10 +135,12 @@ type Settings struct {
 }
 
 // NewSettings creates a new Settings object with default values.
-func NewSettings(ctx context.Context, k8sClient *kubernetes.Clientset) (*Settings, error) {
+func NewSettings(ctx context.Context, k8sClient kubernetes.Interface) (*Settings, error) {
 	settings := &Settings{
-		Context:   ctx,
-		K8sClient: k8sClient,
+		Context:      ctx,
+		K8sClient:    k8sClient,
+		TlsMode:      NoTLS,
+		Certificates: nil,
 		Handler: HandlerSettings{
 			RetryCount: 5,
 			Threads:    1,
@@ -163,6 +176,26 @@ func (s *Settings) Initialize() error {
 	logrus.Info("Settings::Initialize")
 
 	var err error
+
+	certificates := certification.NewCertificates(s.Context, s.K8sClient)
+
+	err = certificates.Initialize()
+	if err != nil {
+		return fmt.Errorf(`error occurred initializing certificates: %w`, err)
+	}
+
+	s.Certificates = certificates
+
+	go certificates.Run()
+
+	logrus.Debug(">>>>>>>>>> Settings::Initialize: retrieving nlk-config ConfigMap")
+	configMap, err := s.K8sClient.CoreV1().ConfigMaps(ConfigMapsNamespace).Get(s.Context, "nlk-config", metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	s.handleUpdateEvent(nil, configMap)
+	logrus.Debug(">>>>>>>>>> Settings::Initialize: retrieved nlk-config ConfigMap")
 
 	informer, err := s.buildInformer()
 	if err != nil {
@@ -220,32 +253,77 @@ func (s *Settings) initializeEventListeners() error {
 func (s *Settings) handleAddEvent(obj interface{}) {
 	logrus.Debug("Settings::handleAddEvent")
 
-	s.handleUpdateEvent(obj, nil)
+	if _, yes := isOurConfig(obj); yes {
+		s.handleUpdateEvent(nil, obj)
+	}
 }
 
-func (s *Settings) handleDeleteEvent(_ interface{}) {
+func (s *Settings) handleDeleteEvent(obj interface{}) {
 	logrus.Debug("Settings::handleDeleteEvent")
 
-	s.updateHosts([]string{})
+	if _, yes := isOurConfig(obj); yes {
+		s.updateHosts([]string{})
+	}
 }
 
-func (s *Settings) handleUpdateEvent(obj interface{}, _ interface{}) {
+func (s *Settings) handleUpdateEvent(_ interface{}, newValue interface{}) {
 	logrus.Debug("Settings::handleUpdateEvent")
 
-	configMap, ok := obj.(*corev1.ConfigMap)
-	if !ok {
-		logrus.Errorf("Settings::handleUpdateEvent: could not convert obj to ConfigMap")
+	configMap, yes := isOurConfig(newValue)
+	if !yes {
 		return
 	}
 
 	hosts, found := configMap.Data["nginx-hosts"]
-	if !found {
-		logrus.Errorf("Settings::handleUpdateEvent: nginx-hosts key not found in ConfigMap")
-		return
+	if found {
+		newHosts := s.parseHosts(hosts)
+		s.updateHosts(newHosts)
+	} else {
+		logrus.Warnf("Settings::handleUpdateEvent: nginx-hosts key not found in ConfigMap")
 	}
 
-	newHosts := s.parseHosts(hosts)
-	s.updateHosts(newHosts)
+	tlsMode, err := validateTlsMode(configMap)
+	if err != nil {
+		// NOTE: the TLSMode defaults to NoTLS on startup, or the last known good value if previously set.
+		logrus.Errorf("There was an error with the configured TLS Mode. TLS Mode has NOT been changed. The current mode is: '%v'. Error: %v. ", s.TlsMode, err)
+	} else {
+		s.TlsMode = tlsMode
+	}
+
+	caCertificateSecretKey, found := configMap.Data["ca-certificate"]
+	if found {
+		s.Certificates.CaCertificateSecretKey = caCertificateSecretKey
+		logrus.Debugf("Settings::handleUpdateEvent: ca-certificate: %s", s.Certificates.CaCertificateSecretKey)
+	} else {
+		s.Certificates.CaCertificateSecretKey = ""
+		logrus.Warnf("Settings::handleUpdateEvent: ca-certificate key not found in ConfigMap")
+	}
+
+	clientCertificateSecretKey, found := configMap.Data["client-certificate"]
+	if found {
+		s.Certificates.ClientCertificateSecretKey = clientCertificateSecretKey
+		logrus.Debugf("Settings::handleUpdateEvent: client-certificate: %s", s.Certificates.ClientCertificateSecretKey)
+	} else {
+		s.Certificates.ClientCertificateSecretKey = ""
+		logrus.Warnf("Settings::handleUpdateEvent: client-certificate key not found in ConfigMap")
+	}
+
+	setLogLevel(configMap.Data["log-level"])
+
+	logrus.Debugf("Settings::handleUpdateEvent: \n\tHosts: %v,\n\tSettings: %v ", s.NginxPlusHosts, configMap)
+}
+
+func validateTlsMode(configMap *corev1.ConfigMap) (TLSMode, error) {
+	tlsConfigMode, tlsConfigModeFound := configMap.Data["tls-mode"]
+	if !tlsConfigModeFound {
+		return NoTLS, fmt.Errorf(`tls-mode key not found in ConfigMap`)
+	}
+
+	if tlsMode, tlsModeFound := TLSModeMap[tlsConfigMode]; tlsModeFound {
+		return tlsMode, nil
+	}
+
+	return NoTLS, fmt.Errorf(`invalid tls-mode value: %s`, tlsConfigMode)
 }
 
 func (s *Settings) parseHosts(hosts string) []string {
@@ -254,4 +332,38 @@ func (s *Settings) parseHosts(hosts string) []string {
 
 func (s *Settings) updateHosts(hosts []string) {
 	s.NginxPlusHosts = hosts
+}
+
+func isOurConfig(obj interface{}) (*corev1.ConfigMap, bool) {
+	configMap, ok := obj.(*corev1.ConfigMap)
+	return configMap, ok && configMap.Name == ConfigMapName && configMap.Namespace == ConfigMapsNamespace
+}
+
+func setLogLevel(logLevel string) {
+	logrus.Debugf("Settings::setLogLevel: %s", logLevel)
+	switch logLevel {
+	case "panic":
+		logrus.SetLevel(logrus.PanicLevel)
+
+	case "fatal":
+		logrus.SetLevel(logrus.FatalLevel)
+
+	case "error":
+		logrus.SetLevel(logrus.ErrorLevel)
+
+	case "warn":
+		logrus.SetLevel(logrus.WarnLevel)
+
+	case "info":
+		logrus.SetLevel(logrus.InfoLevel)
+
+	case "debug":
+		logrus.SetLevel(logrus.DebugLevel)
+
+	case "trace":
+		logrus.SetLevel(logrus.TraceLevel)
+
+	default:
+		logrus.SetLevel(logrus.WarnLevel)
+	}
 }

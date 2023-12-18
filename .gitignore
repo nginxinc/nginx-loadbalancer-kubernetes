@@ -19,10 +19,6 @@ Thumbs.db
 *.log
 /misc-dev/
 
-cover.html
-cover.out
+cover*
 tmp/
-
-cover.out
-cover.html
-tmp/
+docs/tls/DESIGN.md

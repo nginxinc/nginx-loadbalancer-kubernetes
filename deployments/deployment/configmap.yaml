@@ -1,8 +1,11 @@
 apiVersion: v1
 kind: ConfigMap
 data:
-  nginx-hosts:
-    "http://10.1.1.4:9000/api,http://10.1.1.5:9000/api"
+  nginx-hosts: "https://10.0.0.1:9000/api"
+  tls-mode: "no-tls"
+  ca-certificate: ""
+  client-certificate: ""
+  log-level: "warn"
 metadata:
   name: nlk-config
   namespace: nlk

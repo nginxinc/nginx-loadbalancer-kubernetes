@@ -1,0 +1,18 @@
+{{- if .Values.rbac.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ .Release.Namespace }}-{{ include "nlk.fullname" . }}
+rules:
+  - apiGroups:
+    - ""
+    resources:
+    - configmaps
+    - nodes
+    - secrets
+    - services
+    verbs:
+    - get
+    - list
+    - watch
+{{- end }}
