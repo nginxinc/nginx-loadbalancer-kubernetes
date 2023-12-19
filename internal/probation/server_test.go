@@ -58,6 +58,8 @@ func TestHealthServer_Start(t *testing.T) {
 	server := NewHealthServer()
 	server.Start()
 
+	defer server.Stop()
+
 	response, err := http.Get("http://localhost:51031/livez")
 	if err != nil {
 		t.Error(err)
@@ -67,7 +69,5 @@ func TestHealthServer_Start(t *testing.T) {
 		t.Errorf("Expected status code %v, got %v", http.StatusAccepted, response.StatusCode)
 	}
 
-	logrus.Infof("recevied a response from the probe server: %v", response)
-
-	server.Stop()
+	logrus.Infof("received a response from the probe server: %v", response)
 }
