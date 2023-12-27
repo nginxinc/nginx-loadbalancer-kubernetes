@@ -3,19 +3,17 @@
 name: Build and sign image
 
 on:
-  pull_request:
-    types:
-      - closed
+  push:
     branches:
-      - "main"
-
+      - "iss-20-add-sbom"
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build_and_sign_image:
-    if: ${{ github.event.pull_request.merged }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -26,6 +24,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - uses: anchore/sbom-action@v0
+        with:
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          registry-username: ${{ github.actor }}
+          registry-password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install cosign
         uses: sigstore/cosign-installer@9614fae9e5c5eddabb09f90a270fcb487c9f7149 #v3.0.2
@@ -79,3 +83,16 @@ jobs:
           sarif_file: 'trivy-results-${{ inputs.image }}.sarif'
           sha: ${{ github.sha }}
           ref: ${{ github.ref }}
+
+      - name: Generate Release
+        uses: ncipollo/release-action@v1
+        with:
+          body: |
+            # Release ${{ github.ref }}
+            ## Changelog
+            ${{ steps.meta.outputs.changelog }}
+          commit: ${{ github.ref }}
+          discussionCategory: "Release"
+          generateReleaseNotes: true
+          makeLatest: false
+          name: "nginx-loadbalancer-kubernetes ${{ github.ref }}"
