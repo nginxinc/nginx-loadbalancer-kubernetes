@@ -11,8 +11,30 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  find_origin_branch:
+    runs-on: ubuntu-latest
+    outputs:
+      branch: ${{ steps.find_origin_branch.outputs.branch }}
+    steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+
+        - name: Get the tag's SHA
+          id: get_tag_sha
+          run: |
+            echo "**************** Looking for SHA of tag: ${{ github.ref }}"
+            echo "::set-output name=sha::$(git rev-parse ${{ github.ref }})"
+
+        - name: Find origin branch
+          id: find_origin_branch
+          run: |
+            echo "**************** Looking for branch containing: ${{ steps.get_tag_sha.outputs.sha }}"
+            echo "::set-output name=branch::$(git branch -r --contains ${{ steps.get_tag_sha.outputs.sha }} | grep -v HEAD | sed -e 's/^[[:space:]]*origin\///' | grep -e '^main$')"
+
   build_and_sign_image:
     runs-on: ubuntu-latest
+    needs: find_origin_branch
+    if: needs.find_origin_branch.outputs.branch == 'main'
     permissions:
       contents: write
       packages: write
