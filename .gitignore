@@ -23,4 +23,67 @@ cover*
 tmp/
 docs/tls/DESIGN.md
 :q
-qqq
+qqq.env
+.env*
+!.env.example
+!.allowed_clients.json
+!.env.example.auth
+*.db
+priv/certs
+priv/nginx-agent/*
+!priv/nginx-agent/nginx-agent.conf.example
+key-data.json
+nginx-instance-manager.tar.gz
+vendor/
+
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Output from debugger
+__debug_bin
+
+code-quality.json
+coverage/*
+
+# vim
+*~
+*.swp
+
+### VisualStudioCode (from https://gitignore.io/api/VisualStudioCode) ###
+.vscode/*
+!.vscode/tasks.example.json
+!.vscode/launch.example.json
+!.vscode/extensions.json
+!.vscode/KubernetesLocalProcessConfig*.yaml
+*.code-workspace
+
+### Goland
+.idea/*
+
+# bridge to kubernetes artifact
+/KubernetesLocalProcessConfig.yaml
+
+
+# output directory for build artifacts
+build
+
+# output directory for test artifacts (eg. coverage report, junit xml)
+results
+
+# devops-utils repo
+.devops-utils/
+
+# Ignore golang cache in CI
+.go/pkg/mod
+
+.go-build

@@ -1,0 +1,95 @@
+# GolangCI-Lint settings
+
+# Disable all linters and enable the required ones
+linters:
+  disable-all: true
+
+  # Supported linters: https://golangci-lint.run/usage/linters/
+  enable:
+    - errcheck
+    - exhaustruct
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - typecheck
+    - unused
+    - bodyclose
+    - dupl
+    - gochecknoinits
+    - goconst
+    - gocritic
+    - gocyclo
+    - gofmt
+    - goimports
+    - gosec
+    - lll
+    - misspell
+    - nakedret
+    - prealloc
+    - exportloopref
+    - stylecheck
+    - unconvert
+    - unparam
+    - paralleltest
+    - forbidigo
+  fast: false
+
+# Run options
+run:
+  # 10 minute timeout for analysis
+  timeout: 10m
+  skip-dirs-use-default: true
+  skip-dirs:
+    - .go/pkg/mod
+    - pkg/spec/api # Generated code
+    - vendor
+    - vendor-fork
+# Specific linter settings
+linters-settings:
+  gocyclo:
+    # Minimal code complexity to report
+    min-complexity: 16
+  govet:
+    # Report shadowed variables
+    check-shadowing: true
+  misspell:
+    # Correct spellings using locale preferences for US
+    locale: US
+  goimports:
+    # Put imports beginning with prefix after 3rd-party packages
+    local-prefixes: gitswarm.f5net.com/indigo,gitlab.com/f5
+  exhaustruct:
+    # List of regular expressions to match struct packages and names.
+    # If this list is empty, all structs are tested.
+    # Default: []
+    include:
+      - 'gitlab.com/f5/nginx/nginxazurelb/azure-resource-provider/pkg/token.TokenID'
+      - 'gitlab.com/f5/nginx/nginxazurelb/azure-resource-provider/internal/dpo/agent/certificates.CertGetRequest'
+
+issues:
+  # Exclude configuration
+  exclude-rules:
+    # Exclude gochecknoinits and gosec from running on tests files
+    - path: _test\.go
+      linters:
+        - gochecknoinits
+        - gosec
+    - path: test/*
+      linters:
+        - gochecknoinits
+        - gosec
+    # Exclude lll issues for long lines with go:generate
+    - linters:
+        - lll
+      source: "^//go:generate "
+    # Exclude false positive paralleltest error : Range statement for test case does not use range value in test Run
+    - linters:
+        - paralleltest
+      text: "does not use range value in test Run"
+
+  # Disable maximum issues count per one linter
+  max-issues-per-linter: 0
+
+  # Disable maximum count of issues with the same text
+  max-same-issues: 0

@@ -1,0 +1,1 @@
+nginx:x:101:101:nginx:/var/cache/nginx:/sbin/nologin
