@@ -35,15 +35,19 @@ type Interface interface {
 }
 
 // Synchronizer is responsible for synchronizing the state of the Border Servers.
-// Operating against the "nlk-synchronizer", it handles events by creating a Border Client as specified in the
-// Service annotation for the Upstream. see application/border_client.go and application/application_constants.go for details.
+// Operating against the "nlk-synchronizer", it handles events by creating
+// a Border Client as specified in the Service annotation for the Upstream.
+// See application/border_client.go and application/application_constants.go for details.
 type Synchronizer struct {
 	eventQueue workqueue.RateLimitingInterface
 	settings   *configuration.Settings
 }
 
 // NewSynchronizer creates a new Synchronizer.
-func NewSynchronizer(settings *configuration.Settings, eventQueue workqueue.RateLimitingInterface) (*Synchronizer, error) {
+func NewSynchronizer(
+	settings *configuration.Settings,
+	eventQueue workqueue.RateLimitingInterface,
+) (*Synchronizer, error) {
 	synchronizer := Synchronizer{
 		eventQueue: eventQueue,
 		settings:   settings,
@@ -79,7 +83,10 @@ func (s *Synchronizer) AddEvent(event *core.ServerUpdateEvent) {
 		return
 	}
 
-	after := RandomMilliseconds(s.settings.Synchronizer.MinMillisecondsJitter, s.settings.Synchronizer.MaxMillisecondsJitter)
+	after := RandomMilliseconds(
+		s.settings.Synchronizer.MinMillisecondsJitter,
+		s.settings.Synchronizer.MaxMillisecondsJitter,
+	)
 	s.eventQueue.AddAfter(event, after)
 }
 
@@ -108,7 +115,7 @@ func (s *Synchronizer) buildBorderClient(event *core.ServerUpdateEvent) (applica
 
 	var err error
 
-	httpClient, err := communication.NewHttpClient(s.settings)
+	httpClient, err := communication.NewHTTPClient(s.settings)
 	if err != nil {
 		return nil, fmt.Errorf(`error creating HTTP client: %v`, err)
 	}
@@ -130,7 +137,7 @@ func (s *Synchronizer) fanOutEventToHosts(event core.ServerUpdateEvents) core.Se
 	for hidx, host := range s.settings.NginxPlusHosts {
 		for eidx, event := range event {
 			id := fmt.Sprintf(`[%d:%d]-[%s]-[%s]-[%s]`, hidx, eidx, RandomString(12), event.UpstreamName, host)
-			updatedEvent := core.ServerUpdateEventWithIdAndHost(event, id, host)
+			updatedEvent := core.ServerUpdateEventWithIDAndHost(event, id, host)
 
 			events = append(events, updatedEvent)
 		}
@@ -141,7 +148,7 @@ func (s *Synchronizer) fanOutEventToHosts(event core.ServerUpdateEvents) core.Se
 
 // handleEvent dispatches an event to the proper handler function.
 func (s *Synchronizer) handleEvent(event *core.ServerUpdateEvent) error {
-	logrus.Debugf(`Synchronizer::handleEvent: Id: %s`, event.Id)
+	logrus.Debugf(`Synchronizer::handleEvent: Id: %s`, event.ID)
 
 	var err error
 
@@ -160,7 +167,9 @@ func (s *Synchronizer) handleEvent(event *core.ServerUpdateEvent) error {
 	}
 
 	if err == nil {
-		logrus.Infof(`Synchronizer::handleEvent: successfully %s the nginx+ host(s) for Upstream: %s: Id(%s)`, event.TypeName(), event.UpstreamName, event.Id)
+		logrus.Infof(
+			`Synchronizer::handleEvent: successfully %s the nginx+ host(s) for Upstream: %s: Id(%s)`,
+			event.TypeName(), event.UpstreamName, event.ID)
 	}
 
 	return err
@@ -168,7 +177,7 @@ func (s *Synchronizer) handleEvent(event *core.ServerUpdateEvent) error {
 
 // handleCreatedUpdatedEvent handles events of type Created or Updated.
 func (s *Synchronizer) handleCreatedUpdatedEvent(serverUpdateEvent *core.ServerUpdateEvent) error {
-	logrus.Debugf(`Synchronizer::handleCreatedUpdatedEvent: Id: %s`, serverUpdateEvent.Id)
+	logrus.Debugf(`Synchronizer::handleCreatedUpdatedEvent: Id: %s`, serverUpdateEvent.ID)
 
 	var err error
 
@@ -186,7 +195,7 @@ func (s *Synchronizer) handleCreatedUpdatedEvent(serverUpdateEvent *core.ServerU
 
 // handleDeletedEvent handles events of type Deleted.
 func (s *Synchronizer) handleDeletedEvent(serverUpdateEvent *core.ServerUpdateEvent) error {
-	logrus.Debugf(`Synchronizer::handleDeletedEvent: Id: %s`, serverUpdateEvent.Id)
+	logrus.Debugf(`Synchronizer::handleDeletedEvent: Id: %s`, serverUpdateEvent.ID)
 
 	var err error
 
@@ -233,7 +242,7 @@ func (s *Synchronizer) withRetry(err error, event *core.ServerUpdateEvent) {
 		// TODO: Add Telemetry
 		if s.eventQueue.NumRequeues(event) < s.settings.Synchronizer.RetryCount { // TODO: Make this configurable
 			s.eventQueue.AddRateLimited(event)
-			logrus.Infof(`Synchronizer::withRetry: requeued event: %s; error: %v`, event.Id, err)
+			logrus.Infof(`Synchronizer::withRetry: requeued event: %s; error: %v`, event.ID, err)
 		} else {
 			s.eventQueue.Forget(event)
 			logrus.Warnf(`Synchronizer::withRetry: event %#v has been dropped due to too many retries`, event)

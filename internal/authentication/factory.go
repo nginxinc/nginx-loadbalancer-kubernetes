@@ -18,37 +18,38 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func NewTlsConfig(settings *configuration.Settings) (*tls.Config, error) {
-	logrus.Debugf("authentication::NewTlsConfig Creating TLS config for mode: '%s'", settings.TlsMode)
-	switch settings.TlsMode {
+func NewTLSConfig(settings *configuration.Settings) (*tls.Config, error) {
+	logrus.Debugf("authentication::NewTLSConfig Creating TLS config for mode: '%s'", settings.TLSMode)
+	switch settings.TLSMode {
 
 	case configuration.NoTLS:
-		return buildBasicTlsConfig(true), nil
+		return buildBasicTLSConfig(true), nil
 
 	case configuration.SelfSignedTLS: // needs ca cert
-		return buildSelfSignedTlsConfig(settings.Certificates)
+		return buildSelfSignedTLSConfig(settings.Certificates)
 
 	case configuration.SelfSignedMutualTLS: // needs ca cert and client cert
 		return buildSelfSignedMtlsConfig(settings.Certificates)
 
 	case configuration.CertificateAuthorityTLS: // needs nothing
-		return buildBasicTlsConfig(false), nil
+		return buildBasicTLSConfig(false), nil
 
 	case configuration.CertificateAuthorityMutualTLS: // needs client cert
-		return buildCaTlsConfig(settings.Certificates)
+		return buildCATLSConfig(settings.Certificates)
 
 	default:
-		return nil, fmt.Errorf("unknown TLS mode: %s", settings.TlsMode)
+		return nil, fmt.Errorf("unknown TLS mode: %s", settings.TLSMode)
 	}
 }
 
-func buildSelfSignedTlsConfig(certificates *certification.Certificates) (*tls.Config, error) {
+func buildSelfSignedTLSConfig(certificates *certification.Certificates) (*tls.Config, error) {
 	logrus.Debug("authentication::buildSelfSignedTlsConfig Building self-signed TLS config")
 	certPool, err := buildCaCertificatePool(certificates.GetCACertificate())
 	if err != nil {
 		return nil, err
 	}
 
+	//nolint:gosec
 	return &tls.Config{
 		InsecureSkipVerify: false,
 		RootCAs:            certPool,
@@ -68,6 +69,7 @@ func buildSelfSignedMtlsConfig(certificates *certification.Certificates) (*tls.C
 	}
 	logrus.Debugf("buildSelfSignedMtlsConfig Certificate: %v", certificate)
 
+	//nolint:gosec
 	return &tls.Config{
 		InsecureSkipVerify: false,
 		RootCAs:            certPool,
@@ -76,20 +78,21 @@ func buildSelfSignedMtlsConfig(certificates *certification.Certificates) (*tls.C
 	}, nil
 }
 
-func buildBasicTlsConfig(skipVerify bool) *tls.Config {
-	logrus.Debugf("authentication::buildBasicTlsConfig skipVerify(%v)", skipVerify)
+func buildBasicTLSConfig(skipVerify bool) *tls.Config {
+	logrus.Debugf("authentication::buildBasicTLSConfig skipVerify(%v)", skipVerify)
 	return &tls.Config{
-		InsecureSkipVerify: skipVerify,
+		InsecureSkipVerify: skipVerify, //nolint:gosec
 	}
 }
 
-func buildCaTlsConfig(certificates *certification.Certificates) (*tls.Config, error) {
-	logrus.Debug("authentication::buildCaTlsConfig")
+func buildCATLSConfig(certificates *certification.Certificates) (*tls.Config, error) {
+	logrus.Debug("authentication::buildCATLSConfig")
 	certificate, err := buildCertificates(certificates.GetClientCertificate())
 	if err != nil {
 		return nil, err
 	}
 
+	//nolint:gosec
 	return &tls.Config{
 		InsecureSkipVerify: false,
 		Certificates:       []tls.Certificate{certificate},

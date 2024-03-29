@@ -7,6 +7,7 @@ import (
 )
 
 func TestNewEvent(t *testing.T) {
+	t.Parallel()
 	expectedType := Created
 	expectedService := &v1.Service{}
 	expectedPreviousService := &v1.Service{}

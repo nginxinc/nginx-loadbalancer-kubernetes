@@ -2,7 +2,8 @@
  * Copyright 2023 F5 Inc. All rights reserved.
  * Use of this source code is governed by the Apache License that can be found in the LICENSE file.
  *
- * Establishes a Watcher for the Kubernetes Secrets that contain the various certificates and keys used to generate a tls.Config object;
+ * Establishes a Watcher for the Kubernetes Secrets that contain the various certificates
+ * and keys used to generate a tls.Config object;
  * exposes the certificates and keys.
  */
 
@@ -86,10 +87,7 @@ func (c *Certificates) Initialize() error {
 
 	c.Certificates = make(map[string]map[string]core.SecretBytes)
 
-	informer, err := c.buildInformer()
-	if err != nil {
-		return fmt.Errorf(`error occurred building an informer: %w`, err)
-	}
+	informer := c.buildInformer()
 
 	c.informer = informer
 
@@ -116,14 +114,14 @@ func (c *Certificates) Run() error {
 	return nil
 }
 
-func (c *Certificates) buildInformer() (cache.SharedInformer, error) {
+func (c *Certificates) buildInformer() cache.SharedInformer {
 	logrus.Debug("Certificates::buildInformer")
 
 	options := informers.WithNamespace(SecretsNamespace)
 	factory := informers.NewSharedInformerFactoryWithOptions(c.k8sClient, 0, options)
 	informer := factory.Core().V1().Secrets().Informer()
 
-	return informer, nil
+	return informer
 }
 
 func (c *Certificates) initializeEventHandlers() error {

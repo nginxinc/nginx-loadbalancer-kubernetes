@@ -36,7 +36,10 @@ func (m MockNginxClient) DeleteStreamServer(_ string, _ string) error {
 	return nil
 }
 
-func (m MockNginxClient) UpdateStreamServers(_ string, _ []nginxClient.StreamUpstreamServer) ([]nginxClient.StreamUpstreamServer, []nginxClient.StreamUpstreamServer, []nginxClient.StreamUpstreamServer, error) {
+func (m MockNginxClient) UpdateStreamServers(
+	_ string,
+	_ []nginxClient.StreamUpstreamServer,
+) ([]nginxClient.StreamUpstreamServer, []nginxClient.StreamUpstreamServer, []nginxClient.StreamUpstreamServer, error) {
 	m.CalledFunctions["UpdateStreamServers"] = true
 
 	if m.Error != nil {
@@ -56,7 +59,10 @@ func (m MockNginxClient) DeleteHTTPServer(_ string, _ string) error {
 	return nil
 }
 
-func (m MockNginxClient) UpdateHTTPServers(_ string, _ []nginxClient.UpstreamServer) ([]nginxClient.UpstreamServer, []nginxClient.UpstreamServer, []nginxClient.UpstreamServer, error) {
+func (m MockNginxClient) UpdateHTTPServers(
+	_ string,
+	_ []nginxClient.UpstreamServer,
+) ([]nginxClient.UpstreamServer, []nginxClient.UpstreamServer, []nginxClient.UpstreamServer, error) {
 	m.CalledFunctions["UpdateHTTPServers"] = true
 
 	if m.Error != nil {

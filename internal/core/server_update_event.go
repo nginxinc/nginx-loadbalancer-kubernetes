@@ -15,7 +15,7 @@ type ServerUpdateEvent struct {
 	ClientType string
 
 	// Id is the unique identifier for this event.
-	Id string
+	ID string
 
 	// NginxHost is the host name of the NGINX Plus instance that should handle this event.
 	NginxHost string
@@ -34,7 +34,12 @@ type ServerUpdateEvent struct {
 type ServerUpdateEvents = []*ServerUpdateEvent
 
 // NewServerUpdateEvent creates a new ServerUpdateEvent.
-func NewServerUpdateEvent(eventType EventType, upstreamName string, clientType string, upstreamServers UpstreamServers) *ServerUpdateEvent {
+func NewServerUpdateEvent(
+	eventType EventType,
+	upstreamName string,
+	clientType string,
+	upstreamServers UpstreamServers,
+) *ServerUpdateEvent {
 	return &ServerUpdateEvent{
 		ClientType:      clientType,
 		Type:            eventType,
@@ -43,11 +48,11 @@ func NewServerUpdateEvent(eventType EventType, upstreamName string, clientType s
 	}
 }
 
-// ServerUpdateEventWithIdAndHost creates a new ServerUpdateEvent with the specified Id and Host.
-func ServerUpdateEventWithIdAndHost(event *ServerUpdateEvent, id string, nginxHost string) *ServerUpdateEvent {
+// ServerUpdateEventWithIDAndHost creates a new ServerUpdateEvent with the specified Id and Host.
+func ServerUpdateEventWithIDAndHost(event *ServerUpdateEvent, id string, nginxHost string) *ServerUpdateEvent {
 	return &ServerUpdateEvent{
 		ClientType:      event.ClientType,
-		Id:              id,
+		ID:              id,
 		NginxHost:       nginxHost,
 		Type:            event.Type,
 		UpstreamName:    event.UpstreamName,

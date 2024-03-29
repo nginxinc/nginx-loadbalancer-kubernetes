@@ -7,7 +7,6 @@ package communication
 
 import (
 	"net/http"
-	netHttp "net/http"
 	"strings"
 )
 
@@ -18,7 +17,7 @@ type RoundTripper struct {
 }
 
 // NewRoundTripper is a factory method to create a new RoundTripper.
-func NewRoundTripper(headers []string, transport *netHttp.Transport) *RoundTripper {
+func NewRoundTripper(headers []string, transport *http.Transport) *RoundTripper {
 	return &RoundTripper{
 		Headers:      headers,
 		RoundTripper: transport,

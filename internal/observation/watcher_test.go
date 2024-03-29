@@ -15,6 +15,7 @@ import (
 )
 
 func TestWatcher_MustInitialize(t *testing.T) {
+	t.Parallel()
 	watcher, _ := buildWatcher()
 	if err := watcher.Watch(); err == nil {
 		t.Errorf("Expected error, got %s", err)

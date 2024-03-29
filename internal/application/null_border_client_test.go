@@ -8,6 +8,7 @@ package application
 import "testing"
 
 func TestNullBorderClient_Delete(t *testing.T) {
+	t.Parallel()
 	client := NullBorderClient{}
 	err := client.Delete(nil)
 	if err != nil {
@@ -16,6 +17,7 @@ func TestNullBorderClient_Delete(t *testing.T) {
 }
 
 func TestNullBorderClient_Update(t *testing.T) {
+	t.Parallel()
 	client := NullBorderClient{}
 	err := client.Update(nil)
 	if err != nil {

@@ -12,7 +12,8 @@ package application
 //	annotations:
 //	  nginxinc.io/nlk-<upstream name>: <value>
 //
-// where <upstream name> is the name of the upstream in the NGINX Plus configuration and <value> is one of the constants below.
+// where <upstream name> is the name of the upstream in the NGINX Plus configuration
+// and <value> is one of the constants below.
 //
 // Note, this is an extensibility point. To add a Border Server client...
 // 1. Create a module that implements the BorderClient interface;
@@ -23,6 +24,6 @@ const (
 	// ClientTypeNginxStream creates a NginxStreamBorderClient that uses the Stream* methods of the NGINX Plus client.
 	ClientTypeNginxStream = "stream"
 
-	// ClientTypeNginxHttp creates an NginxHttpBorderClient that uses the HTTP* methods of the NGINX Plus client.
-	ClientTypeNginxHttp = "http"
+	// ClientTypeNginxHTTP creates an NginxHTTPBorderClient that uses the HTTP* methods of the NGINX Plus client.
+	ClientTypeNginxHTTP = "http"
 )

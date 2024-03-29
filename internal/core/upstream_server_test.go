@@ -8,6 +8,7 @@ package core
 import "testing"
 
 func TestNewUpstreamServer(t *testing.T) {
+	t.Parallel()
 	host := "localhost"
 	us := NewUpstreamServer(host)
 	if us.Host != host {

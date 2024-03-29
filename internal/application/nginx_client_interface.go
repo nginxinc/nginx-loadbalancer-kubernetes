@@ -7,17 +7,24 @@ package application
 
 import nginxClient "github.com/nginxinc/nginx-plus-go-client/client"
 
-// NginxClientInterface defines the functions used on the NGINX Plus client, abstracting away the full details of that client.
+// NginxClientInterface defines the functions used on the NGINX Plus client,
+// abstracting away the full details of that client.
 type NginxClientInterface interface {
 	// DeleteStreamServer is used by the NginxStreamBorderClient.
 	DeleteStreamServer(upstream string, server string) error
 
 	// UpdateStreamServers is used by the NginxStreamBorderClient.
-	UpdateStreamServers(upstream string, servers []nginxClient.StreamUpstreamServer) ([]nginxClient.StreamUpstreamServer, []nginxClient.StreamUpstreamServer, []nginxClient.StreamUpstreamServer, error)
+	UpdateStreamServers(
+		upstream string,
+		servers []nginxClient.StreamUpstreamServer,
+	) ([]nginxClient.StreamUpstreamServer, []nginxClient.StreamUpstreamServer, []nginxClient.StreamUpstreamServer, error)
 
-	// DeleteHTTPServer is used by the NginxHttpBorderClient.
+	// DeleteHTTPServer is used by the NginxHTTPBorderClient.
 	DeleteHTTPServer(upstream string, server string) error
 
-	// UpdateHTTPServers is used by the NginxHttpBorderClient.
-	UpdateHTTPServers(upstream string, servers []nginxClient.UpstreamServer) ([]nginxClient.UpstreamServer, []nginxClient.UpstreamServer, []nginxClient.UpstreamServer, error)
+	// UpdateHTTPServers is used by the NginxHTTPBorderClient.
+	UpdateHTTPServers(
+		upstream string,
+		servers []nginxClient.UpstreamServer,
+	) ([]nginxClient.UpstreamServer, []nginxClient.UpstreamServer, []nginxClient.UpstreamServer, error)
 }

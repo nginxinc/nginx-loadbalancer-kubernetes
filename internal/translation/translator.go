@@ -40,16 +40,18 @@ func filterPorts(ports []v1.ServicePort) []v1.ServicePort {
 }
 
 // buildServerUpdateEvents builds a list of ServerUpdateEvents based on the event type
-// The NGINX+ Client uses a list of servers for Created and Updated events; the client performs reconciliation between
-// the list of servers in the NGINX+ Client call and the list of servers in NGINX+.
-// The NGINX+ Client uses a single server for Deleted events; so the list of servers is broken up into individual events.
+// The NGINX+ Client uses a list of servers for Created and Updated events.
+// The client performs reconciliation between the list of servers in the NGINX+ Client call
+// and the list of servers in NGINX+.
+// The NGINX+ Client uses a single server for Deleted events;
+// so the list of servers is broken up into individual events.
 func buildServerUpdateEvents(ports []v1.ServicePort, event *core.Event) (core.ServerUpdateEvents, error) {
 	logrus.Debugf("Translate::buildServerUpdateEvents(ports=%#v)", ports)
 
 	events := core.ServerUpdateEvents{}
 	for _, port := range ports {
 		ingressName := fixIngressName(port.Name)
-		upstreamServers, _ := buildUpstreamServers(event.NodeIps, port)
+		upstreamServers := buildUpstreamServers(event.NodeIps, port)
 		clientType := getClientType(port.Name, event.Service.Annotations)
 
 		switch event.Type {
@@ -61,7 +63,9 @@ func buildServerUpdateEvents(ports []v1.ServicePort, event *core.Event) (core.Se
 
 		case core.Deleted:
 			for _, server := range upstreamServers {
-				events = append(events, core.NewServerUpdateEvent(event.Type, ingressName, clientType, core.UpstreamServers{server}))
+				events = append(events, core.NewServerUpdateEvent(
+					event.Type, ingressName, clientType, core.UpstreamServers{server},
+				))
 			}
 
 		default:
@@ -73,16 +77,16 @@ func buildServerUpdateEvents(ports []v1.ServicePort, event *core.Event) (core.Se
 	return events, nil
 }
 
-func buildUpstreamServers(nodeIps []string, port v1.ServicePort) (core.UpstreamServers, error) {
+func buildUpstreamServers(nodeIPs []string, port v1.ServicePort) core.UpstreamServers {
 	var servers core.UpstreamServers
 
-	for _, nodeIp := range nodeIps {
-		host := fmt.Sprintf("%s:%d", nodeIp, port.NodePort)
+	for _, nodeIP := range nodeIPs {
+		host := fmt.Sprintf("%s:%d", nodeIP, port.NodePort)
 		server := core.NewUpstreamServer(host)
 		servers = append(servers, server)
 	}
 
-	return servers, nil
+	return servers
 }
 
 // fixIngressName removes the NlkPrefix from the port name
@@ -100,5 +104,5 @@ func getClientType(portName string, annotations map[string]string) string {
 		}
 	}
 
-	return application.ClientTypeNginxHttp
+	return application.ClientTypeNginxHTTP
 }

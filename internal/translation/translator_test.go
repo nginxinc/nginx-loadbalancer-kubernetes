@@ -29,6 +29,7 @@ const (
  */
 
 func TestCreatedTranslateNoPorts(t *testing.T) {
+	t.Parallel()
 	const expectedEventCount = 0
 
 	service := defaultService()
@@ -46,6 +47,7 @@ func TestCreatedTranslateNoPorts(t *testing.T) {
 }
 
 func TestCreatedTranslateNoInterestingPorts(t *testing.T) {
+	t.Parallel()
 	const expectedEventCount = 0
 	const portCount = 1
 
@@ -65,6 +67,7 @@ func TestCreatedTranslateNoInterestingPorts(t *testing.T) {
 }
 
 func TestCreatedTranslateOneInterestingPort(t *testing.T) {
+	t.Parallel()
 	const expectedEventCount = 1
 	const portCount = 1
 
@@ -86,6 +89,7 @@ func TestCreatedTranslateOneInterestingPort(t *testing.T) {
 }
 
 func TestCreatedTranslateManyInterestingPorts(t *testing.T) {
+	t.Parallel()
 	const expectedEventCount = 4
 	const portCount = 4
 
@@ -107,6 +111,7 @@ func TestCreatedTranslateManyInterestingPorts(t *testing.T) {
 }
 
 func TestCreatedTranslateManyMixedPorts(t *testing.T) {
+	t.Parallel()
 	const expectedEventCount = 2
 	const portCount = 6
 	const updatablePortCount = 2
@@ -129,6 +134,7 @@ func TestCreatedTranslateManyMixedPorts(t *testing.T) {
 }
 
 func TestCreatedTranslateManyMixedPortsAndManyNodes(t *testing.T) {
+	t.Parallel()
 	const expectedEventCount = 2
 	const portCount = 6
 	const updatablePortCount = 2
@@ -155,6 +161,7 @@ func TestCreatedTranslateManyMixedPortsAndManyNodes(t *testing.T) {
  */
 
 func TestUpdatedTranslateNoPorts(t *testing.T) {
+	t.Parallel()
 	const expectedEventCount = 0
 
 	service := defaultService()
@@ -172,6 +179,7 @@ func TestUpdatedTranslateNoPorts(t *testing.T) {
 }
 
 func TestUpdatedTranslateNoInterestingPorts(t *testing.T) {
+	t.Parallel()
 	const expectedEventCount = 0
 	const portCount = 1
 
@@ -191,6 +199,7 @@ func TestUpdatedTranslateNoInterestingPorts(t *testing.T) {
 }
 
 func TestUpdatedTranslateOneInterestingPort(t *testing.T) {
+	t.Parallel()
 	const expectedEventCount = 1
 	const portCount = 1
 
@@ -212,6 +221,7 @@ func TestUpdatedTranslateOneInterestingPort(t *testing.T) {
 }
 
 func TestUpdatedTranslateManyInterestingPorts(t *testing.T) {
+	t.Parallel()
 	const expectedEventCount = 4
 	const portCount = 4
 
@@ -233,6 +243,7 @@ func TestUpdatedTranslateManyInterestingPorts(t *testing.T) {
 }
 
 func TestUpdatedTranslateManyMixedPorts(t *testing.T) {
+	t.Parallel()
 	const expectedEventCount = 2
 	const portCount = 6
 	const updatablePortCount = 2
@@ -255,6 +266,7 @@ func TestUpdatedTranslateManyMixedPorts(t *testing.T) {
 }
 
 func TestUpdatedTranslateManyMixedPortsAndManyNodes(t *testing.T) {
+	t.Parallel()
 	const expectedEventCount = 2
 	const portCount = 6
 	const updatablePortCount = 2
@@ -281,6 +293,7 @@ func TestUpdatedTranslateManyMixedPortsAndManyNodes(t *testing.T) {
  */
 
 func TestDeletedTranslateNoPortsAndNoNodes(t *testing.T) {
+	t.Parallel()
 	const expectedEventCount = 0
 
 	service := defaultService()
@@ -300,6 +313,7 @@ func TestDeletedTranslateNoPortsAndNoNodes(t *testing.T) {
 }
 
 func TestDeletedTranslateNoInterestingPortsAndNoNodes(t *testing.T) {
+	t.Parallel()
 	const expectedEventCount = 0
 	const portCount = 1
 
@@ -321,6 +335,8 @@ func TestDeletedTranslateNoInterestingPortsAndNoNodes(t *testing.T) {
 }
 
 func TestDeletedTranslateOneInterestingPortAndNoNodes(t *testing.T) {
+	t.Parallel()
+
 	const expectedEventCount = 0
 	const portCount = 1
 
@@ -342,6 +358,7 @@ func TestDeletedTranslateOneInterestingPortAndNoNodes(t *testing.T) {
 }
 
 func TestDeletedTranslateManyInterestingPortsAndNoNodes(t *testing.T) {
+	t.Parallel()
 	const expectedEventCount = 0
 	const portCount = 4
 
@@ -363,6 +380,7 @@ func TestDeletedTranslateManyInterestingPortsAndNoNodes(t *testing.T) {
 }
 
 func TestDeletedTranslateManyMixedPortsAndNoNodes(t *testing.T) {
+	t.Parallel()
 	const expectedEventCount = 0
 	const portCount = 6
 	const updatablePortCount = 2
@@ -385,6 +403,7 @@ func TestDeletedTranslateManyMixedPortsAndNoNodes(t *testing.T) {
 }
 
 func TestDeletedTranslateNoPortsAndOneNode(t *testing.T) {
+	t.Parallel()
 	const expectedEventCount = 0
 
 	service := defaultService()
@@ -404,6 +423,7 @@ func TestDeletedTranslateNoPortsAndOneNode(t *testing.T) {
 }
 
 func TestDeletedTranslateNoInterestingPortsAndOneNode(t *testing.T) {
+	t.Parallel()
 	const expectedEventCount = 0
 	const portCount = 1
 
@@ -425,6 +445,7 @@ func TestDeletedTranslateNoInterestingPortsAndOneNode(t *testing.T) {
 }
 
 func TestDeletedTranslateOneInterestingPortAndOneNode(t *testing.T) {
+	t.Parallel()
 	const expectedEventCount = 1
 	const portCount = 1
 
@@ -446,6 +467,7 @@ func TestDeletedTranslateOneInterestingPortAndOneNode(t *testing.T) {
 }
 
 func TestDeletedTranslateManyInterestingPortsAndOneNode(t *testing.T) {
+	t.Parallel()
 	const expectedEventCount = 4
 	const portCount = 4
 
@@ -467,6 +489,7 @@ func TestDeletedTranslateManyInterestingPortsAndOneNode(t *testing.T) {
 }
 
 func TestDeletedTranslateManyMixedPortsAndOneNode(t *testing.T) {
+	t.Parallel()
 	const expectedEventCount = 2
 	const portCount = 6
 	const updatablePortCount = 2
@@ -489,6 +512,7 @@ func TestDeletedTranslateManyMixedPortsAndOneNode(t *testing.T) {
 }
 
 func TestDeletedTranslateNoPortsAndManyNodes(t *testing.T) {
+	t.Parallel()
 	const expectedEventCount = 0
 
 	service := defaultService()
@@ -508,6 +532,7 @@ func TestDeletedTranslateNoPortsAndManyNodes(t *testing.T) {
 }
 
 func TestDeletedTranslateNoInterestingPortsAndManyNodes(t *testing.T) {
+	t.Parallel()
 	const portCount = 1
 	const updatablePortCount = 0
 	const expectedEventCount = updatablePortCount * ManyNodes
@@ -530,6 +555,7 @@ func TestDeletedTranslateNoInterestingPortsAndManyNodes(t *testing.T) {
 }
 
 func TestDeletedTranslateOneInterestingPortAndManyNodes(t *testing.T) {
+	t.Parallel()
 	const portCount = 1
 	const expectedEventCount = portCount * ManyNodes
 
@@ -551,6 +577,7 @@ func TestDeletedTranslateOneInterestingPortAndManyNodes(t *testing.T) {
 }
 
 func TestDeletedTranslateManyInterestingPortsAndManyNodes(t *testing.T) {
+	t.Parallel()
 	const portCount = 4
 	const expectedEventCount = portCount * ManyNodes
 
@@ -572,6 +599,7 @@ func TestDeletedTranslateManyInterestingPortsAndManyNodes(t *testing.T) {
 }
 
 func TestDeletedTranslateManyMixedPortsAndManyNodes(t *testing.T) {
+	t.Parallel()
 	const portCount = 6
 	const updatablePortCount = 2
 	const expectedEventCount = updatablePortCount * ManyNodes
@@ -650,7 +678,7 @@ func generatePorts(portCount int) []v1.ServicePort {
 
 // This is probably A Little Bit of Too Much™, but helps to ensure ordering is not a factor.
 func generateUpdatablePorts(portCount int, updatableCount int) []v1.ServicePort {
-	var ports []v1.ServicePort
+	ports := []v1.ServicePort{}
 
 	updatable := make([]string, updatableCount)
 	nonupdatable := make([]string, portCount-updatableCount)
@@ -663,7 +691,9 @@ func generateUpdatablePorts(portCount int, updatableCount int) []v1.ServicePort 
 		nonupdatable[j] = "olm-"
 	}
 
-	prefixes := append(updatable, nonupdatable...)
+	var prefixes []string
+	prefixes = append(prefixes, updatable...)
+	prefixes = append(prefixes, nonupdatable...)
 
 	source := rand.NewSource(time.Now().UnixNano())
 	random := rand.New(source)

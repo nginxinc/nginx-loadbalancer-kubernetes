@@ -12,6 +12,7 @@ import (
 )
 
 func TestSecretBytesToString(t *testing.T) {
+	t.Parallel()
 	sensitive := SecretBytes([]byte("If you can see this we have a problem"))
 
 	expected := "foo [REDACTED] bar"
@@ -22,6 +23,7 @@ func TestSecretBytesToString(t *testing.T) {
 }
 
 func TestSecretBytesToJSON(t *testing.T) {
+	t.Parallel()
 	sensitive, _ := json.Marshal(SecretBytes([]byte("If you can see this we have a problem")))
 	expected := `foo "[REDACTED]" bar`
 	result := fmt.Sprintf("foo %v bar", string(sensitive))

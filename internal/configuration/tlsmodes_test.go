@@ -10,6 +10,7 @@ import (
 )
 
 func Test_String(t *testing.T) {
+	t.Parallel()
 	mode := NoTLS.String()
 	if mode != "no-tls" {
 		t.Errorf("Expected TLSModeNoTLS to be 'no-tls', got '%s'", mode)
@@ -42,6 +43,7 @@ func Test_String(t *testing.T) {
 }
 
 func Test_TLSModeMap(t *testing.T) {
+	t.Parallel()
 	mode := TLSModeMap["no-tls"]
 	if mode != NoTLS {
 		t.Errorf("Expected TLSModeMap['no-tls'] to be TLSModeNoTLS, got '%d'", mode)

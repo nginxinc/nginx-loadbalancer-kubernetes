@@ -11,7 +11,8 @@ import (
 )
 
 // NullBorderClient is a BorderClient that does nothing.
-// / It serves only to prevent a panic if the BorderClient is not set correctly and errors from the factory methods are ignored.
+// It serves only to prevent a panic if the BorderClient
+// is not set correctly and errors from the factory methods are ignored.
 type NullBorderClient struct {
 }
 

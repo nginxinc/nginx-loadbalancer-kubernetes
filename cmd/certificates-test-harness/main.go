@@ -40,7 +40,7 @@ func run() error {
 		return fmt.Errorf(`error occurred initializing certificates: %w`, err)
 	}
 
-	go certificates.Run()
+	go certificates.Run() //nolint:errcheck
 
 	<-ctx.Done()
 	return nil

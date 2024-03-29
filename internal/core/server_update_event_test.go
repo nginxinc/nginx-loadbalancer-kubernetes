@@ -14,32 +14,34 @@ const clientType = "clientType"
 var emptyUpstreamServers UpstreamServers
 
 func TestServerUpdateEventWithIdAndHost(t *testing.T) {
+	t.Parallel()
 	event := NewServerUpdateEvent(Created, "upstream", clientType, emptyUpstreamServers)
 
-	if event.Id != "" {
-		t.Errorf("expected empty Id, got %s", event.Id)
+	if event.ID != "" {
+		t.Errorf("expected empty ID, got %s", event.ID)
 	}
 
 	if event.NginxHost != "" {
 		t.Errorf("expected empty NginxHost, got %s", event.NginxHost)
 	}
 
-	eventWithIdAndHost := ServerUpdateEventWithIdAndHost(event, "id", "host")
+	eventWithIDAndHost := ServerUpdateEventWithIDAndHost(event, "id", "host")
 
-	if eventWithIdAndHost.Id != "id" {
-		t.Errorf("expected Id to be 'id', got %s", eventWithIdAndHost.Id)
+	if eventWithIDAndHost.ID != "id" {
+		t.Errorf("expected Id to be 'id', got %s", eventWithIDAndHost.ID)
 	}
 
-	if eventWithIdAndHost.NginxHost != "host" {
-		t.Errorf("expected NginxHost to be 'host', got %s", eventWithIdAndHost.NginxHost)
+	if eventWithIDAndHost.NginxHost != "host" {
+		t.Errorf("expected NginxHost to be 'host', got %s", eventWithIDAndHost.NginxHost)
 	}
 
-	if eventWithIdAndHost.ClientType != clientType {
-		t.Errorf("expected ClientType to be '%s', got %s", clientType, eventWithIdAndHost.ClientType)
+	if eventWithIDAndHost.ClientType != clientType {
+		t.Errorf("expected ClientType to be '%s', got %s", clientType, eventWithIDAndHost.ClientType)
 	}
 }
 
 func TestTypeNameCreated(t *testing.T) {
+	t.Parallel()
 	event := NewServerUpdateEvent(Created, "upstream", clientType, emptyUpstreamServers)
 
 	if event.TypeName() != "Created" {
@@ -48,6 +50,7 @@ func TestTypeNameCreated(t *testing.T) {
 }
 
 func TestTypeNameUpdated(t *testing.T) {
+	t.Parallel()
 	event := NewServerUpdateEvent(Updated, "upstream", clientType, emptyUpstreamServers)
 
 	if event.TypeName() != "Updated" {
@@ -56,6 +59,7 @@ func TestTypeNameUpdated(t *testing.T) {
 }
 
 func TestTypeNameDeleted(t *testing.T) {
+	t.Parallel()
 	event := NewServerUpdateEvent(Deleted, "upstream", clientType, emptyUpstreamServers)
 
 	if event.TypeName() != "Deleted" {
@@ -64,6 +68,7 @@ func TestTypeNameDeleted(t *testing.T) {
 }
 
 func TestTypeNameUnknown(t *testing.T) {
+	t.Parallel()
 	event := NewServerUpdateEvent(EventType(100), "upstream", clientType, emptyUpstreamServers)
 
 	if event.TypeName() != "Unknown" {

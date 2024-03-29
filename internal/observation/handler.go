@@ -47,7 +47,11 @@ type Handler struct {
 }
 
 // NewHandler creates a new event handler
-func NewHandler(settings *configuration.Settings, synchronizer synchronization.Interface, eventQueue workqueue.RateLimitingInterface) *Handler {
+func NewHandler(
+	settings *configuration.Settings,
+	synchronizer synchronization.Interface,
+	eventQueue workqueue.RateLimitingInterface,
+) *Handler {
 	return &Handler{
 		eventQueue:   eventQueue,
 		settings:     settings,

@@ -6,6 +6,7 @@
 package synchronization
 
 import (
+	// Try using crpyto if needed.
 	"math/rand"
 	"time"
 )
@@ -24,14 +25,14 @@ func RandomString(n int) string {
 	b := make([]byte, n)
 	for i := range b {
 		// randomly select 1 character from given charset
-		b[i] = alphaNumeric[rand.Intn(len(alphaNumeric))]
+		b[i] = alphaNumeric[rand.Intn(len(alphaNumeric))] //nolint:gosec
 	}
 	return string(b)
 }
 
 // RandomMilliseconds returns a random duration between min and max milliseconds
 func RandomMilliseconds(min, max int) time.Duration {
-	randomizer := rand.New(rand.NewSource(time.Now().UnixNano()))
+	randomizer := rand.New(rand.NewSource(time.Now().UnixNano())) //nolint:gosec
 	random := randomizer.Intn(max-min) + min
 
 	return time.Millisecond * time.Duration(random)

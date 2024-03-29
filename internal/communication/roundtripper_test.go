@@ -16,10 +16,11 @@ import (
 )
 
 func TestNewRoundTripper(t *testing.T) {
+	t.Parallel()
 	k8sClient := fake.NewSimpleClientset()
 	settings, _ := configuration.NewSettings(context.Background(), k8sClient)
 	headers := NewHeaders()
-	transport := NewTransport(NewTlsConfig(settings))
+	transport := NewTransport(NewTLSConfig(settings))
 	roundTripper := NewRoundTripper(headers, transport)
 
 	if roundTripper == nil {
@@ -48,10 +49,14 @@ func TestNewRoundTripper(t *testing.T) {
 }
 
 func TestRoundTripperRoundTrip(t *testing.T) {
+	t.Parallel()
 	k8sClient := fake.NewSimpleClientset()
 	settings, err := configuration.NewSettings(context.Background(), k8sClient)
+	if err != nil {
+		t.Fatalf(`Unexpected error: %v`, err)
+	}
 	headers := NewHeaders()
-	transport := NewTransport(NewTlsConfig(settings))
+	transport := NewTransport(NewTLSConfig(settings))
 	roundTripper := NewRoundTripper(headers, transport)
 
 	request, err := NewRequest("GET", "http://example.com", nil)
@@ -70,6 +75,7 @@ func TestRoundTripperRoundTrip(t *testing.T) {
 	if response == nil {
 		t.Fatalf(`response should not be nil`)
 	}
+	defer response.Body.Close()
 
 	headerLen := len(response.Header)
 	if headerLen <= 2 {

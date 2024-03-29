@@ -46,7 +46,8 @@ const (
 // There are two work queues in the application:
 // 1. nlk-handler queue, used to move messages between the Watcher and the Handler.
 // 2. nlk-synchronizer queue, used to move message between the Handler and the Synchronizer.
-// The queues are NamedDelayingQueue objects that use an ItemExponentialFailureRateLimiter as the underlying rate limiter.
+// The queues are NamedDelayingQueue objects that use an ItemExponentialFailureRateLimiter
+// as the underlying rate limiter.
 type WorkQueueSettings struct {
 	// Name is the name of the queue.
 	Name string
@@ -110,8 +111,9 @@ type Settings struct {
 	// NginxPlusHosts is a list of Nginx Plus hosts that will be used to update the Border Servers.
 	NginxPlusHosts []string
 
-	// TlsMode is the value used to determine which of the five TLS modes will be used to communicate with the Border Servers (see: ../../docs/tls/README.md).
-	TlsMode TLSMode
+	// TlsMode is the value used to determine which of the five TLS modes will be used to communicate
+	// with the Border Servers (see: ../../docs/tls/README.md).
+	TLSMode TLSMode
 
 	// Certificates is the object used to retrieve the certificates and keys used to communicate with the Border Servers.
 	Certificates *certification.Certificates
@@ -140,7 +142,7 @@ func NewSettings(ctx context.Context, k8sClient kubernetes.Interface) (*Settings
 	settings := &Settings{
 		Context:      ctx,
 		K8sClient:    k8sClient,
-		TlsMode:      NoTLS,
+		TLSMode:      NoTLS,
 		Certificates: nil,
 		Handler: HandlerSettings{
 			RetryCount: 5,
@@ -187,10 +189,12 @@ func (s *Settings) Initialize() error {
 
 	s.Certificates = certificates
 
-	go certificates.Run()
+	certificates.Run() //nolint:errcheck
 
 	logrus.Debug(">>>>>>>>>> Settings::Initialize: retrieving nlk-config ConfigMap")
-	configMap, err := s.K8sClient.CoreV1().ConfigMaps(ConfigMapsNamespace).Get(s.Context, "nlk-config", metav1.GetOptions{})
+	configMap, err := s.K8sClient.CoreV1().ConfigMaps(ConfigMapsNamespace).Get(
+		s.Context, "nlk-config", metav1.GetOptions{},
+	)
 	if err != nil {
 		return err
 	}
@@ -198,10 +202,7 @@ func (s *Settings) Initialize() error {
 	s.handleUpdateEvent(nil, configMap)
 	logrus.Debug(">>>>>>>>>> Settings::Initialize: retrieved nlk-config ConfigMap")
 
-	informer, err := s.buildInformer()
-	if err != nil {
-		return fmt.Errorf(`error occurred building ConfigMap informer: %w`, err)
-	}
+	informer := s.buildInformer()
 
 	s.informer = informer
 
@@ -213,7 +214,7 @@ func (s *Settings) Initialize() error {
 	return nil
 }
 
-// Run starts the SharedInformer and waits for the Context to be cancelled.
+// Run starts the SharedInformer and waits for the Context to be canceled.
 func (s *Settings) Run() {
 	logrus.Debug("Settings::Run")
 
@@ -224,12 +225,12 @@ func (s *Settings) Run() {
 	<-s.Context.Done()
 }
 
-func (s *Settings) buildInformer() (cache.SharedInformer, error) {
+func (s *Settings) buildInformer() cache.SharedInformer {
 	options := informers.WithNamespace(ConfigMapsNamespace)
 	factory := informers.NewSharedInformerFactoryWithOptions(s.K8sClient, ResyncPeriod, options)
 	informer := factory.Core().V1().ConfigMaps().Informer()
 
-	return informer, nil
+	return informer
 }
 
 func (s *Settings) initializeEventListeners() error {
@@ -283,12 +284,15 @@ func (s *Settings) handleUpdateEvent(_ interface{}, newValue interface{}) {
 		logrus.Warnf("Settings::handleUpdateEvent: nginx-hosts key not found in ConfigMap")
 	}
 
-	tlsMode, err := validateTlsMode(configMap)
+	tlsMode, err := validateTLSMode(configMap)
 	if err != nil {
 		// NOTE: the TLSMode defaults to NoTLS on startup, or the last known good value if previously set.
-		logrus.Errorf("There was an error with the configured TLS Mode. TLS Mode has NOT been changed. The current mode is: '%v'. Error: %v. ", s.TlsMode, err)
+		logrus.Errorf(
+			"Error with configured TLS Mode. TLS Mode has NOT been changed. The current mode is: '%v'. Error: %v. ",
+			s.TLSMode, err,
+		)
 	} else {
-		s.TlsMode = tlsMode
+		s.TLSMode = tlsMode
 	}
 
 	caCertificateSecretKey, found := configMap.Data["ca-certificate"]
@@ -314,7 +318,7 @@ func (s *Settings) handleUpdateEvent(_ interface{}, newValue interface{}) {
 	logrus.Debugf("Settings::handleUpdateEvent: \n\tHosts: %v,\n\tSettings: %v ", s.NginxPlusHosts, configMap)
 }
 
-func validateTlsMode(configMap *corev1.ConfigMap) (TLSMode, error) {
+func validateTLSMode(configMap *corev1.ConfigMap) (TLSMode, error) {
 	tlsConfigMode, tlsConfigModeFound := configMap.Data["tls-mode"]
 	if !tlsConfigModeFound {
 		return NoTLS, fmt.Errorf(`tls-mode key not found in ConfigMap`)

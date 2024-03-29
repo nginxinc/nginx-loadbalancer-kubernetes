@@ -5,7 +5,8 @@
 
 package core
 
-// UpstreamServer represents a single upstream server. This is an internal representation used to abstract the definition
+// UpstreamServer represents a single upstream server.
+// This is an internal representation used to abstract the definition
 // of an upstream server from any specific client.
 type UpstreamServer struct {
 

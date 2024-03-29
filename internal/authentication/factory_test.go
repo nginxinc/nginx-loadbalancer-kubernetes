@@ -19,9 +19,10 @@ const (
 )
 
 func TestTlsFactory_UnspecifiedModeDefaultsToNoTls(t *testing.T) {
+	t.Parallel()
 	settings := configuration.Settings{}
 
-	tlsConfig, err := NewTlsConfig(&settings)
+	tlsConfig, err := NewTLSConfig(&settings)
 	if err != nil {
 		t.Fatalf(`Unexpected error: %v`, err)
 	}
@@ -36,11 +37,12 @@ func TestTlsFactory_UnspecifiedModeDefaultsToNoTls(t *testing.T) {
 }
 
 func TestTlsFactory_SelfSignedTlsMode(t *testing.T) {
+	t.Parallel()
 	certificates := make(map[string]map[string]core.SecretBytes)
 	certificates[CaCertificateSecretKey] = buildCaCertificateEntry(caCertificatePEM())
 
 	settings := configuration.Settings{
-		TlsMode: configuration.SelfSignedTLS,
+		TLSMode: configuration.SelfSignedTLS,
 		Certificates: &certification.Certificates{
 			Certificates:               certificates,
 			CaCertificateSecretKey:     CaCertificateSecretKey,
@@ -48,7 +50,7 @@ func TestTlsFactory_SelfSignedTlsMode(t *testing.T) {
 		},
 	}
 
-	tlsConfig, err := NewTlsConfig(&settings)
+	tlsConfig, err := NewTLSConfig(&settings)
 	if err != nil {
 		t.Fatalf(`Unexpected error: %v`, err)
 	}
@@ -71,17 +73,18 @@ func TestTlsFactory_SelfSignedTlsMode(t *testing.T) {
 }
 
 func TestTlsFactory_SelfSignedTlsModeCertPoolError(t *testing.T) {
+	t.Parallel()
 	certificates := make(map[string]map[string]core.SecretBytes)
 	certificates[CaCertificateSecretKey] = buildCaCertificateEntry(invalidCertificatePEM())
 
 	settings := configuration.Settings{
-		TlsMode: configuration.SelfSignedTLS,
+		TLSMode: configuration.SelfSignedTLS,
 		Certificates: &certification.Certificates{
 			Certificates: certificates,
 		},
 	}
 
-	_, err := NewTlsConfig(&settings)
+	_, err := NewTLSConfig(&settings)
 	if err == nil {
 		t.Fatalf(`Expected an error`)
 	}
@@ -92,11 +95,12 @@ func TestTlsFactory_SelfSignedTlsModeCertPoolError(t *testing.T) {
 }
 
 func TestTlsFactory_SelfSignedTlsModeCertPoolCertificateParseError(t *testing.T) {
+	t.Parallel()
 	certificates := make(map[string]map[string]core.SecretBytes)
 	certificates[CaCertificateSecretKey] = buildCaCertificateEntry(invalidCertificateDataPEM())
 
 	settings := configuration.Settings{
-		TlsMode: configuration.SelfSignedTLS,
+		TLSMode: configuration.SelfSignedTLS,
 		Certificates: &certification.Certificates{
 			Certificates:               certificates,
 			CaCertificateSecretKey:     CaCertificateSecretKey,
@@ -104,7 +108,7 @@ func TestTlsFactory_SelfSignedTlsModeCertPoolCertificateParseError(t *testing.T)
 		},
 	}
 
-	_, err := NewTlsConfig(&settings)
+	_, err := NewTLSConfig(&settings)
 	if err == nil {
 		t.Fatalf(`Expected an error`)
 	}
@@ -115,12 +119,13 @@ func TestTlsFactory_SelfSignedTlsModeCertPoolCertificateParseError(t *testing.T)
 }
 
 func TestTlsFactory_SelfSignedMtlsMode(t *testing.T) {
+	t.Parallel()
 	certificates := make(map[string]map[string]core.SecretBytes)
 	certificates[CaCertificateSecretKey] = buildCaCertificateEntry(caCertificatePEM())
 	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
 
 	settings := configuration.Settings{
-		TlsMode: configuration.SelfSignedMutualTLS,
+		TLSMode: configuration.SelfSignedMutualTLS,
 		Certificates: &certification.Certificates{
 			Certificates:               certificates,
 			CaCertificateSecretKey:     CaCertificateSecretKey,
@@ -128,7 +133,7 @@ func TestTlsFactory_SelfSignedMtlsMode(t *testing.T) {
 		},
 	}
 
-	tlsConfig, err := NewTlsConfig(&settings)
+	tlsConfig, err := NewTLSConfig(&settings)
 	if err != nil {
 		t.Fatalf(`Unexpected error: %v`, err)
 	}
@@ -151,18 +156,19 @@ func TestTlsFactory_SelfSignedMtlsMode(t *testing.T) {
 }
 
 func TestTlsFactory_SelfSignedMtlsModeCertPoolError(t *testing.T) {
+	t.Parallel()
 	certificates := make(map[string]map[string]core.SecretBytes)
 	certificates[CaCertificateSecretKey] = buildCaCertificateEntry(invalidCertificatePEM())
 	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
 
 	settings := configuration.Settings{
-		TlsMode: configuration.SelfSignedMutualTLS,
+		TLSMode: configuration.SelfSignedMutualTLS,
 		Certificates: &certification.Certificates{
 			Certificates: certificates,
 		},
 	}
 
-	_, err := NewTlsConfig(&settings)
+	_, err := NewTLSConfig(&settings)
 	if err == nil {
 		t.Fatalf(`Expected an error`)
 	}
@@ -173,12 +179,13 @@ func TestTlsFactory_SelfSignedMtlsModeCertPoolError(t *testing.T) {
 }
 
 func TestTlsFactory_SelfSignedMtlsModeClientCertificateError(t *testing.T) {
+	t.Parallel()
 	certificates := make(map[string]map[string]core.SecretBytes)
 	certificates[CaCertificateSecretKey] = buildCaCertificateEntry(caCertificatePEM())
 	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), invalidCertificatePEM())
 
 	settings := configuration.Settings{
-		TlsMode: configuration.SelfSignedMutualTLS,
+		TLSMode: configuration.SelfSignedMutualTLS,
 		Certificates: &certification.Certificates{
 			Certificates:               certificates,
 			CaCertificateSecretKey:     CaCertificateSecretKey,
@@ -186,7 +193,7 @@ func TestTlsFactory_SelfSignedMtlsModeClientCertificateError(t *testing.T) {
 		},
 	}
 
-	_, err := NewTlsConfig(&settings)
+	_, err := NewTLSConfig(&settings)
 	if err == nil {
 		t.Fatalf(`Expected an error`)
 	}
@@ -197,11 +204,12 @@ func TestTlsFactory_SelfSignedMtlsModeClientCertificateError(t *testing.T) {
 }
 
 func TestTlsFactory_CaTlsMode(t *testing.T) {
+	t.Parallel()
 	settings := configuration.Settings{
-		TlsMode: configuration.CertificateAuthorityTLS,
+		TLSMode: configuration.CertificateAuthorityTLS,
 	}
 
-	tlsConfig, err := NewTlsConfig(&settings)
+	tlsConfig, err := NewTLSConfig(&settings)
 	if err != nil {
 		t.Fatalf(`Unexpected error: %v`, err)
 	}
@@ -224,11 +232,12 @@ func TestTlsFactory_CaTlsMode(t *testing.T) {
 }
 
 func TestTlsFactory_CaMtlsMode(t *testing.T) {
+	t.Parallel()
 	certificates := make(map[string]map[string]core.SecretBytes)
 	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
 
 	settings := configuration.Settings{
-		TlsMode: configuration.CertificateAuthorityMutualTLS,
+		TLSMode: configuration.CertificateAuthorityMutualTLS,
 		Certificates: &certification.Certificates{
 			Certificates:               certificates,
 			CaCertificateSecretKey:     CaCertificateSecretKey,
@@ -236,7 +245,7 @@ func TestTlsFactory_CaMtlsMode(t *testing.T) {
 		},
 	}
 
-	tlsConfig, err := NewTlsConfig(&settings)
+	tlsConfig, err := NewTLSConfig(&settings)
 	if err != nil {
 		t.Fatalf(`Unexpected error: %v`, err)
 	}
@@ -259,18 +268,19 @@ func TestTlsFactory_CaMtlsMode(t *testing.T) {
 }
 
 func TestTlsFactory_CaMtlsModeClientCertificateError(t *testing.T) {
+	t.Parallel()
 	certificates := make(map[string]map[string]core.SecretBytes)
 	certificates[CaCertificateSecretKey] = buildCaCertificateEntry(caCertificatePEM())
 	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), invalidCertificatePEM())
 
 	settings := configuration.Settings{
-		TlsMode: configuration.CertificateAuthorityMutualTLS,
+		TLSMode: configuration.CertificateAuthorityMutualTLS,
 		Certificates: &certification.Certificates{
 			Certificates: certificates,
 		},
 	}
 
-	_, err := NewTlsConfig(&settings)
+	_, err := NewTLSConfig(&settings)
 	if err == nil {
 		t.Fatalf(`Expected an error`)
 	}

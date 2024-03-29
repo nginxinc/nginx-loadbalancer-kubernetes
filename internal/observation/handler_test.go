@@ -18,6 +18,7 @@ import (
 )
 
 func TestHandler_AddsEventToSynchronizer(t *testing.T) {
+	t.Parallel()
 	_, _, synchronizer, handler, err := buildHandler()
 	if err != nil {
 		t.Errorf(`should have been no error, %v`, err)
@@ -45,7 +46,11 @@ func TestHandler_AddsEventToSynchronizer(t *testing.T) {
 	}
 }
 
-func buildHandler() (*configuration.Settings, workqueue.RateLimitingInterface, *mocks.MockSynchronizer, *Handler, error) {
+func buildHandler() (
+	*configuration.Settings,
+	workqueue.RateLimitingInterface,
+	*mocks.MockSynchronizer, *Handler, error,
+) {
 	settings, err := configuration.NewSettings(context.Background(), nil)
 	if err != nil {
 		return nil, nil, nil, nil, fmt.Errorf(`should have been no error, %v`, err)

@@ -19,11 +19,11 @@ const (
 	server           = "server"
 )
 
-func buildTerrorizingBorderClient(clientType string) (Interface, *mocks.MockNginxClient, error) {
+func buildTerrorizingBorderClient(clientType string) (Interface, error) {
 	nginxClient := mocks.NewErroringMockClient(errors.New(`something went horribly horribly wrong`))
 	bc, err := NewBorderClient(clientType, nginxClient)
 
-	return bc, nginxClient, err
+	return bc, err
 }
 
 func buildBorderClient(clientType string) (Interface, *mocks.MockNginxClient, error) {

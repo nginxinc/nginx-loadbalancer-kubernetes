@@ -47,20 +47,14 @@ func run() error {
 
 	go settings.Run()
 
-	synchronizerWorkqueue, err := buildWorkQueue(settings.Synchronizer.WorkQueueSettings)
-	if err != nil {
-		return fmt.Errorf(`error occurred building a workqueue: %w`, err)
-	}
+	synchronizerWorkqueue := buildWorkQueue(settings.Synchronizer.WorkQueueSettings)
 
 	synchronizer, err := synchronization.NewSynchronizer(settings, synchronizerWorkqueue)
 	if err != nil {
 		return fmt.Errorf(`error initializing synchronizer: %w`, err)
 	}
 
-	handlerWorkqueue, err := buildWorkQueue(settings.Synchronizer.WorkQueueSettings)
-	if err != nil {
-		return fmt.Errorf(`error occurred building a workqueue: %w`, err)
-	}
+	handlerWorkqueue := buildWorkQueue(settings.Synchronizer.WorkQueueSettings)
 
 	handler := observation.NewHandler(settings, synchronizer, handlerWorkqueue)
 
@@ -106,9 +100,9 @@ func buildKubernetesClient() (*kubernetes.Clientset, error) {
 	return client, nil
 }
 
-func buildWorkQueue(settings configuration.WorkQueueSettings) (workqueue.RateLimitingInterface, error) {
+func buildWorkQueue(settings configuration.WorkQueueSettings) workqueue.RateLimitingInterface {
 	logrus.Debug("Watcher::buildSynchronizerWorkQueue")
 
 	rateLimiter := workqueue.NewItemExponentialFailureRateLimiter(settings.RateLimiterBase, settings.RateLimiterMax)
-	return workqueue.NewNamedRateLimitingQueue(rateLimiter, settings.Name), nil
+	return workqueue.NewNamedRateLimitingQueue(rateLimiter, settings.Name)
 }

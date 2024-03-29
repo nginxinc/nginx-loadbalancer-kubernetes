@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/authentication"
@@ -17,7 +16,7 @@ const (
 	ClientCertificateSecretKey = "nlk-tls-client-secret"
 )
 
-type TlsConfiguration struct {
+type TLSConfiguration struct {
 	Description string
 	Settings    configuration.Settings
 }
@@ -28,11 +27,11 @@ func main() {
 	configurations := buildConfigMap()
 
 	for name, settings := range configurations {
-		fmt.Print("\033[H\033[2J")
+		logrus.Infof("\033[H\033[2J")
 
 		logrus.Infof("\n\n\t*** Building TLS config for <<< %s >>>\n\n", name)
 
-		tlsConfig, err := authentication.NewTlsConfig(&settings.Settings)
+		tlsConfig, err := authentication.NewTLSConfig(&settings.Settings)
 		if err != nil {
 			panic(err)
 		}
@@ -41,41 +40,43 @@ func main() {
 		certificateCount := 0
 
 		if tlsConfig.RootCAs != nil {
-			rootCaCount = len(tlsConfig.RootCAs.Subjects())
+			rootCaCount = len(tlsConfig.RootCAs.Subjects()) //nolint:staticcheck
 		}
 
 		if tlsConfig.Certificates != nil {
 			certificateCount = len(tlsConfig.Certificates)
 		}
 
-		logrus.Infof("Successfully built TLS config: \n\tDescription: %s \n\tRootCA count: %v\n\tCertificate count: %v", settings.Description, rootCaCount, certificateCount)
+		logrus.Infof("Successfully built TLS config: \n\tDescription: %s \n\tRootCA count: %v\n\tCertificate count: %v",
+			settings.Description, rootCaCount, certificateCount,
+		)
 
-		bufio.NewReader(os.Stdin).ReadBytes('\n')
+		_, _ = bufio.NewReader(os.Stdin).ReadBytes('\n')
 	}
 
-	fmt.Print("\033[H\033[2J")
+	logrus.Infof("\033[H\033[2J")
 	logrus.Infof("\n\n\t*** All done! ***\n\n")
 }
 
-func buildConfigMap() map[string]TlsConfiguration {
-	configurations := make(map[string]TlsConfiguration)
+func buildConfigMap() map[string]TLSConfiguration {
+	configurations := make(map[string]TLSConfiguration)
 
-	configurations["ss-tls"] = TlsConfiguration{
+	configurations["ss-tls"] = TLSConfiguration{
 		Description: "Self-signed TLS requires just a CA certificate",
-		Settings:    ssTlsConfig(),
+		Settings:    ssTLSConfig(),
 	}
 
-	configurations["ss-mtls"] = TlsConfiguration{
+	configurations["ss-mtls"] = TLSConfiguration{
 		Description: "Self-signed mTLS requires a CA certificate and a client certificate",
 		Settings:    ssMtlsConfig(),
 	}
 
-	configurations["ca-tls"] = TlsConfiguration{
+	configurations["ca-tls"] = TLSConfiguration{
 		Description: "CA TLS requires no certificates",
-		Settings:    caTlsConfig(),
+		Settings:    caTLSConfig(),
 	}
 
-	configurations["ca-mtls"] = TlsConfiguration{
+	configurations["ca-mtls"] = TLSConfiguration{
 		Description: "CA mTLS requires a client certificate",
 		Settings:    caMtlsConfig(),
 	}
@@ -83,13 +84,13 @@ func buildConfigMap() map[string]TlsConfiguration {
 	return configurations
 }
 
-func ssTlsConfig() configuration.Settings {
+func ssTLSConfig() configuration.Settings {
 	certificates := make(map[string]map[string]core.SecretBytes)
 	certificates[CaCertificateSecretKey] = buildCaCertificateEntry(caCertificatePEM())
 	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
 
 	return configuration.Settings{
-		TlsMode: configuration.SelfSignedTLS,
+		TLSMode: configuration.SelfSignedTLS,
 		Certificates: &certification.Certificates{
 			Certificates: certificates,
 		},
@@ -102,16 +103,16 @@ func ssMtlsConfig() configuration.Settings {
 	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
 
 	return configuration.Settings{
-		TlsMode: configuration.SelfSignedMutualTLS,
+		TLSMode: configuration.SelfSignedMutualTLS,
 		Certificates: &certification.Certificates{
 			Certificates: certificates,
 		},
 	}
 }
 
-func caTlsConfig() configuration.Settings {
+func caTLSConfig() configuration.Settings {
 	return configuration.Settings{
-		TlsMode: configuration.CertificateAuthorityTLS,
+		TLSMode: configuration.CertificateAuthorityTLS,
 	}
 }
 
@@ -120,7 +121,7 @@ func caMtlsConfig() configuration.Settings {
 	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
 
 	return configuration.Settings{
-		TlsMode: configuration.CertificateAuthorityMutualTLS,
+		TLSMode: configuration.CertificateAuthorityMutualTLS,
 		Certificates: &certification.Certificates{
 			Certificates: certificates,
 		},

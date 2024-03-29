@@ -51,10 +51,7 @@ func (w *Watcher) Initialize() error {
 	logrus.Debug("Watcher::Initialize")
 	var err error
 
-	w.informer, err = w.buildInformer()
-	if err != nil {
-		return fmt.Errorf(`initialization error: %w`, err)
-	}
+	w.informer = w.buildInformer()
 
 	err = w.initializeEventListeners()
 	if err != nil {
@@ -78,7 +75,11 @@ func (w *Watcher) Watch() error {
 
 	go w.informer.Run(w.settings.Context.Done())
 
-	if !cache.WaitForNamedCacheSync(w.settings.Handler.WorkQueueSettings.Name, w.settings.Context.Done(), w.informer.HasSynced) {
+	if !cache.WaitForNamedCacheSync(
+		w.settings.Handler.WorkQueueSettings.Name,
+		w.settings.Context.Done(),
+		w.informer.HasSynced,
+	) {
 		return fmt.Errorf(`error occurred waiting for the cache to sync`)
 	}
 
@@ -86,7 +87,8 @@ func (w *Watcher) Watch() error {
 	return nil
 }
 
-// buildEventHandlerForAdd creates a function that is used as an event handler for the informer when Add events are raised.
+// buildEventHandlerForAdd creates a function that is used as an event handler
+// for the informer when Add events are raised.
 func (w *Watcher) buildEventHandlerForAdd() func(interface{}) {
 	logrus.Info("Watcher::buildEventHandlerForAdd")
 	return func(obj interface{}) {
@@ -102,7 +104,8 @@ func (w *Watcher) buildEventHandlerForAdd() func(interface{}) {
 	}
 }
 
-// buildEventHandlerForDelete creates a function that is used as an event handler for the informer when Delete events are raised.
+// buildEventHandlerForDelete creates a function that is used as an event handler
+// for the informer when Delete events are raised.
 func (w *Watcher) buildEventHandlerForDelete() func(interface{}) {
 	logrus.Info("Watcher::buildEventHandlerForDelete")
 	return func(obj interface{}) {
@@ -118,7 +121,8 @@ func (w *Watcher) buildEventHandlerForDelete() func(interface{}) {
 	}
 }
 
-// buildEventHandlerForUpdate creates a function that is used as an event handler for the informer when Update events are raised.
+// buildEventHandlerForUpdate creates a function that is used as an event handler
+// for the informer when Update events are raised.
 func (w *Watcher) buildEventHandlerForUpdate() func(interface{}, interface{}) {
 	logrus.Info("Watcher::buildEventHandlerForUpdate")
 	return func(previous, updated interface{}) {
@@ -135,14 +139,16 @@ func (w *Watcher) buildEventHandlerForUpdate() func(interface{}, interface{}) {
 }
 
 // buildInformer creates the informer used to watch for changes to Kubernetes resources.
-func (w *Watcher) buildInformer() (cache.SharedIndexInformer, error) {
+func (w *Watcher) buildInformer() cache.SharedIndexInformer {
 	logrus.Debug("Watcher::buildInformer")
 
 	options := informers.WithNamespace(w.settings.Watcher.NginxIngressNamespace)
-	factory := informers.NewSharedInformerFactoryWithOptions(w.settings.K8sClient, w.settings.Watcher.ResyncPeriod, options)
+	factory := informers.NewSharedInformerFactoryWithOptions(
+		w.settings.K8sClient, w.settings.Watcher.ResyncPeriod, options,
+	)
 	informer := factory.Core().V1().Services().Informer()
 
-	return informer, nil
+	return informer
 }
 
 // initializeEventListeners initializes the event listeners for the informer.
