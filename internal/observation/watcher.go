@@ -8,6 +8,8 @@ package observation
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	"github.com/sirupsen/logrus"
@@ -16,7 +18,6 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/tools/cache"
-	"time"
 )
 
 // Watcher is responsible for watching for changes to Kubernetes resources.

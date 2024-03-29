@@ -7,11 +7,12 @@ package communication
 
 import (
 	"crypto/tls"
+	netHttp "net/http"
+	"time"
+
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/authentication"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/sirupsen/logrus"
-	netHttp "net/http"
-	"time"
 )
 
 // NewHttpClient is a factory method to create a new Http Client with a default configuration.

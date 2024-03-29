@@ -7,6 +7,7 @@ package observation
 
 import (
 	"fmt"
+
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/synchronization"

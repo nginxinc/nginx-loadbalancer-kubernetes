@@ -7,6 +7,7 @@ package application
 
 import (
 	"errors"
+
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	"github.com/nginxinc/kubernetes-nginx-ingress/test/mocks"
 )

@@ -7,12 +7,13 @@ package translation
 
 import (
 	"fmt"
-	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
-	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
-	v1 "k8s.io/api/core/v1"
 	"math/rand"
 	"testing"
 	"time"
+
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
+	v1 "k8s.io/api/core/v1"
 )
 
 const (

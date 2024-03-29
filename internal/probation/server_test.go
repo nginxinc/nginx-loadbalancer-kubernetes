@@ -6,10 +6,11 @@
 package probation
 
 import (
-	"github.com/nginxinc/kubernetes-nginx-ingress/test/mocks"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"testing"
+
+	"github.com/nginxinc/kubernetes-nginx-ingress/test/mocks"
+	"github.com/sirupsen/logrus"
 )
 
 func TestHealthServer_HandleLive(t *testing.T) {

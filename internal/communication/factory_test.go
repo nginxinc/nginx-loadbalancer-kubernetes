@@ -7,9 +7,10 @@ package communication
 
 import (
 	"context"
+	"testing"
+
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"k8s.io/client-go/kubernetes/fake"
-	"testing"
 )
 
 func TestNewHttpClient(t *testing.T) {

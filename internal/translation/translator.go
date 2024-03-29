@@ -7,12 +7,13 @@ package translation
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/application"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
-	"strings"
 )
 
 // Translate transforms event data into an intermediate format that can be consumed by the BorderClient implementations

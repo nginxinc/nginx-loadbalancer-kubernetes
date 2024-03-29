@@ -8,12 +8,13 @@ package observation
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	"github.com/nginxinc/kubernetes-nginx-ingress/test/mocks"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/util/workqueue"
-	"testing"
 )
 
 func TestHandler_AddsEventToSynchronizer(t *testing.T) {

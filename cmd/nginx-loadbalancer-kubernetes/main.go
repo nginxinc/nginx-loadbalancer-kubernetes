@@ -8,6 +8,7 @@ package main
 import (
 	"context"
 	"fmt"
+
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/observation"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/probation"

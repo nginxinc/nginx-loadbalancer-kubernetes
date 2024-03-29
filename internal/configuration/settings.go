@@ -8,6 +8,9 @@ package configuration
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/certification"
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
@@ -16,8 +19,6 @@ import (
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
-	"strings"
-	"time"
 )
 
 const (

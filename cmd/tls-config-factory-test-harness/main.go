@@ -3,12 +3,13 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"os"
+
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/authentication"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/certification"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	"github.com/sirupsen/logrus"
-	"os"
 )
 
 const (

@@ -8,10 +8,11 @@ package communication
 import (
 	"bytes"
 	"context"
-	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
-	"k8s.io/client-go/kubernetes/fake"
 	netHttp "net/http"
 	"testing"
+
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
+	"k8s.io/client-go/kubernetes/fake"
 )
 
 func TestNewRoundTripper(t *testing.T) {

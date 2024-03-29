@@ -7,6 +7,7 @@ package application
 
 import (
 	"fmt"
+
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	"github.com/sirupsen/logrus"
 )

@@ -7,6 +7,7 @@ package synchronization
 
 import (
 	"fmt"
+
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/application"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/communication"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"

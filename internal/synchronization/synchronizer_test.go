@@ -8,10 +8,11 @@ package synchronization
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	"github.com/nginxinc/kubernetes-nginx-ingress/test/mocks"
-	"testing"
 )
 
 func TestSynchronizer_NewSynchronizer(t *testing.T) {

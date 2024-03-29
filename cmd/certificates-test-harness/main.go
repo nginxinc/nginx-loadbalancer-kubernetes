@@ -4,13 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path/filepath"
+
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/certification"
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
-	"path/filepath"
 )
 
 func main() {
