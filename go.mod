@@ -4,7 +4,7 @@
 
 module github.com/nginxinc/kubernetes-nginx-ingress
 
-go 1.19
+go 1.21
 
 require (
 	github.com/nginxinc/nginx-plus-go-client v0.10.0
