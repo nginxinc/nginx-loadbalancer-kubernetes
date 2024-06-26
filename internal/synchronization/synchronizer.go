@@ -20,7 +20,6 @@ import (
 
 // Interface defines the interface needed to implement a synchronizer.
 type Interface interface {
-
 	// AddEvents adds a list of events to the queue.
 	AddEvents(events core.ServerUpdateEvents)
 
@@ -240,13 +239,8 @@ func (s *Synchronizer) withRetry(err error, event *core.ServerUpdateEvent) {
 	logrus.Debug("Synchronizer::withRetry")
 	if err != nil {
 		// TODO: Add Telemetry
-		if s.eventQueue.NumRequeues(event) < s.settings.Synchronizer.RetryCount { // TODO: Make this configurable
-			s.eventQueue.AddRateLimited(event)
-			logrus.Infof(`Synchronizer::withRetry: requeued event: %s; error: %v`, event.ID, err)
-		} else {
-			s.eventQueue.Forget(event)
-			logrus.Warnf(`Synchronizer::withRetry: event %#v has been dropped due to too many retries`, event)
-		}
+		s.eventQueue.AddRateLimited(event)
+		logrus.Infof(`Synchronizer::withRetry: requeued event: %s; error: %v`, event.ID, err)
 	} else {
 		s.eventQueue.Forget(event)
 	} // TODO: Add error logging
