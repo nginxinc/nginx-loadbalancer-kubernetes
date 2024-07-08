@@ -7,7 +7,6 @@ linters:
   # Supported linters: https://golangci-lint.run/usage/linters/
   enable:
     - errcheck
-    - exhaustruct
     - gosimple
     - govet
     - ineffassign
