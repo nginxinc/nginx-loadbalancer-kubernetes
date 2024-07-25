@@ -201,21 +201,28 @@ Note: If you choose a different Application to test with, `the NGINX configurati
 
 This can be any standard Linux OS system, based on the Linux Distro and Technical Specs required for NGINX Plus, which can be found here: https://docs.nginx.com/nginx/technical-specs/   
 
-  1. This Solution followed the `Installation of NGINX Plus on Centos/Redhat/Oracle` steps for installing NGINX Plus.  
+1. This Solution followed the `Installation of NGINX Plus on Centos/Redhat/Oracle` steps for installing NGINX Plus.  
 
       https://docs.nginx.com/nginx/admin-guide/installing-nginx/installing-nginx-plus/
 
       >NOTE:  This Solution will only work with NGINX Plus, as NGINX OpenSource does not have the API that is used in this Solution.  Installation on unsupported Linux Distros is not recommended.
 
-  1. Install the NGINX Javascript module (njs).  This is required for exporting Prometheus Metrics from NGINX Plus.
+      If you need a license for NGINX Plus, a 30-day Trial license is available here:
+
+      https://www.nginx.com/free-trial-request/
+
+1. Install the NGINX Javascript module (njs).  This is required for exporting Prometheus Metrics from NGINX Plus.
   
   ```bash
   yum install nginx-plus-module-njs
   ```
 
-  1. If you need a license for NGINX Plus, a 30-day Trial license is available here:
+1. Install Nginx Javascript for Prometheus
 
-      https://www.nginx.com/free-trial-request/
+  ```bash
+  yum install nginx-plus-module-prometheus
+  ```
+
 
 <br/>
 
