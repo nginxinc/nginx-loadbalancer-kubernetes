@@ -11,7 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	v1 "k8s.io/api/core/v1"
 )
@@ -682,9 +681,11 @@ func generateUpdatablePorts(portCount int, updatableCount int) []v1.ServicePort 
 
 	updatable := make([]string, updatableCount)
 	nonupdatable := make([]string, portCount-updatableCount)
+	contexts := []string{"http-", "stream-"}
 
 	for i := range updatable {
-		updatable[i] = configuration.NlkPrefix
+		randomIndex := int(rand.Float32() * 2.0)
+		updatable[i] = contexts[randomIndex]
 	}
 
 	for j := range nonupdatable {
@@ -701,7 +702,7 @@ func generateUpdatablePorts(portCount int, updatableCount int) []v1.ServicePort 
 
 	for i, prefix := range prefixes {
 		ports = append(ports, v1.ServicePort{
-			Name: fmt.Sprintf("%sport-%d", prefix, i),
+			Name: fmt.Sprintf("%supstream%d", prefix, i),
 		})
 	}
 

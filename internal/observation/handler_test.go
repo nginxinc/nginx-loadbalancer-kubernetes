@@ -30,7 +30,7 @@ func TestHandler_AddsEventToSynchronizer(t *testing.T) {
 			Spec: v1.ServiceSpec{
 				Ports: []v1.ServicePort{
 					{
-						Name: "nlk-back",
+						Name: "http-back",
 					},
 				},
 			},
