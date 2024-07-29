@@ -40,6 +40,14 @@ const (
 	// The value of the annotation determines which BorderServer implementation will be used.
 	// See the documentation in the `application/application_constants.go` file for details.
 	PortAnnotationPrefix = "nginxinc.io"
+
+	// ServiceAnnotationMatchKey is the key name of the annotation in the application's config map
+	// that identifies the ingress service whose events will be monitored.
+	ServiceAnnotationMatchKey = "service-annotation-match"
+
+	// DefaultServiceAnnotation is the default name of the ingress service whose events will be
+	// monitored.
+	DefaultServiceAnnotation = "nginxaas"
 )
 
 // WorkQueueSettings contains the configuration values needed by the Work Queues.
@@ -62,7 +70,6 @@ type WorkQueueSettings struct {
 
 // HandlerSettings contains the configuration values needed by the Handler.
 type HandlerSettings struct {
-
 	// RetryCount is the number of times the Handler will attempt to process a message before giving up.
 	RetryCount int
 
@@ -75,9 +82,8 @@ type HandlerSettings struct {
 
 // WatcherSettings contains the configuration values needed by the Watcher.
 type WatcherSettings struct {
-
-	// NginxIngressNamespace is the namespace used to filter Services in the Watcher.
-	NginxIngressNamespace string
+	// ServiceAnnotation is the annotation of the ingress service whose events the watcher should monitor.
+	ServiceAnnotation string
 
 	// ResyncPeriod is the value used to set the resync period for the underlying SharedInformer.
 	ResyncPeriod time.Duration
@@ -85,7 +91,6 @@ type WatcherSettings struct {
 
 // SynchronizerSettings contains the configuration values needed by the Synchronizer.
 type SynchronizerSettings struct {
-
 	// MaxMillisecondsJitter is the maximum number of milliseconds that will be applied when adding an event to the queue.
 	MaxMillisecondsJitter int
 
@@ -104,7 +109,6 @@ type SynchronizerSettings struct {
 
 // Settings contains the configuration values needed by the application.
 type Settings struct {
-
 	// Context is the context used to control the application.
 	Context context.Context
 
@@ -165,8 +169,8 @@ func NewSettings(ctx context.Context, k8sClient kubernetes.Interface) (*Settings
 			},
 		},
 		Watcher: WatcherSettings{
-			NginxIngressNamespace: "nginx-ingress",
-			ResyncPeriod:          0,
+			ResyncPeriod:      0,
+			ServiceAnnotation: DefaultServiceAnnotation,
 		},
 	}
 
@@ -312,6 +316,13 @@ func (s *Settings) handleUpdateEvent(_ interface{}, newValue interface{}) {
 		s.Certificates.ClientCertificateSecretKey = ""
 		logrus.Warnf("Settings::handleUpdateEvent: client-certificate key not found in ConfigMap")
 	}
+
+	if serviceAnnotation, found := configMap.Data[ServiceAnnotationMatchKey]; found {
+		s.Watcher.ServiceAnnotation = serviceAnnotation
+	} else {
+		s.Watcher.ServiceAnnotation = DefaultServiceAnnotation
+	}
+	logrus.Debugf("Settings::handleUpdateEvent: %s: %s", ServiceAnnotationMatchKey, s.Watcher.ServiceAnnotation)
 
 	setLogLevel(configMap.Data["log-level"])
 

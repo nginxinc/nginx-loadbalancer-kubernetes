@@ -24,7 +24,6 @@ import (
 // Particularly, Services in the namespace defined in the WatcherSettings::NginxIngressNamespace setting.
 // When a change is detected, an Event is generated and added to the Handler's queue.
 type Watcher struct {
-
 	// eventHandlerRegistration is used to track the event handlers
 	eventHandlerRegistration interface{}
 
@@ -87,17 +86,32 @@ func (w *Watcher) Watch() error {
 	return nil
 }
 
+// isDesiredService returns whether the user has configured the given service for watching.
+func (w *Watcher) isDesiredService(service *v1.Service) bool {
+	annotation, ok := service.Annotations["nginx.com/nginxaas"]
+	if !ok {
+		return false
+	}
+
+	return annotation == w.settings.Watcher.ServiceAnnotation
+}
+
 // buildEventHandlerForAdd creates a function that is used as an event handler
 // for the informer when Add events are raised.
 func (w *Watcher) buildEventHandlerForAdd() func(interface{}) {
 	logrus.Info("Watcher::buildEventHandlerForAdd")
 	return func(obj interface{}) {
+		service := obj.(*v1.Service)
+		if !w.isDesiredService(service) {
+			return
+		}
+
 		nodeIps, err := w.retrieveNodeIps()
 		if err != nil {
 			logrus.Errorf(`error occurred retrieving node ips: %v`, err)
 			return
 		}
-		service := obj.(*v1.Service)
+
 		var previousService *v1.Service
 		e := core.NewEvent(core.Created, service, previousService, nodeIps)
 		w.handler.AddRateLimitedEvent(&e)
@@ -109,12 +123,17 @@ func (w *Watcher) buildEventHandlerForAdd() func(interface{}) {
 func (w *Watcher) buildEventHandlerForDelete() func(interface{}) {
 	logrus.Info("Watcher::buildEventHandlerForDelete")
 	return func(obj interface{}) {
+		service := obj.(*v1.Service)
+		if !w.isDesiredService(service) {
+			return
+		}
+
 		nodeIps, err := w.retrieveNodeIps()
 		if err != nil {
 			logrus.Errorf(`error occurred retrieving node ips: %v`, err)
 			return
 		}
-		service := obj.(*v1.Service)
+
 		var previousService *v1.Service
 		e := core.NewEvent(core.Deleted, service, previousService, nodeIps)
 		w.handler.AddRateLimitedEvent(&e)
@@ -126,12 +145,18 @@ func (w *Watcher) buildEventHandlerForDelete() func(interface{}) {
 func (w *Watcher) buildEventHandlerForUpdate() func(interface{}, interface{}) {
 	logrus.Info("Watcher::buildEventHandlerForUpdate")
 	return func(previous, updated interface{}) {
+		// TODO NLB-5435 Check for user removing annotation and send delete request to dataplane API
+		service := updated.(*v1.Service)
+		if !w.isDesiredService(service) {
+			return
+		}
+
 		nodeIps, err := w.retrieveNodeIps()
 		if err != nil {
 			logrus.Errorf(`error occurred retrieving node ips: %v`, err)
 			return
 		}
-		service := updated.(*v1.Service)
+
 		previousService := previous.(*v1.Service)
 		e := core.NewEvent(core.Updated, service, previousService, nodeIps)
 		w.handler.AddRateLimitedEvent(&e)
@@ -142,9 +167,8 @@ func (w *Watcher) buildEventHandlerForUpdate() func(interface{}, interface{}) {
 func (w *Watcher) buildInformer() cache.SharedIndexInformer {
 	logrus.Debug("Watcher::buildInformer")
 
-	options := informers.WithNamespace(w.settings.Watcher.NginxIngressNamespace)
 	factory := informers.NewSharedInformerFactoryWithOptions(
-		w.settings.K8sClient, w.settings.Watcher.ResyncPeriod, options,
+		w.settings.K8sClient, w.settings.Watcher.ResyncPeriod,
 	)
 	informer := factory.Core().V1().Services().Informer()
 
@@ -185,7 +209,6 @@ func (w *Watcher) retrieveNodeIps() ([]string, error) {
 	}
 
 	for _, node := range nodes.Items {
-
 		// this is kind of a broad assumption, should probably make this a configurable option
 		if w.notMasterNode(node) {
 			for _, address := range node.Status.Addresses {
