@@ -19,7 +19,7 @@ func TestNewRoundTripper(t *testing.T) {
 	t.Parallel()
 	k8sClient := fake.NewSimpleClientset()
 	settings, _ := configuration.NewSettings(context.Background(), k8sClient)
-	headers := NewHeaders()
+	headers := NewHeaders("fakeKey")
 	transport := NewTransport(NewTLSConfig(settings))
 	roundTripper := NewRoundTripper(headers, transport)
 
@@ -31,8 +31,8 @@ func TestNewRoundTripper(t *testing.T) {
 		t.Fatalf(`roundTripper.Headers should not be nil`)
 	}
 
-	if len(roundTripper.Headers) != 2 {
-		t.Fatalf(`roundTripper.Headers should have 2 elements`)
+	if len(roundTripper.Headers) != 3 {
+		t.Fatalf(`roundTripper.Headers should have 3 elements`)
 	}
 
 	if roundTripper.Headers[0] != "Content-Type: application/json" {
@@ -41,6 +41,10 @@ func TestNewRoundTripper(t *testing.T) {
 
 	if roundTripper.Headers[1] != "Accept: application/json" {
 		t.Fatalf(`roundTripper.Headers[1] should be "Accept: application/json"`)
+	}
+
+	if roundTripper.Headers[2] != "Authorization: ApiKey fakeKey" {
+		t.Fatalf(`headers[2] should be "Accept: Authorization: ApiKey fakeKey"`)
 	}
 
 	if roundTripper.RoundTripper == nil {
@@ -55,7 +59,7 @@ func TestRoundTripperRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatalf(`Unexpected error: %v`, err)
 	}
-	headers := NewHeaders()
+	headers := NewHeaders("fakeKey")
 	transport := NewTransport(NewTLSConfig(settings))
 	roundTripper := NewRoundTripper(headers, transport)
 
@@ -78,8 +82,8 @@ func TestRoundTripperRoundTrip(t *testing.T) {
 	defer response.Body.Close()
 
 	headerLen := len(response.Header)
-	if headerLen <= 2 {
-		t.Fatalf(`response.Header should have at least 2 elements, found %d`, headerLen)
+	if headerLen <= 3 {
+		t.Fatalf(`response.Header should have at least 3 elements, found %d`, headerLen)
 	}
 }
 

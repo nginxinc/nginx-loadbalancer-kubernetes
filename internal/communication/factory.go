@@ -7,6 +7,7 @@ package communication
 
 import (
 	"crypto/tls"
+	"fmt"
 	netHttp "net/http"
 	"time"
 
@@ -19,7 +20,7 @@ import (
 // RoundTripper is a wrapper around the default net/communication Transport to add additional headers, in this case,
 // the Headers are configured for JSON.
 func NewHTTPClient(settings *configuration.Settings) (*netHttp.Client, error) {
-	headers := NewHeaders()
+	headers := NewHeaders(settings.APIKey)
 	tlsConfig := NewTLSConfig(settings)
 	transport := NewTransport(tlsConfig)
 	roundTripper := NewRoundTripper(headers, transport)
@@ -33,11 +34,17 @@ func NewHTTPClient(settings *configuration.Settings) (*netHttp.Client, error) {
 }
 
 // NewHeaders is a factory method to create a new basic Http Headers slice.
-func NewHeaders() []string {
-	return []string{
+func NewHeaders(apiKey string) []string {
+	headers := []string{
 		"Content-Type: application/json",
 		"Accept: application/json",
 	}
+
+	if apiKey != "" {
+		headers = append(headers, fmt.Sprintf("Authorization: ApiKey %s", apiKey))
+	}
+
+	return headers
 }
 
 // NewTLSConfig is a factory method to create a new basic Tls Config.

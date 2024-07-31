@@ -7,7 +7,9 @@ package configuration
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -119,6 +121,9 @@ type Settings struct {
 	// with the Border Servers (see: ../../docs/tls/README.md).
 	TLSMode TLSMode
 
+	// APIKey is the api key used to authenticate with the dataplane API.
+	APIKey string
+
 	// Certificates is the object used to retrieve the certificates and keys used to communicate with the Border Servers.
 	Certificates *certification.Certificates
 
@@ -143,10 +148,14 @@ type Settings struct {
 
 // NewSettings creates a new Settings object with default values.
 func NewSettings(ctx context.Context, k8sClient kubernetes.Interface) (*Settings, error) {
+	// get base64 encoded version of raw api key set by user
+	apiKey := base64.StdEncoding.EncodeToString([]byte(os.Getenv("NGINXAAS_DATAPLANE_API_KEY")))
+
 	settings := &Settings{
 		Context:      ctx,
 		K8sClient:    k8sClient,
 		TLSMode:      NoTLS,
+		APIKey:       apiKey,
 		Certificates: nil,
 		Handler: HandlerSettings{
 			RetryCount: 5,
