@@ -231,20 +231,18 @@ This can be any standard Linux OS system, based on the Linux Distro and Technica
 <br/>
 
 ### This is the NGINX configuration required for the NGINX Loadbalancing Server, external to the cluster.  It must be configured for the following:
-
-1. Move the NGINX default Welcome page from port 80 to port 8080.  Port 80 will be used by Prometheus in this Solution.
    
-2. The NGINX NJS module is enabled, and configured to export the NGINX Plus statistics.
+1. The NGINX NJS module is enabled, and configured to export the NGINX Plus statistics.
    
-3. A self-signed TLS cert/key are used in this example for terminating TLS traffic for the Demo application, https://cafe.example.com.
+2. A self-signed TLS cert/key are used in this example for terminating TLS traffic for the Demo application, https://cafe.example.com.
    
-4. Plus API with write access enabled on port 9000.  The Plus Dashboard is also enabled, used for testing, monitoring, and visualization of the Solution working.
+3. Plus API with write access enabled on port 9000.  The Plus Dashboard is also enabled, used for testing, monitoring, and visualization of the Solution working.
 
-5. The `http` context is used for MultiCluster Loadbalancing, for HTTP/S processing, Split Clients ratio.  The Plus Key Value Store is configured, to hold the dynamic Split ratio metadata.
+4. The `http` context is used for MultiCluster Loadbalancing, for HTTP/S processing, Split Clients ratio.  The Plus Key Value Store is configured, to hold the dynamic Split ratio metadata.
 
-6. Enable Prometheus metrics exporting.
+5. Enable Prometheus metrics exporting.
 
-7. Plus Zone Sync on Port 9001 is configured, to synchronize the dynamic KeyVal data between multiple NGINX Loadbalancing Servers.
+6. Plus Zone Sync on Port 9001 is configured, to synchronize the dynamic KeyVal data between multiple NGINX Loadbalancing Servers.
 
 <br/>
 
@@ -266,7 +264,6 @@ etc/
     ├── conf.d/
     │   ├── clusters.conf.......... MultiCluster Loadbalancing and split clients config
     │   ├── dashboard.conf......... NGINX Plus API and Dashboard config
-    │   ├── default-http.conf...... New default.conf config
     │   └── prometheus.conf........ NGINX Prometheus config
     ├── nginx.conf................. New nginx.conf
     └── stream
@@ -276,41 +273,6 @@ etc/
 <br/>
 
 After a new installation of NGINX Plus, make the following configuration changes:
-
-1. Change NGINX's http default server to port 8080.  See the included `default-http.conf` file.  After reloading nginx, the default `Welcome to NGINX` page will be located at http://localhost:8080.
-
-    ```bash
-    cat /etc/nginx/conf.d/default.conf
-    # NGINX Loadbalancer for Kubernetes Solution
-    # Chris Akker, Apr 2023
-    # Example default.conf
-    # Change default_server to port 8080
-    #
-    server {
-        listen       8080 default_server;   # Changed to 8080
-        server_name  localhost;
-
-        #access_log  /var/log/nginx/host.access.log  main;
-
-        location / {
-            root   /usr/share/nginx/html;
-            index  index.html index.htm;
-        }
-
-        #error_page  404              /404.html;
-
-        # redirect server error pages to the static page /50x.html
-        #
-        error_page   500 502 503 504  /50x.html;
-        location = /50x.html {
-            root   /usr/share/nginx/html;
-        }
-
-    ### other sections removed for clarity
-
-    }
-
-    ```
 
 1. Use the included nginx.conf file, it enables the NGINX NJS module, for exporting the Plus statistics:  
 
@@ -403,7 +365,7 @@ After a new installation of NGINX Plus, make the following configuration changes
 
     # Define Key Value store, backup state file, timeout, and enable sync
 
-    keyval_zone zone=split:1m state=/var/lib/nginx/state/split.keyval timeout=30d sync;
+    keyval_zone zone=split:1m state=/var/lib/nginx/state/split.keyval timeout=365d sync;
     keyval $host $split_level zone=split;
 
     # Main NGINX Server Block for cafe.example.com, with TLS
@@ -556,6 +518,9 @@ After a new installation of NGINX Plus, make the following configuration changes
     js_import /usr/share/nginx-plus-module-prometheus/prometheus.js;
 
     server {
+        listen 9113;
+        status_zone prometheus;
+        
         location = /metrics {
             js_content prometheus.metrics;
         }
@@ -1014,7 +979,7 @@ Here are the instructions to run 2 Docker containers on a Monitor Server, which 
 
 <br/>
 
-1. Configure your Prometheus server to collect NGINX Plus statistics from the scraper page.  Use the prometheus.yml file provided, edit the IP addresses to match your NGINX Loadbalancing Server(s).
+1. Configure your Prometheus server to collect NGINX Plus statistics from the scraper page.  You can use the prometheus.yml file provided, edit the IP addresses to match your NGINX Loadbalancing Server(s).
 
     ```bash
     cat prometheus.yaml
@@ -1033,7 +998,7 @@ Here are the instructions to run 2 Docker containers on a Monitor Server, which 
         scrape_interval: 5s
     
         static_configs:
-          - targets: ['10.1.1.4:80', '10.1.1.5:80']  # NGINX Loadbalancing Servers
+          - targets: ['10.1.1.4:9113', '10.1.1.5:9113']  # NGINX Loadbalancing Servers
     ```
 
 1. Review, edit and place the sample `prometheus.yml` file in /etc/prometheus folder.

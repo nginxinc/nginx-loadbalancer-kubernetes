@@ -10,5 +10,5 @@ scrape_configs:
     scrape_interval: 5s
  
     static_configs:
-      - targets: ['10.1.1.4:80', '10.1.1.5:80']
+      - targets: ['10.1.1.4:9113', '10.1.1.5:9113']
       
