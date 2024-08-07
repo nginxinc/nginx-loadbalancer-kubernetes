@@ -189,7 +189,7 @@ func (s *Settings) Initialize() error {
 
 	s.Certificates = certificates
 
-	certificates.Run() //nolint:errcheck
+	go certificates.Run() //nolint:errcheck
 
 	logrus.Debug(">>>>>>>>>> Settings::Initialize: retrieving nlk-config ConfigMap")
 	configMap, err := s.K8sClient.CoreV1().ConfigMaps(ConfigMapsNamespace).Get(
