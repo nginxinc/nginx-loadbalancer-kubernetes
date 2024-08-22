@@ -119,7 +119,7 @@ func (s *Synchronizer) buildBorderClient(event *core.ServerUpdateEvent) (applica
 		return nil, fmt.Errorf(`error creating HTTP client: %v`, err)
 	}
 
-	ngxClient, err := nginxClient.NewNginxClient(httpClient, event.NginxHost)
+	ngxClient, err := nginxClient.NewNginxClient(event.NginxHost, nginxClient.WithHTTPClient(httpClient))
 	if err != nil {
 		return nil, fmt.Errorf(`error creating Nginx Plus client: %v`, err)
 	}

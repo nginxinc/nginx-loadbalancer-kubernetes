@@ -4,10 +4,12 @@
 
 module github.com/nginxinc/kubernetes-nginx-ingress
 
-go 1.21
+go 1.21.2
+
+toolchain go1.21.4
 
 require (
-	github.com/nginxinc/nginx-plus-go-client v0.10.0
+	github.com/nginxinc/nginx-plus-go-client v1.2.2
 	github.com/sirupsen/logrus v1.9.0
 	k8s.io/api v0.26.0
 	k8s.io/apimachinery v0.26.0
