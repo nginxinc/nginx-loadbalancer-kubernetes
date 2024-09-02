@@ -87,3 +87,5 @@ results
 .go/pkg/mod
 
 .go-build
+
+nginx-loadbalancer-kubernetes-*
