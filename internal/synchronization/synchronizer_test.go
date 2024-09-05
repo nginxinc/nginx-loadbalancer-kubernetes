@@ -6,9 +6,9 @@
 package synchronization
 
 import (
-	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
@@ -17,14 +17,10 @@ import (
 
 func TestSynchronizer_NewSynchronizer(t *testing.T) {
 	t.Parallel()
-	settings, err := configuration.NewSettings(context.Background(), nil)
-	if err != nil {
-		t.Fatalf(`Unexpected error: %v`, err)
-	}
 
 	rateLimiter := &mocks.MockRateLimiter{}
 
-	synchronizer, err := NewSynchronizer(settings, rateLimiter)
+	synchronizer, err := NewSynchronizer(configuration.Settings{}, rateLimiter)
 	if err != nil {
 		t.Fatalf(`should have been no error, %v`, err)
 	}
@@ -44,13 +40,10 @@ func TestSynchronizer_AddEventNoHosts(t *testing.T) {
 		UpstreamName:    "",
 		UpstreamServers: nil,
 	}
-	settings, err := configuration.NewSettings(context.Background(), nil)
-	if err != nil {
-		t.Fatalf(`Unexpected error: %v`, err)
-	}
+
 	rateLimiter := &mocks.MockRateLimiter{}
 
-	synchronizer, err := NewSynchronizer(settings, rateLimiter)
+	synchronizer, err := NewSynchronizer(defaultSettings(), rateLimiter)
 	if err != nil {
 		t.Fatalf(`should have been no error, %v`, err)
 	}
@@ -72,14 +65,10 @@ func TestSynchronizer_AddEventOneHost(t *testing.T) {
 	t.Parallel()
 	const expectedEventCount = 1
 	events := buildEvents(1)
-	settings, err := configuration.NewSettings(context.Background(), nil)
-	if err != nil {
-		t.Fatalf(`Unexpected error: %v`, err)
-	}
-	settings.NginxPlusHosts = []string{"https://localhost:8080"}
+
 	rateLimiter := &mocks.MockRateLimiter{}
 
-	synchronizer, err := NewSynchronizer(settings, rateLimiter)
+	synchronizer, err := NewSynchronizer(defaultSettings("https://localhost:8080"), rateLimiter)
 	if err != nil {
 		t.Fatalf(`should have been no error, %v`, err)
 	}
@@ -99,18 +88,15 @@ func TestSynchronizer_AddEventManyHosts(t *testing.T) {
 	t.Parallel()
 	const expectedEventCount = 1
 	events := buildEvents(1)
-	settings, err := configuration.NewSettings(context.Background(), nil)
-	if err != nil {
-		t.Fatalf(`Unexpected error: %v`, err)
-	}
-	settings.NginxPlusHosts = []string{
+	hosts := []string{
 		"https://localhost:8080",
 		"https://localhost:8081",
 		"https://localhost:8082",
 	}
+
 	rateLimiter := &mocks.MockRateLimiter{}
 
-	synchronizer, err := NewSynchronizer(settings, rateLimiter)
+	synchronizer, err := NewSynchronizer(defaultSettings(hosts...), rateLimiter)
 	if err != nil {
 		t.Fatalf(`should have been no error, %v`, err)
 	}
@@ -130,13 +116,9 @@ func TestSynchronizer_AddEventsNoHosts(t *testing.T) {
 	t.Parallel()
 	const expectedEventCount = 0
 	events := buildEvents(4)
-	settings, err := configuration.NewSettings(context.Background(), nil)
-	if err != nil {
-		t.Fatalf(`Unexpected error: %v`, err)
-	}
 	rateLimiter := &mocks.MockRateLimiter{}
 
-	synchronizer, err := NewSynchronizer(settings, rateLimiter)
+	synchronizer, err := NewSynchronizer(defaultSettings(), rateLimiter)
 	if err != nil {
 		t.Fatalf(`should have been no error, %v`, err)
 	}
@@ -158,14 +140,9 @@ func TestSynchronizer_AddEventsOneHost(t *testing.T) {
 	t.Parallel()
 	const expectedEventCount = 4
 	events := buildEvents(4)
-	settings, err := configuration.NewSettings(context.Background(), nil)
-	if err != nil {
-		t.Fatalf(`Unexpected error: %v`, err)
-	}
-	settings.NginxPlusHosts = []string{"https://localhost:8080"}
 	rateLimiter := &mocks.MockRateLimiter{}
 
-	synchronizer, err := NewSynchronizer(settings, rateLimiter)
+	synchronizer, err := NewSynchronizer(defaultSettings("https://localhost:8080"), rateLimiter)
 	if err != nil {
 		t.Fatalf(`should have been no error, %v`, err)
 	}
@@ -186,18 +163,16 @@ func TestSynchronizer_AddEventsManyHosts(t *testing.T) {
 	const eventCount = 4
 	events := buildEvents(eventCount)
 	rateLimiter := &mocks.MockRateLimiter{}
-	settings, err := configuration.NewSettings(context.Background(), nil)
-	if err != nil {
-		t.Fatalf(`Unexpected error: %v`, err)
-	}
-	settings.NginxPlusHosts = []string{
+
+	hosts := []string{
 		"https://localhost:8080",
 		"https://localhost:8081",
 		"https://localhost:8082",
 	}
-	expectedEventCount := eventCount * len(settings.NginxPlusHosts)
 
-	synchronizer, err := NewSynchronizer(settings, rateLimiter)
+	expectedEventCount := eventCount * len(hosts)
+
+	synchronizer, err := NewSynchronizer(defaultSettings(hosts...), rateLimiter)
 	if err != nil {
 		t.Fatalf(`should have been no error, %v`, err)
 	}
@@ -225,4 +200,21 @@ func buildEvents(count int) core.ServerUpdateEvents {
 		}
 	}
 	return events
+}
+
+func defaultSettings(nginxHosts ...string) configuration.Settings {
+	return configuration.Settings{
+		NginxPlusHosts: nginxHosts,
+		Synchronizer: configuration.SynchronizerSettings{
+			MaxMillisecondsJitter: 750,
+			MinMillisecondsJitter: 250,
+			RetryCount:            5,
+			Threads:               1,
+			WorkQueueSettings: configuration.WorkQueueSettings{
+				RateLimiterBase: time.Second * 2,
+				RateLimiterMax:  time.Second * 60,
+				Name:            "nlk-synchronizer",
+			},
+		},
+	}
 }

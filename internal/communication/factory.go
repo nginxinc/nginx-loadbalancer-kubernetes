@@ -19,7 +19,7 @@ import (
 // NewHTTPClient is a factory method to create a new Http Client with a default configuration.
 // RoundTripper is a wrapper around the default net/communication Transport to add additional headers, in this case,
 // the Headers are configured for JSON.
-func NewHTTPClient(settings *configuration.Settings) (*netHttp.Client, error) {
+func NewHTTPClient(settings configuration.Settings) (*netHttp.Client, error) {
 	headers := NewHeaders(settings.APIKey)
 	tlsConfig := NewTLSConfig(settings)
 	transport := NewTransport(tlsConfig)
@@ -49,7 +49,7 @@ func NewHeaders(apiKey string) []string {
 
 // NewTLSConfig is a factory method to create a new basic Tls Config.
 // More attention should be given to the use of `InsecureSkipVerify: true`, as it is not recommended for production use.
-func NewTLSConfig(settings *configuration.Settings) *tls.Config {
+func NewTLSConfig(settings configuration.Settings) *tls.Config {
 	tlsConfig, err := authentication.NewTLSConfig(settings)
 	if err != nil {
 		logrus.Warnf("Failed to create TLS config: %v", err)

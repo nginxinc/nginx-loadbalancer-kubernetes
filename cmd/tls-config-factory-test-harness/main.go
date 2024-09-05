@@ -31,7 +31,7 @@ func main() {
 
 		logrus.Infof("\n\n\t*** Building TLS config for <<< %s >>>\n\n", name)
 
-		tlsConfig, err := authentication.NewTLSConfig(&settings.Settings)
+		tlsConfig, err := authentication.NewTLSConfig(settings.Settings)
 		if err != nil {
 			panic(err)
 		}

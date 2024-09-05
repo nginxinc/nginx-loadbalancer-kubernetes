@@ -17,15 +17,14 @@ import (
 func TestWatcher_MustInitialize(t *testing.T) {
 	t.Parallel()
 	watcher, _ := buildWatcher()
-	if err := watcher.Watch(); err == nil {
+	if err := watcher.Watch(context.Background()); err == nil {
 		t.Errorf("Expected error, got %s", err)
 	}
 }
 
 func buildWatcher() (*Watcher, error) {
 	k8sClient := &kubernetes.Clientset{}
-	settings, _ := configuration.NewSettings(context.Background(), k8sClient)
 	handler := &mocks.MockHandler{}
 
-	return NewWatcher(settings, handler)
+	return NewWatcher(configuration.Settings{}, handler, k8sClient)
 }

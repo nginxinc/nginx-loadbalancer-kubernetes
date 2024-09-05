@@ -19,7 +19,6 @@ import (
 
 // HandlerInterface is the interface for the event handler
 type HandlerInterface interface {
-
 	// AddRateLimitedEvent defines the interface for adding an event to the event queue
 	AddRateLimitedEvent(event *core.Event)
 
@@ -35,12 +34,11 @@ type HandlerInterface interface {
 // The translation process may result in multiple events being generated. This fan-out mainly supports the differences
 // in NGINX Plus API calls for creating/updating Upstreams and deleting Upstreams.
 type Handler struct {
-
 	// eventQueue is the queue used to store events
 	eventQueue workqueue.RateLimitingInterface
 
 	// settings is the configuration settings
-	settings *configuration.Settings
+	settings configuration.Settings
 
 	// synchronizer is the synchronizer used to synchronize the internal representation with a Border Server
 	synchronizer synchronization.Interface
@@ -48,7 +46,7 @@ type Handler struct {
 
 // NewHandler creates a new event handler
 func NewHandler(
-	settings *configuration.Settings,
+	settings configuration.Settings,
 	synchronizer synchronization.Interface,
 	eventQueue workqueue.RateLimitingInterface,
 ) *Handler {

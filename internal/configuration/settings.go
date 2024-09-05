@@ -6,21 +6,14 @@
 package configuration
 
 import (
-	"context"
 	"encoding/base64"
 	"fmt"
-	"os"
-	"strings"
 	"time"
 
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/certification"
 	"github.com/sirupsen/logrus"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	"k8s.io/client-go/informers"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/cache"
+
+	"github.com/spf13/viper"
 )
 
 const (
@@ -111,8 +104,8 @@ type SynchronizerSettings struct {
 
 // Settings contains the configuration values needed by the application.
 type Settings struct {
-	// Context is the context used to control the application.
-	Context context.Context
+	// LogLevel is the user-specified log level. Defaults to warn.
+	LogLevel string
 
 	// NginxPlusHosts is a list of Nginx Plus hosts that will be used to update the Border Servers.
 	NginxPlusHosts []string
@@ -127,15 +120,6 @@ type Settings struct {
 	// Certificates is the object used to retrieve the certificates and keys used to communicate with the Border Servers.
 	Certificates *certification.Certificates
 
-	// K8sClient is the Kubernetes client used to communicate with the Kubernetes API.
-	K8sClient kubernetes.Interface
-
-	// informer is the SharedInformer used to watch for changes to the ConfigMap .
-	informer cache.SharedInformer
-
-	// eventHandlerRegistration is the object used to track the event handlers with the SharedInformer.
-	eventHandlerRegistration cache.ResourceEventHandlerRegistration
-
 	// Handler contains the configuration values needed by the Handler.
 	Handler HandlerSettings
 
@@ -146,17 +130,41 @@ type Settings struct {
 	Watcher WatcherSettings
 }
 
-// NewSettings creates a new Settings object with default values.
-func NewSettings(ctx context.Context, k8sClient kubernetes.Interface) (*Settings, error) {
-	// get base64 encoded version of raw api key set by user
-	apiKey := base64.StdEncoding.EncodeToString([]byte(os.Getenv("NGINXAAS_DATAPLANE_API_KEY")))
+// Read parses all the config and returns the values
+func Read(configName, configPath string) (s Settings, err error) {
+	v := viper.New()
+	v.SetConfigName(configName)
+	v.SetConfigType("yaml")
+	v.AddConfigPath(configPath)
+	if err = v.ReadInConfig(); err != nil {
+		return s, err
+	}
 
-	settings := &Settings{
-		Context:      ctx,
-		K8sClient:    k8sClient,
-		TLSMode:      NoTLS,
-		APIKey:       apiKey,
-		Certificates: nil,
+	if err = v.BindEnv("NGINXAAS_DATAPLANE_API_KEY"); err != nil {
+		return s, err
+	}
+
+	tlsMode := NoTLS
+	if t, err := validateTLSMode(v.GetString("tls-mode")); err != nil {
+		logrus.Errorf("could not validate tls mode: %v", err)
+	} else {
+		tlsMode = t
+	}
+
+	serviceAnnotation := DefaultServiceAnnotation
+	if sa := v.GetString(ServiceAnnotationMatchKey); sa != "" {
+		serviceAnnotation = sa
+	}
+
+	return Settings{
+		LogLevel:       v.GetString("log-level"),
+		NginxPlusHosts: v.GetStringSlice("nginx-hosts"),
+		TLSMode:        tlsMode,
+		APIKey:         base64.StdEncoding.EncodeToString([]byte(v.GetString("NGINXAAS_DATAPLANE_API_KEY"))),
+		Certificates: &certification.Certificates{
+			CaCertificateSecretKey:     v.GetString("ca-certificate"),
+			ClientCertificateSecretKey: v.GetString("client-certificate"),
+		},
 		Handler: HandlerSettings{
 			RetryCount: 5,
 			Threads:    1,
@@ -179,216 +187,15 @@ func NewSettings(ctx context.Context, k8sClient kubernetes.Interface) (*Settings
 		},
 		Watcher: WatcherSettings{
 			ResyncPeriod:      0,
-			ServiceAnnotation: DefaultServiceAnnotation,
+			ServiceAnnotation: serviceAnnotation,
 		},
-	}
-
-	return settings, nil
+	}, nil
 }
 
-// Initialize initializes the Settings object. Sets up a SharedInformer to watch for changes to the ConfigMap.
-// This method must be called before the Run method.
-func (s *Settings) Initialize() error {
-	logrus.Info("Settings::Initialize")
-
-	var err error
-
-	certificates := certification.NewCertificates(s.Context, s.K8sClient)
-
-	err = certificates.Initialize()
-	if err != nil {
-		return fmt.Errorf(`error occurred initializing certificates: %w`, err)
-	}
-
-	s.Certificates = certificates
-
-	go certificates.Run() //nolint:errcheck
-
-	logrus.Debug(">>>>>>>>>> Settings::Initialize: retrieving nlk-config ConfigMap")
-	configMap, err := s.K8sClient.CoreV1().ConfigMaps(ConfigMapsNamespace).Get(
-		s.Context, "nlk-config", metav1.GetOptions{},
-	)
-	if err != nil {
-		return err
-	}
-
-	s.handleUpdateEvent(nil, configMap)
-	logrus.Debug(">>>>>>>>>> Settings::Initialize: retrieved nlk-config ConfigMap")
-
-	informer := s.buildInformer()
-
-	s.informer = informer
-
-	err = s.initializeEventListeners()
-	if err != nil {
-		return fmt.Errorf(`error occurred initializing event listeners: %w`, err)
-	}
-
-	return nil
-}
-
-// Run starts the SharedInformer and waits for the Context to be canceled.
-func (s *Settings) Run() {
-	logrus.Debug("Settings::Run")
-
-	defer utilruntime.HandleCrash()
-
-	go s.informer.Run(s.Context.Done())
-
-	<-s.Context.Done()
-}
-
-func (s *Settings) buildInformer() cache.SharedInformer {
-	options := informers.WithNamespace(ConfigMapsNamespace)
-	factory := informers.NewSharedInformerFactoryWithOptions(s.K8sClient, ResyncPeriod, options)
-	informer := factory.Core().V1().ConfigMaps().Informer()
-
-	return informer
-}
-
-func (s *Settings) initializeEventListeners() error {
-	logrus.Debug("Settings::initializeEventListeners")
-
-	var err error
-
-	handlers := cache.ResourceEventHandlerFuncs{
-		AddFunc:    s.handleAddEvent,
-		UpdateFunc: s.handleUpdateEvent,
-		DeleteFunc: s.handleDeleteEvent,
-	}
-
-	s.eventHandlerRegistration, err = s.informer.AddEventHandler(handlers)
-	if err != nil {
-		return fmt.Errorf(`error occurred registering event handlers: %w`, err)
-	}
-
-	return nil
-}
-
-func (s *Settings) handleAddEvent(obj interface{}) {
-	logrus.Debug("Settings::handleAddEvent")
-
-	if _, yes := isOurConfig(obj); yes {
-		s.handleUpdateEvent(nil, obj)
-	}
-}
-
-func (s *Settings) handleDeleteEvent(obj interface{}) {
-	logrus.Debug("Settings::handleDeleteEvent")
-
-	if _, yes := isOurConfig(obj); yes {
-		s.updateHosts([]string{})
-	}
-}
-
-func (s *Settings) handleUpdateEvent(_ interface{}, newValue interface{}) {
-	logrus.Debug("Settings::handleUpdateEvent")
-
-	configMap, yes := isOurConfig(newValue)
-	if !yes {
-		return
-	}
-
-	hosts, found := configMap.Data["nginx-hosts"]
-	if found {
-		newHosts := s.parseHosts(hosts)
-		s.updateHosts(newHosts)
-	} else {
-		logrus.Warnf("Settings::handleUpdateEvent: nginx-hosts key not found in ConfigMap")
-	}
-
-	tlsMode, err := validateTLSMode(configMap)
-	if err != nil {
-		// NOTE: the TLSMode defaults to NoTLS on startup, or the last known good value if previously set.
-		logrus.Errorf(
-			"Error with configured TLS Mode. TLS Mode has NOT been changed. The current mode is: '%v'. Error: %v. ",
-			s.TLSMode, err,
-		)
-	} else {
-		s.TLSMode = tlsMode
-	}
-
-	caCertificateSecretKey, found := configMap.Data["ca-certificate"]
-	if found {
-		s.Certificates.CaCertificateSecretKey = caCertificateSecretKey
-		logrus.Debugf("Settings::handleUpdateEvent: ca-certificate: %s", s.Certificates.CaCertificateSecretKey)
-	} else {
-		s.Certificates.CaCertificateSecretKey = ""
-		logrus.Warnf("Settings::handleUpdateEvent: ca-certificate key not found in ConfigMap")
-	}
-
-	clientCertificateSecretKey, found := configMap.Data["client-certificate"]
-	if found {
-		s.Certificates.ClientCertificateSecretKey = clientCertificateSecretKey
-		logrus.Debugf("Settings::handleUpdateEvent: client-certificate: %s", s.Certificates.ClientCertificateSecretKey)
-	} else {
-		s.Certificates.ClientCertificateSecretKey = ""
-		logrus.Warnf("Settings::handleUpdateEvent: client-certificate key not found in ConfigMap")
-	}
-
-	if serviceAnnotation, found := configMap.Data[ServiceAnnotationMatchKey]; found {
-		s.Watcher.ServiceAnnotation = serviceAnnotation
-	} else {
-		s.Watcher.ServiceAnnotation = DefaultServiceAnnotation
-	}
-	logrus.Debugf("Settings::handleUpdateEvent: %s: %s", ServiceAnnotationMatchKey, s.Watcher.ServiceAnnotation)
-
-	setLogLevel(configMap.Data["log-level"])
-
-	logrus.Debugf("Settings::handleUpdateEvent: \n\tHosts: %v,\n\tSettings: %v ", s.NginxPlusHosts, configMap)
-}
-
-func validateTLSMode(configMap *corev1.ConfigMap) (TLSMode, error) {
-	tlsConfigMode, tlsConfigModeFound := configMap.Data["tls-mode"]
-	if !tlsConfigModeFound {
-		return NoTLS, fmt.Errorf(`tls-mode key not found in ConfigMap`)
-	}
-
+func validateTLSMode(tlsConfigMode string) (TLSMode, error) {
 	if tlsMode, tlsModeFound := TLSModeMap[tlsConfigMode]; tlsModeFound {
 		return tlsMode, nil
 	}
 
 	return NoTLS, fmt.Errorf(`invalid tls-mode value: %s`, tlsConfigMode)
-}
-
-func (s *Settings) parseHosts(hosts string) []string {
-	return strings.Split(hosts, ",")
-}
-
-func (s *Settings) updateHosts(hosts []string) {
-	s.NginxPlusHosts = hosts
-}
-
-func isOurConfig(obj interface{}) (*corev1.ConfigMap, bool) {
-	configMap, ok := obj.(*corev1.ConfigMap)
-	return configMap, ok && configMap.Name == ConfigMapName && configMap.Namespace == ConfigMapsNamespace
-}
-
-func setLogLevel(logLevel string) {
-	logrus.Debugf("Settings::setLogLevel: %s", logLevel)
-	switch logLevel {
-	case "panic":
-		logrus.SetLevel(logrus.PanicLevel)
-
-	case "fatal":
-		logrus.SetLevel(logrus.FatalLevel)
-
-	case "error":
-		logrus.SetLevel(logrus.ErrorLevel)
-
-	case "warn":
-		logrus.SetLevel(logrus.WarnLevel)
-
-	case "info":
-		logrus.SetLevel(logrus.InfoLevel)
-
-	case "debug":
-		logrus.SetLevel(logrus.DebugLevel)
-
-	case "trace":
-		logrus.SetLevel(logrus.TraceLevel)
-
-	default:
-		logrus.SetLevel(logrus.WarnLevel)
-	}
 }

@@ -20,9 +20,8 @@ const (
 
 func TestTlsFactory_UnspecifiedModeDefaultsToNoTls(t *testing.T) {
 	t.Parallel()
-	settings := configuration.Settings{}
 
-	tlsConfig, err := NewTLSConfig(&settings)
+	tlsConfig, err := NewTLSConfig(configuration.Settings{})
 	if err != nil {
 		t.Fatalf(`Unexpected error: %v`, err)
 	}
@@ -50,7 +49,7 @@ func TestTlsFactory_SelfSignedTlsMode(t *testing.T) {
 		},
 	}
 
-	tlsConfig, err := NewTLSConfig(&settings)
+	tlsConfig, err := NewTLSConfig(settings)
 	if err != nil {
 		t.Fatalf(`Unexpected error: %v`, err)
 	}
@@ -84,7 +83,7 @@ func TestTlsFactory_SelfSignedTlsModeCertPoolError(t *testing.T) {
 		},
 	}
 
-	_, err := NewTLSConfig(&settings)
+	_, err := NewTLSConfig(settings)
 	if err == nil {
 		t.Fatalf(`Expected an error`)
 	}
@@ -108,7 +107,7 @@ func TestTlsFactory_SelfSignedTlsModeCertPoolCertificateParseError(t *testing.T)
 		},
 	}
 
-	_, err := NewTLSConfig(&settings)
+	_, err := NewTLSConfig(settings)
 	if err == nil {
 		t.Fatalf(`Expected an error`)
 	}
@@ -133,7 +132,7 @@ func TestTlsFactory_SelfSignedMtlsMode(t *testing.T) {
 		},
 	}
 
-	tlsConfig, err := NewTLSConfig(&settings)
+	tlsConfig, err := NewTLSConfig(settings)
 	if err != nil {
 		t.Fatalf(`Unexpected error: %v`, err)
 	}
@@ -168,7 +167,7 @@ func TestTlsFactory_SelfSignedMtlsModeCertPoolError(t *testing.T) {
 		},
 	}
 
-	_, err := NewTLSConfig(&settings)
+	_, err := NewTLSConfig(settings)
 	if err == nil {
 		t.Fatalf(`Expected an error`)
 	}
@@ -193,7 +192,7 @@ func TestTlsFactory_SelfSignedMtlsModeClientCertificateError(t *testing.T) {
 		},
 	}
 
-	_, err := NewTLSConfig(&settings)
+	_, err := NewTLSConfig(settings)
 	if err == nil {
 		t.Fatalf(`Expected an error`)
 	}
@@ -209,7 +208,7 @@ func TestTlsFactory_CaTlsMode(t *testing.T) {
 		TLSMode: configuration.CertificateAuthorityTLS,
 	}
 
-	tlsConfig, err := NewTLSConfig(&settings)
+	tlsConfig, err := NewTLSConfig(settings)
 	if err != nil {
 		t.Fatalf(`Unexpected error: %v`, err)
 	}
@@ -245,7 +244,7 @@ func TestTlsFactory_CaMtlsMode(t *testing.T) {
 		},
 	}
 
-	tlsConfig, err := NewTLSConfig(&settings)
+	tlsConfig, err := NewTLSConfig(settings)
 	if err != nil {
 		t.Fatalf(`Unexpected error: %v`, err)
 	}
@@ -280,7 +279,7 @@ func TestTlsFactory_CaMtlsModeClientCertificateError(t *testing.T) {
 		},
 	}
 
-	_, err := NewTLSConfig(&settings)
+	_, err := NewTLSConfig(settings)
 	if err == nil {
 		t.Fatalf(`Expected an error`)
 	}

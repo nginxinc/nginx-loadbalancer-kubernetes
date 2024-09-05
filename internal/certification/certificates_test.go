@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
@@ -94,9 +95,7 @@ func TestCertificates_ExerciseHandlers(t *testing.T) {
 	//nolint:govet,staticcheck
 	go func() {
 		err := certificates.Run()
-		if err != nil {
-			t.Fatalf("error running Certificates: %v", err)
-		}
+		assert.NoError(t, err, "expected no error running certificates")
 	}()
 
 	cache.WaitForCacheSync(ctx.Done(), certificates.informer.HasSynced)

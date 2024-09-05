@@ -39,12 +39,12 @@ type Interface interface {
 // See application/border_client.go and application/application_constants.go for details.
 type Synchronizer struct {
 	eventQueue workqueue.RateLimitingInterface
-	settings   *configuration.Settings
+	settings   configuration.Settings
 }
 
 // NewSynchronizer creates a new Synchronizer.
 func NewSynchronizer(
-	settings *configuration.Settings,
+	settings configuration.Settings,
 	eventQueue workqueue.RateLimitingInterface,
 ) (*Synchronizer, error) {
 	synchronizer := Synchronizer{

@@ -35,17 +35,12 @@ func run() error {
 		return fmt.Errorf(`error building a Kubernetes client: %w`, err)
 	}
 
-	settings, err := configuration.NewSettings(ctx, k8sClient)
+	settings, err := configuration.Read("config.yaml", "/etc/nginxaas-operator")
 	if err != nil {
-		return fmt.Errorf(`error occurred creating settings: %w`, err)
+		return fmt.Errorf(`error occurred accessing configuration: %w`, err)
 	}
 
-	err = settings.Initialize()
-	if err != nil {
-		return fmt.Errorf(`error occurred initializing settings: %w`, err)
-	}
-
-	go settings.Run()
+	setLogLevel(settings.LogLevel)
 
 	synchronizerWorkqueue := buildWorkQueue(settings.Synchronizer.WorkQueueSettings)
 
@@ -58,12 +53,12 @@ func run() error {
 
 	handler := observation.NewHandler(settings, synchronizer, handlerWorkqueue)
 
-	watcher, err := observation.NewWatcher(settings, handler)
+	watcher, err := observation.NewWatcher(settings, handler, k8sClient)
 	if err != nil {
 		return fmt.Errorf(`error occurred creating a watcher: %w`, err)
 	}
 
-	err = watcher.Initialize()
+	err = watcher.Initialize(ctx)
 	if err != nil {
 		return fmt.Errorf(`error occurred initializing the watcher: %w`, err)
 	}
@@ -74,13 +69,42 @@ func run() error {
 	probeServer := probation.NewHealthServer()
 	probeServer.Start()
 
-	err = watcher.Watch()
+	err = watcher.Watch(ctx)
 	if err != nil {
 		return fmt.Errorf(`error occurred watching for events: %w`, err)
 	}
 
 	<-ctx.Done()
 	return nil
+}
+
+func setLogLevel(logLevel string) {
+	logrus.Debugf("Settings::setLogLevel: %s", logLevel)
+	switch logLevel {
+	case "panic":
+		logrus.SetLevel(logrus.PanicLevel)
+
+	case "fatal":
+		logrus.SetLevel(logrus.FatalLevel)
+
+	case "error":
+		logrus.SetLevel(logrus.ErrorLevel)
+
+	case "warn":
+		logrus.SetLevel(logrus.WarnLevel)
+
+	case "info":
+		logrus.SetLevel(logrus.InfoLevel)
+
+	case "debug":
+		logrus.SetLevel(logrus.DebugLevel)
+
+	case "trace":
+		logrus.SetLevel(logrus.TraceLevel)
+
+	default:
+		logrus.SetLevel(logrus.WarnLevel)
+	}
 }
 
 func buildKubernetesClient() (*kubernetes.Clientset, error) {

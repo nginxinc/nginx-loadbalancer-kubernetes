@@ -18,7 +18,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func NewTLSConfig(settings *configuration.Settings) (*tls.Config, error) {
+func NewTLSConfig(settings configuration.Settings) (*tls.Config, error) {
 	logrus.Debugf("authentication::NewTLSConfig Creating TLS config for mode: '%s'", settings.TLSMode)
 	switch settings.TLSMode {
 

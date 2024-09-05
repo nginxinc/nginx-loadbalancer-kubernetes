@@ -7,20 +7,17 @@ package communication
 
 import (
 	"bytes"
-	"context"
 	netHttp "net/http"
 	"testing"
 
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
-	"k8s.io/client-go/kubernetes/fake"
 )
 
 func TestNewRoundTripper(t *testing.T) {
 	t.Parallel()
-	k8sClient := fake.NewSimpleClientset()
-	settings, _ := configuration.NewSettings(context.Background(), k8sClient)
+
 	headers := NewHeaders("fakeKey")
-	transport := NewTransport(NewTLSConfig(settings))
+	transport := NewTransport(NewTLSConfig(defaultSettings()))
 	roundTripper := NewRoundTripper(headers, transport)
 
 	if roundTripper == nil {
@@ -54,13 +51,9 @@ func TestNewRoundTripper(t *testing.T) {
 
 func TestRoundTripperRoundTrip(t *testing.T) {
 	t.Parallel()
-	k8sClient := fake.NewSimpleClientset()
-	settings, err := configuration.NewSettings(context.Background(), k8sClient)
-	if err != nil {
-		t.Fatalf(`Unexpected error: %v`, err)
-	}
+
 	headers := NewHeaders("fakeKey")
-	transport := NewTransport(NewTLSConfig(settings))
+	transport := NewTransport(NewTLSConfig(defaultSettings()))
 	roundTripper := NewRoundTripper(headers, transport)
 
 	request, err := NewRequest("GET", "http://example.com", nil)
@@ -94,4 +87,10 @@ func NewRequest(method string, url string, body []byte) (*netHttp.Request, error
 	}
 
 	return request, nil
+}
+
+func defaultSettings() configuration.Settings {
+	return configuration.Settings{
+		TLSMode: configuration.NoTLS,
+	}
 }
