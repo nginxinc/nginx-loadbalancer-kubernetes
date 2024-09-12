@@ -1,1 +1,1 @@
-export VERSION="1.$(date +"%Y%m%d").${CI_PIPELINE_ID:-0}"
+export VERSION="0.$(date +"%Y%m%d").${CI_PIPELINE_ID:-0}"
