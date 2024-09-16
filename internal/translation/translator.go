@@ -79,15 +79,14 @@ func buildUpstreamServers(nodeIPs []string, port v1.ServicePort) core.UpstreamSe
 // getContextAndUpstreamName returns the nginx context being supplied by the port (either "http" or "stream")
 // and the upstream name.
 func getContextAndUpstreamName(port v1.ServicePort) (clientType string, appName string, err error) {
-	parts := strings.Split(port.Name, "-")
-	if len(parts) != 2 {
+	context, upstreamName, found := strings.Cut(port.Name, "-")
+	switch {
+	case !found:
 		return clientType, appName,
 			fmt.Errorf("ignoring port %s because it is not in the format [http|stream]-{upstreamName}", port.Name)
-	}
-
-	if parts[0] != "http" && parts[0] != "stream" {
+	case context != "http" && context != "stream":
 		return clientType, appName, fmt.Errorf("port name %s does not include \"http\" or \"stream\" context", port.Name)
+	default:
+		return context, upstreamName, nil
 	}
-
-	return parts[0], parts[1], nil
 }
