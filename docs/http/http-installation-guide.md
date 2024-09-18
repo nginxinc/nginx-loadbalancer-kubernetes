@@ -39,60 +39,6 @@ This Solution provides a replacement, using an NGINX Server, and a new K8s Contr
 
 1. Install NGINX Ingress Controller in your Cluster
 2. Install NGINX Cafe Demo Application in your Cluster
-3. Install NGINX Plus on the Loadbalancer Server(s) 
-4. Configure NGINX Plus for HTTP MultiCluster Load Balancing
-5. Install NLK NGINX Loadbalancer for Kubernetes Loadbalancing Controller in your Cluster
-6. Install NLK LoadBalancer or NodePort Service manifest
-7. Test out NLK
-8. Test MultiCluster Load Balancing Solution
-9. Optional - Monitor traffic with Prometheus / Grafana
-
-<br/>
-
-### Pre-Requisites
-
-1. Working kubernetes clusters, with admin privleges
-   
-2. Running `nginx-ingress controller`, either OSS or Plus. This install guide followed the instructions for deploying an NGINX Ingress Controller here:  https://docs.nginx.com/nginx-ingress-controller/installation/installation-with-manifests/
-   
-3. Demo application, this install guide uses the NGINX Cafe example, found here:  https://github.com/nginxinc/kubernetes-ingress/tree/main/examples/ingress-resources/complete-example
-   
-4. A bare metal Linux server or VM for the external NGINX Loadbalancing Server, connected to a network external to the cluster.  Two of these will be required if High Availability is needed, as shown here.
-   
-5. NGINX Plus software loaded on the Loadbalancing Server(s). This install guide follows the instructions for installing NGINX Plus on Centos 7, located here: https://docs.nginx.com/nginx/admin-guide/installing-nginx/installing-nginx-plus/
-   
-6. The NGINX Loadbalancer for Kubernetes (NLK) Controller, new software from NGINX for this Solution.
-
-<br/>
-
-### Kubernetes Clusters
-
-<br/>
-
-### This Solution from NGINX provides Enterprise class features which address common challenges with networking, traffic management, and High Availability for On-Premises Kubernetes Clusters.
-
-<br/>
-
-1. Provides a `replacement Loadbalancer Service.`  The Loadbalancer Service is a key component provided by most Cloud Providers.  However, when running a K8s Cluster On Premises, the `Loadbalancer Service is not available.`  
-This Solution provides a replacement, using an NGINX Server, and a new K8s Controller from NGINX.  These two components work together to watch the `nginx-ingress Service` in the cluster, and immediately update the NGINX Loadbalancing Server when changes occur.  
-
-2. Provides `MultiCluster Load Balancing`, traffic steering, health checks, TLS termination, advanced Loadbalancing algorithms, and enhanced metrics.
-   
-3. Provides dynamic, ratio-based Load Balancing for Multiple Clusters. This allows for advanced traffic steering, and operation efficiency with no Reloads or downtime.
-   - MultiCluster Active/Active Load Balancing
-   - Horizontal Cluster Scaling
-   - HTTP Split Clients - for A/B, Blue/Green, and Canary test and production traffic steering.  Allows Cluster operations/maintainence like upgrades, patching, expansion and troubleshooting
-   - NGINX Zone Sync of KeyVal data
-   - Advanced TLS Processing - MutualTLS, OCSP, FIPS, dynamic cert loading
-   - Advanced Security features - App Protect WAF Firewall, Oauth, JWT, Dynamic Rate and Bandwidth limits, GeoIP, IP block/allow lists
-   - NGINX Java Script (NJS) for custom solutions
-
-<br/>
-
-## Installation Steps
-
-1. Install NGINX Ingress Controller in your Cluster
-2. Install NGINX Cafe Demo Application in your Cluster
 3. Install NGINX Plus on the Loadbalancing Server(s) 
 4. Configure NGINX Plus for HTTP MultiCluster Load Balancing
 5. Install NLK NGINX Loadbalancer for Kubernetes Controller in your Clusters
@@ -117,6 +63,8 @@ This Solution provides a replacement, using an NGINX Server, and a new K8s Contr
    
 6. The `NGINX Loadbalancer for Kubernetes (NLK) Controller`, new software from NGINX for this Solution.
 
+7. Optional - additional Docker Host to run the Prometheus and Grafana Servers containers.
+
 <br/>
 
 ### Kubernetes Clusters
@@ -127,7 +75,7 @@ This Solution provides a replacement, using an NGINX Server, and a new K8s Contr
 
 <br/>
 
-A standard K8s cluster is all that is required, two or more Clusters if you want the `Active/Active MultiCluster Load Balancing Solution` using HTTP Split Clients.  There must be enough resources available to run the NGINX Ingress Controller, and the NGINX Loadbalancer for Kubernetes Controller, and test application like the Cafe Demo.  You must have administrative access to be able to create the namespace, services, and deployments for this Solution.  This Solution was tested on Kubernetes version 1.23.
+A standard K8s cluster is all that is required, two or more Clusters if you want the `Active/Active MultiCluster Load Balancing Solution` using HTTP Split Clients.  There must be enough resources available to run the NGINX Ingress Controller, and the NGINX Loadbalancer for Kubernetes Controller, and a test application like the Cafe Demo.  You must have administrative access to be able to create the namespace, services, and deployments for this Solution.  This Solution was tested on Kubernetes version 1.23.
 
 <br/>
 
@@ -262,9 +210,10 @@ Nginx Config Files
 etc/
 └── nginx/
     ├── conf.d/
-    │   ├── clusters.conf.......... MultiCluster Loadbalancing and split clients config
-    │   ├── dashboard.conf......... NGINX Plus API and Dashboard config
-    │   └── prometheus.conf........ NGINX Prometheus config
+        ├── clusters.conf.......... MultiCluster Loadbalancing and split clients config
+        ├── dashboard.conf......... NGINX Plus API and Dashboard config
+        ├── prometheus.conf........ NGINX Prometheus config
+        ├── single-cluster.conf.... NGINX config for just one cluster
     ├── nginx.conf................. New nginx.conf
     └── stream
         └── zonesync.conf.......... NGINX Zone Sync config 
