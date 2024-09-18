@@ -537,13 +537,13 @@ After a new installation of NGINX Plus, make the following configuration changes
     kubectl create namespace nlk
     ```
 
-1. Apply the manifests for NLK's Secret, Service, ClusterRole, and ClusterRoleBinding:
+1. Change to the `/rbac` folder, and apply the manifests for NLK's Secret, ServiceAccount, ClusterRole, and ClusterRoleBinding:
 
     ```bash
     kubectl apply -f secret.yaml serviceaccount.yaml clusterrole.yaml clusterrolebinding.yaml
     ```
 
-1. Modify the ConfigMap manifest to match your NGINX Loadbalancing Server(s). Change the `nginx-hosts` IP address to match your NGINX Loadbalancing Server IP.  If you have 2 or more Loadbalancing Servers, separate them with a comma.  Important! - keep the port number for the Plus API endpoint, and the `/api` URL as shown.
+1. Change to the `/deployment` folder.  Modify the ConfigMap manifest to match your NGINX Loadbalancing Server(s). Change the `nginx-hosts` IP address to match your NGINX Loadbalancing Server IP.  If you have 2 or more Loadbalancing Servers, separate them with a comma.  Important! - keep the port number for the Plus API endpoint, and the `/api` URL as shown.  Change the log-level to `info` to see more log details about the NLK API calls.
 
     ```yaml
     apiVersion: v1
@@ -551,6 +551,10 @@ After a new installation of NGINX Plus, make the following configuration changes
     data:
       nginx-hosts:
         "http://10.1.1.4:9000/api,http://10.1.1.5:9000/api" # change IP(s) to match NGINX Loadbalancing Server(s)
+      tls-mode: "no-tls"
+      ca-certificate: ""
+      client-certificate: ""
+      log-level: "info"
     metadata:
       name: nlk-config
       namespace: nlk
@@ -559,13 +563,13 @@ After a new installation of NGINX Plus, make the following configuration changes
 1. Apply the updated ConfigMap:
 
     ```bash
-    kubectl apply -f nlk-configmap.yaml
+    kubectl apply -f configmap.yaml
     ```
 
 1. Deploy the NLK Controller:
 
     ```bash
-    kubectl apply -f nlk-deployment.yaml
+    kubectl apply -f deployment.yaml
     ```
 
 1. Check to see if the NLK Controller is running, with the updated ConfigMap:
