@@ -1,5 +1,5 @@
 nlk:
-  name: nginx-loadbalancer-kubernetes
+  name: nginxaas-operator
 
   kind: deployment
 
