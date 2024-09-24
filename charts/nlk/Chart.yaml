@@ -2,7 +2,7 @@
 apiVersion: v2
 appVersion: 0.1.0
 description: NGINX LoadBalancer for Kubernetes
-name: nginx-loadbalancer-kubernetes
+name: nginxaas-operator
 home: https://github.com/nginxinc/nginx-loadbalancer-kubernetes
 icon: https://raw.githubusercontent.com/nginxinc/nginx-loadbalancer-kubernetes/main/nlk-logo.svg
 keywords:
