@@ -88,4 +88,4 @@ results
 
 .go-build
 
-nginx-loadbalancer-kubernetes-*
+nginxaas-operator-*
