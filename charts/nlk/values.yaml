@@ -4,18 +4,18 @@ nlk:
   kind: deployment
 
   replicaCount: 1
-  
+
   image:
-    registry: ghcr.io
-    repository: nginxinc/nginx-loadbalancer-kubernetes
+    registry: registry-1.docker.io
+    repository: nginx/nginxaas-operator
     pullPolicy: Always
     # Overrides the image tag whose default is the chart appVersion.
-    tag: latest
-  
+    tag: release-0.1.0
+
   imagePullSecrets: []
   nameOverride: ""
   fullnameOverride: ""
-  
+
   serviceAccount:
     # Specifies whether a service account should be created
     create: true
@@ -23,13 +23,13 @@ nlk:
     automount: true
     # Annotations to add to the service account
     annotations: {}
-  
+
   podAnnotations: {}
   podLabels: {}
-  
+
   podSecurityContext: {}
     # fsGroup: 2000
-  
+
   securityContext: {}
     # capabilities:
     #   drop:
@@ -37,11 +37,11 @@ nlk:
     # readOnlyRootFilesystem: true
     # runAsNonRoot: true
     # runAsUser: 1000
-  
+
   service:
     type: ClusterIP
     port: 80
-  
+
   ingress:
     enabled: false
     className: ""
@@ -57,7 +57,7 @@ nlk:
     #  - secretName: chart-example-tls
     #    hosts:
     #      - chart-example.local
-  
+
   resources:
     requests:
       cpu: 100m
@@ -65,31 +65,31 @@ nlk:
   # limits:
   #   cpu: 100m
   #   memory: 128Mi
-  
+
   autoscaling:
     enabled: false
     minReplicas: 1
     maxReplicas: 3
     targetCPUUtilizationPercentage: 80
     # targetMemoryUtilizationPercentage: 80
-  
+
   # Additional volumes on the output Deployment definition.
   volumes: []
   # - name: foo
   #   secret:
   #     secretName: mysecret
   #     optional: false
-  
+
   # Additional volumeMounts on the output Deployment definition.
   volumeMounts: []
   # - name: foo
   #   mountPath: "/etc/foo"
   #   readOnly: true
-  
+
   nodeSelector: {}
-  
+
   tolerations: []
-  
+
   affinity: {}
 
   config:
