@@ -45,4 +45,11 @@ spec:
             initialDelaySeconds: {{ .Values.nlk.readyStatus.initialDelaySeconds }}
             periodSeconds: {{ .Values.nlk.readyStatus.periodSeconds }}
 {{- end }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/nginxaas-operator
       serviceAccountName: {{ include "nlk.fullname" . }}
+      volumes:
+        - name: config
+          configMap:
+            name: nlk-config
