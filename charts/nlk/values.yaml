@@ -79,6 +79,8 @@ nlk:
     ca-certificate: ""
     client-certificate: ""
 
+  dataplaneApiKey: ""
+
   logLevel: "warn"
 
   containerPort:

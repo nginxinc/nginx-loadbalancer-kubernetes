@@ -45,6 +45,12 @@ spec:
             initialDelaySeconds: {{ .Values.nlk.readyStatus.initialDelaySeconds }}
             periodSeconds: {{ .Values.nlk.readyStatus.periodSeconds }}
 {{- end }}
+          env:
+            - name: NGINXAAS_DATAPLANE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include nlk.apikeyname . }}
+                  key: nginxaasApiKey
           volumeMounts:
             - name: config
               mountPath: /etc/nginxaas-operator
