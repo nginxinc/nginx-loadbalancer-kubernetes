@@ -7,8 +7,8 @@ home: https://github.com/nginxinc/nginx-loadbalancer-kubernetes
 icon: https://raw.githubusercontent.com/nginxinc/nginx-loadbalancer-kubernetes/main/nlk-logo.svg
 keywords:
 - nginx
+- nginxaas
 - loadbalancer
-- ingress
 kubeVersion: '>= 1.22.0-0'
 maintainers:
 - name: "@ciroque"
