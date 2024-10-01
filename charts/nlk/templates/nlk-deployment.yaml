@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "nlk.fullname" . }}
-  namespace: nlk
+  namespace: {{ .Release.Namespace }}
   labels:
     app: nlk
 spec:

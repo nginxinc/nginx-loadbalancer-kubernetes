@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: nlk-config
-  namespace: nlk
+  namespace: {{ .Release.Namespace }}
 data:
   config.yaml: |
 {{- if .Values.nlk.config.entries.hosts }}

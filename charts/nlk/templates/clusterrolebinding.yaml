@@ -6,7 +6,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: {{ include "nlk.fullname" . }}
-  namespace: nlk
+  namespace: {{ .Release.Namespace }}
 roleRef:
   kind: ClusterRole
   name: {{ .Release.Namespace }}-{{ include "nlk.fullname" . }}
