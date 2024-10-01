@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {{ include nlk.apikeyname . }}
+  name: {{ include "nlk.apikeyname" . }}
   namespace: {{ .Release.Namespace }}
 type: Opaque
 data:
