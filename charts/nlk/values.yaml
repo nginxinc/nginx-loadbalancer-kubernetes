@@ -9,35 +9,37 @@ nlk:
     registry: registry-1.docker.io
     repository: nginx/nginxaas-loadbalancer-kubernetes
     pullPolicy: Always
-    # Overrides the image tag whose default is the chart appVersion.
-    tag: 0.3.0
+    ## Overrides the image tag whose default is the chart appVersion.
+    tag: 0.4.0
 
   imagePullSecrets: []
   nameOverride: ""
   fullnameOverride: ""
 
   serviceAccount:
-    # Specifies whether a service account should be created
+    ## Specifies whether a service account should be created
     create: true
-    # Automatically mount a ServiceAccount's API credentials?
+    ## Automatically mount a ServiceAccount's API credentials?
     automount: true
-    # Annotations to add to the service account
+    ## Annotations to add to the service account
     annotations: {}
 
   config:
-    entries:
-      hosts:
-        ""
+    ## trace,debug,info,warn,error,fatal,panic
+    # logLevel: "warn"
 
-  defaultTLS:
-    tls-mode: "no-tls"
-    ca-certificate: ""
-    client-certificate: ""
+    ## the nginx hosts (comma-separated) to send upstream updates to
+    nginxHosts: ""
 
-  # Override with your own NGINXaaS dataplane API Key.
+    ## Sets the annotation value that NLK is looking for to watch a Service
+    # serviceAnnotationMatch: nginxaas
+
+    tls:
+      ## can also be set to "no-tls" to disable server cert verification
+      mode: "ca-tls"
+
+  ## Override with your own NGINXaaS dataplane API Key.
   dataplaneApiKey: "test"
-
-  logLevel: "warn"
 
   containerPort:
     http: 51031
