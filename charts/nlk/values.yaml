@@ -34,7 +34,8 @@ nlk:
     ca-certificate: ""
     client-certificate: ""
 
-  dataplaneApiKey: ""
+  # Override with your own NGINXaaS dataplane API Key.
+  dataplaneApiKey: "test"
 
   logLevel: "warn"
 
