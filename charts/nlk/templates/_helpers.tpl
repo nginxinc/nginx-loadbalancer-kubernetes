@@ -80,11 +80,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Expand the name of the configmap.
 */}}
 {{- define "nlk.configName" -}}
-{{- if .Values.nlk.customConfigMap -}}
-{{ .Values.nlk.customConfigMap }}
-{{- else -}}
-{{- default (include "nlk.fullname" .) .Values.nlk.config.name -}}
-{{- end -}}
+{{- printf "%s-nlk-config" (include "nlk.fullname" .) | trunc 63 | trimSuffix "-" }}
 {{- end -}}
 
 {{/*
