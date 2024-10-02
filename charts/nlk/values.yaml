@@ -1,5 +1,5 @@
 nlk:
-  name: nginxaas-operator
+  name: nginxaas-loadbalancer-kubernetes
 
   kind: deployment
 
@@ -7,7 +7,7 @@ nlk:
 
   image:
     registry: registry-1.docker.io
-    repository: nginx/nginxaas-operator
+    repository: nginx/nginxaas-loadbalancer-kubernetes
     pullPolicy: Always
     # Overrides the image tag whose default is the chart appVersion.
     tag: release-0.1.0

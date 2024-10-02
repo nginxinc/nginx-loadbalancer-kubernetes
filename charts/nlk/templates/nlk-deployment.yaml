@@ -53,7 +53,7 @@ spec:
                   key: nginxaasApiKey
           volumeMounts:
             - name: config
-              mountPath: /etc/nginxaas-operator
+              mountPath: /etc/nginxaas-loadbalancer-kubernetes
       serviceAccountName: {{ include "nlk.fullname" . }}
       volumes:
         - name: config

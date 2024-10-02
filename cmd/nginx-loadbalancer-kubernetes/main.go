@@ -35,7 +35,7 @@ func run() error {
 		return fmt.Errorf(`error building a Kubernetes client: %w`, err)
 	}
 
-	settings, err := configuration.Read("config.yaml", "/etc/nginxaas-operator")
+	settings, err := configuration.Read("config.yaml", "/etc/nginxaas-loadbalancer-kubernetes")
 	if err != nil {
 		return fmt.Errorf(`error occurred accessing configuration: %w`, err)
 	}

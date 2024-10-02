@@ -2,7 +2,7 @@
 apiVersion: v2
 appVersion: 0.1.0
 description: NGINXaaS LoadBalancer for Kubernetes
-name: nginxaas-operator
+name: nginxaas-loadbalancer-kubernetes
 keywords:
 - nginx
 - nginxaas
