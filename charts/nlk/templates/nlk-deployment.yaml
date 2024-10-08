@@ -14,6 +14,8 @@ spec:
     metadata:
       labels:
         app: nlk
+      annotations:
+        checksum: {{ tpl (toYaml .Values.nlk) . | sha256sum }}
     spec:
       {{- with .Values.nlk.imagePullSecrets }}
       imagePullSecrets:
