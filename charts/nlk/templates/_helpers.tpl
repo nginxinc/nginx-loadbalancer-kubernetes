@@ -103,7 +103,7 @@ Expand image name.
 */}}
 {{- define "nlk.image" -}}
 {{- if .Values.global.azure -}}
-{{- printf "%s/%s:%s" .Values.global.azure.images.nlk.registry .Values.global.azure.images.nlk.repository (include "nlk.tag" .) -}}
+{{- printf "%s/%s:%s" .Values.global.azure.images.nlk.registry .Values.global.azure.images.nlk.image (include "nlk.tag" .) -}}
 {{- else if .Values.nlk.image.digest -}}
 {{- printf "%s/%s@%s" .Values.nlk.image.registry .Values.nlk.image.repository .Values.nlk.image.digest -}}
 {{- else -}}

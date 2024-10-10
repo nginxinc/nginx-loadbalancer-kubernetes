@@ -6,7 +6,7 @@ global:
     # images:
     #   nlk:
     #     registry: registry-1.docker.io
-    #     repository: nginx/nginxaas-loadbalancer-kubernetes
+    #     image: nginx/nginxaas-loadbalancer-kubernetes
     #     tag: 0.4.0
 #####################################
 nlk:
