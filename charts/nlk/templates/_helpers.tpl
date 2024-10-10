@@ -91,14 +91,20 @@ Expand service account name.
 {{- end -}}
 
 {{- define "nlk.tag" -}}
+{{- if .Values.global.azure -}}
+{{- printf "%s" .Values.global.azure.images.nlk.tag -}}
+{{- else -}}
 {{- default .Chart.AppVersion .Values.nlk.image.tag -}}
+{{- end -}}
 {{- end -}}
 
 {{/*
 Expand image name.
 */}}
 {{- define "nlk.image" -}}
-{{- if .Values.nlk.image.digest -}}
+{{- if .Values.global.azure -}}
+{{- printf "%s/%s:%s" .Values.global.azure.images.nlk.registry .Values.global.azure.images.nlk.repository (include "nlk.tag" .) -}}
+{{- else if .Values.nlk.image.digest -}}
 {{- printf "%s/%s@%s" .Values.nlk.image.registry .Values.nlk.image.repository .Values.nlk.image.digest -}}
 {{- else -}}
 {{- printf "%s/%s:%s" .Values.nlk.image.registry .Values.nlk.image.repository (include "nlk.tag" .) -}}

@@ -14,6 +14,9 @@ spec:
     metadata:
       labels:
         app: nlk
+{{- if .Values.global.azure }}
+        azure-extensions-usage-release-identifier: {{ .Release.Name }}
+{{- end }}
       annotations:
         checksum: {{ tpl (toYaml .Values.nlk) . | sha256sum }}
     spec:

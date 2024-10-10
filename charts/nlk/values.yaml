@@ -1,21 +1,27 @@
+#####################################
+# Global Azure Marketplace configuration for AKS integration.
+# DO NOT REMOVE
+global:
+  azure:
+    # images:
+    #   nlk:
+    #     registry: registry-1.docker.io
+    #     repository: nginx/nginxaas-loadbalancer-kubernetes
+    #     tag: 0.4.0
+#####################################
 nlk:
   name: nginxaas-loadbalancer-kubernetes
-
   kind: deployment
-
   replicaCount: 1
-
   image:
     registry: registry-1.docker.io
     repository: nginx/nginxaas-loadbalancer-kubernetes
     pullPolicy: Always
     ## Overrides the image tag whose default is the chart appVersion.
     tag: 0.4.0
-
   imagePullSecrets: []
   nameOverride: ""
   fullnameOverride: ""
-
   serviceAccount:
     ## Specifies whether a service account should be created
     create: true
@@ -23,39 +29,31 @@ nlk:
     automount: true
     ## Annotations to add to the service account
     annotations: {}
-
   config:
     ## trace,debug,info,warn,error,fatal,panic
     # logLevel: "warn"
 
     ## the nginx hosts (comma-separated) to send upstream updates to
     nginxHosts: ""
-
     ## Sets the annotation value that NLK is looking for to watch a Service
     # serviceAnnotationMatch: nginxaas
-
     tls:
       ## can also be set to "no-tls" to disable server cert verification
       mode: "ca-tls"
-
   ## Override with your own NGINXaaS dataplane API Key.
   dataplaneApiKey: "test"
-
   containerPort:
     http: 51031
-
   liveStatus:
     enable: true
     port: 51031
     initialDelaySeconds: 5
     periodSeconds: 2
-
   readyStatus:
     enable: true
     port: 51031
     initialDelaySeconds: 5
     periodSeconds: 2
-
 rbac:
   ## Configures RBAC.
   create: true
