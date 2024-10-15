@@ -212,6 +212,11 @@
 						"label": "NGINXaaS Dataplane API Key",
 						"defaultValue": "",
 						"toolTip": "The Dataplane API Key for your NGINXaaS for Azure deployment.",
+						"constraints": {
+							"required": false,
+							"regex": ".*",
+							"validationMessage": "Use the dataplane API key for your deployment."
+						},
 						"visible": true
 					},
 					{
@@ -220,6 +225,11 @@
 						"label": "NGINXaaS Dataplane API Endpoint",
 						"defaultValue": "",
 						"toolTip": "The Dataplane API Endpoint for your NGINXaaS for Azure deployment.",
+						"constraints": {
+							"required": false,
+							"regex": ".*",
+							"validationMessage": "Retreive the dataplane API endpoint from your deployment."
+						},
 						"visible": true
 					},
 					{
