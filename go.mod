@@ -10,7 +10,6 @@ toolchain go1.21.4
 
 require (
 	github.com/nginxinc/nginx-plus-go-client v1.2.2
-	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0
 	k8s.io/api v0.26.0

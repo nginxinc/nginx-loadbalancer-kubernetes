@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
+	"os"
 	"path/filepath"
 
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/certification"
-	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -15,15 +16,18 @@ import (
 )
 
 func main() {
-	logrus.SetLevel(logrus.DebugLevel)
+	handler := slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelDebug})
+	logger := slog.New(handler)
+	slog.SetDefault(logger)
 	err := run()
 	if err != nil {
-		logrus.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 }
 
 func run() error {
-	logrus.Info("certificates-test-harness::run")
+	slog.Info("certificates-test-harness::run")
 
 	ctx := context.Background()
 	var err error
@@ -47,7 +51,7 @@ func run() error {
 }
 
 func buildKubernetesClient() (*kubernetes.Clientset, error) {
-	logrus.Debug("Watcher::buildKubernetesClient")
+	slog.Debug("Watcher::buildKubernetesClient")
 
 	var kubeconfig *string
 	var k8sConfig *rest.Config

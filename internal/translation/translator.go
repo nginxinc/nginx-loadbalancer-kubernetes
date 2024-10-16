@@ -7,17 +7,17 @@ package translation
 
 import (
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
-	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 )
 
 // Translate transforms event data into an intermediate format that can be consumed by the BorderClient implementations
 // and used to update the Border Servers.
 func Translate(event *core.Event) (core.ServerUpdateEvents, error) {
-	logrus.Debug("Translate::Translate")
+	slog.Debug("Translate::Translate")
 
 	return buildServerUpdateEvents(event.Service.Spec.Ports, event)
 }
@@ -29,13 +29,13 @@ func Translate(event *core.Event) (core.ServerUpdateEvents, error) {
 // The NGINX+ Client uses a single server for Deleted events;
 // so the list of servers is broken up into individual events.
 func buildServerUpdateEvents(ports []v1.ServicePort, event *core.Event) (core.ServerUpdateEvents, error) {
-	logrus.Debugf("Translate::buildServerUpdateEvents(ports=%#v)", ports)
+	slog.Debug("Translate::buildServerUpdateEvents", "ports", ports)
 
 	events := core.ServerUpdateEvents{}
 	for _, port := range ports {
 		context, upstreamName, err := getContextAndUpstreamName(port)
 		if err != nil {
-			logrus.Info(err)
+			slog.Info(err.Error())
 			continue
 		}
 
@@ -56,7 +56,7 @@ func buildServerUpdateEvents(ports []v1.ServicePort, event *core.Event) (core.Se
 			}
 
 		default:
-			logrus.Warnf(`Translator::buildServerUpdateEvents: unknown event type: %d`, event.Type)
+			slog.Warn(`Translator::buildServerUpdateEvents: unknown event type`, "type", event.Type)
 		}
 
 	}

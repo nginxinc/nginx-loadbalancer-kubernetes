@@ -8,12 +8,12 @@ package communication
 import (
 	"crypto/tls"
 	"fmt"
+	"log/slog"
 	netHttp "net/http"
 	"time"
 
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/authentication"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
-	"github.com/sirupsen/logrus"
 )
 
 // NewHTTPClient is a factory method to create a new Http Client with a default configuration.
@@ -52,7 +52,7 @@ func NewHeaders(apiKey string) []string {
 func NewTLSConfig(settings configuration.Settings) *tls.Config {
 	tlsConfig, err := authentication.NewTLSConfig(settings)
 	if err != nil {
-		logrus.Warnf("Failed to create TLS config: %v", err)
+		slog.Warn("Failed to create TLS config", "error", err)
 		return &tls.Config{InsecureSkipVerify: true} //nolint:gosec
 	}
 

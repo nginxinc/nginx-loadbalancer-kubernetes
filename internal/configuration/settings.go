@@ -8,10 +8,10 @@ package configuration
 import (
 	"encoding/base64"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/certification"
-	"github.com/sirupsen/logrus"
 
 	"github.com/spf13/viper"
 )
@@ -146,7 +146,7 @@ func Read(configName, configPath string) (s Settings, err error) {
 
 	tlsMode := NoTLS
 	if t, err := validateTLSMode(v.GetString("tls-mode")); err != nil {
-		logrus.Errorf("could not validate tls mode: %v", err)
+		slog.Error("could not validate tls mode", "error", err)
 	} else {
 		tlsMode = t
 	}

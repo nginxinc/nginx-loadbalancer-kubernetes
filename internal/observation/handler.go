@@ -7,12 +7,12 @@ package observation
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/synchronization"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/translation"
-	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/workqueue"
 )
@@ -59,13 +59,13 @@ func NewHandler(
 
 // AddRateLimitedEvent adds an event to the event queue
 func (h *Handler) AddRateLimitedEvent(event *core.Event) {
-	logrus.Debugf(`Handler::AddRateLimitedEvent: %#v`, event)
+	slog.Debug(`Handler::AddRateLimitedEvent`, "event", event)
 	h.eventQueue.AddRateLimited(event)
 }
 
 // Run starts the event handler, spins up Goroutines to process events, and waits for a stop signal
 func (h *Handler) Run(stopCh <-chan struct{}) {
-	logrus.Debug("Handler::Run")
+	slog.Debug("Handler::Run")
 
 	for i := 0; i < h.settings.Handler.Threads; i++ {
 		go wait.Until(h.worker, 0, stopCh)
@@ -76,13 +76,13 @@ func (h *Handler) Run(stopCh <-chan struct{}) {
 
 // ShutDown stops the event handler and shuts down the event queue
 func (h *Handler) ShutDown() {
-	logrus.Debug("Handler::ShutDown")
+	slog.Debug("Handler::ShutDown")
 	h.eventQueue.ShutDown()
 }
 
 // handleEvent feeds translated events to the synchronizer
 func (h *Handler) handleEvent(e *core.Event) error {
-	logrus.Debugf(`Handler::handleEvent: %#v`, e)
+	slog.Debug("Handler::handleEvent", "event", e)
 	// TODO: Add Telemetry
 
 	events, err := translation.Translate(e)
@@ -97,9 +97,8 @@ func (h *Handler) handleEvent(e *core.Event) error {
 
 // handleNextEvent pulls an event from the event queue and feeds it to the event handler with retry logic
 func (h *Handler) handleNextEvent() bool {
-	logrus.Debug("Handler::handleNextEvent")
 	evt, quit := h.eventQueue.Get()
-	logrus.Debugf(`Handler::handleNextEvent: %#v, quit: %v`, evt, quit)
+	slog.Debug("Handler::handleNextEvent", "event", evt, "quit", quit)
 	if quit {
 		return false
 	}
@@ -121,15 +120,15 @@ func (h *Handler) worker() {
 
 // withRetry handles errors from the event handler and requeues events that fail
 func (h *Handler) withRetry(err error, event *core.Event) {
-	logrus.Debug("Handler::withRetry")
+	slog.Debug("Handler::withRetry")
 	if err != nil {
 		// TODO: Add Telemetry
 		if h.eventQueue.NumRequeues(event) < h.settings.Handler.RetryCount {
 			h.eventQueue.AddRateLimited(event)
-			logrus.Infof(`Handler::withRetry: requeued event: %#v; error: %v`, event, err)
+			slog.Info("Handler::withRetry: requeued event", "event", event, "error", err)
 		} else {
 			h.eventQueue.Forget(event)
-			logrus.Warnf(`Handler::withRetry: event %#v has been dropped due to too many retries`, event)
+			slog.Warn(`Handler::withRetry: event has been dropped due to too many retries`, "event", event)
 		}
 	} // TODO: Add error logging
 }

@@ -12,14 +12,14 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"log/slog"
 
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/certification"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
-	"github.com/sirupsen/logrus"
 )
 
 func NewTLSConfig(settings configuration.Settings) (*tls.Config, error) {
-	logrus.Debugf("authentication::NewTLSConfig Creating TLS config for mode: '%s'", settings.TLSMode)
+	slog.Debug("authentication::NewTLSConfig Creating TLS config", "mode", settings.TLSMode)
 	switch settings.TLSMode {
 
 	case configuration.NoTLS:
@@ -43,7 +43,7 @@ func NewTLSConfig(settings configuration.Settings) (*tls.Config, error) {
 }
 
 func buildSelfSignedTLSConfig(certificates *certification.Certificates) (*tls.Config, error) {
-	logrus.Debug("authentication::buildSelfSignedTlsConfig Building self-signed TLS config")
+	slog.Debug("authentication::buildSelfSignedTlsConfig Building self-signed TLS config")
 	certPool, err := buildCaCertificatePool(certificates.GetCACertificate())
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func buildSelfSignedTLSConfig(certificates *certification.Certificates) (*tls.Co
 }
 
 func buildSelfSignedMtlsConfig(certificates *certification.Certificates) (*tls.Config, error) {
-	logrus.Debug("authentication::buildSelfSignedMtlsConfig Building self-signed mTLS config")
+	slog.Debug("authentication::buildSelfSignedMtlsConfig Building self-signed mTLS config")
 	certPool, err := buildCaCertificatePool(certificates.GetCACertificate())
 	if err != nil {
 		return nil, err
@@ -67,7 +67,7 @@ func buildSelfSignedMtlsConfig(certificates *certification.Certificates) (*tls.C
 	if err != nil {
 		return nil, err
 	}
-	logrus.Debugf("buildSelfSignedMtlsConfig Certificate: %v", certificate)
+	slog.Debug("buildSelfSignedMtlsConfig Certificate", "certificate", certificate)
 
 	//nolint:gosec
 	return &tls.Config{
@@ -79,14 +79,14 @@ func buildSelfSignedMtlsConfig(certificates *certification.Certificates) (*tls.C
 }
 
 func buildBasicTLSConfig(skipVerify bool) *tls.Config {
-	logrus.Debugf("authentication::buildBasicTLSConfig skipVerify(%v)", skipVerify)
+	slog.Debug("authentication::buildBasicTLSConfig", slog.Bool("skipVerify", skipVerify))
 	return &tls.Config{
 		InsecureSkipVerify: skipVerify, //nolint:gosec
 	}
 }
 
 func buildCATLSConfig(certificates *certification.Certificates) (*tls.Config, error) {
-	logrus.Debug("authentication::buildCATLSConfig")
+	slog.Debug("authentication::buildCATLSConfig")
 	certificate, err := buildCertificates(certificates.GetClientCertificate())
 	if err != nil {
 		return nil, err
@@ -100,12 +100,12 @@ func buildCATLSConfig(certificates *certification.Certificates) (*tls.Config, er
 }
 
 func buildCertificates(privateKeyPEM []byte, certificatePEM []byte) (tls.Certificate, error) {
-	logrus.Debug("authentication::buildCertificates")
+	slog.Debug("authentication::buildCertificates")
 	return tls.X509KeyPair(certificatePEM, privateKeyPEM)
 }
 
 func buildCaCertificatePool(caCert []byte) (*x509.CertPool, error) {
-	logrus.Debug("authentication::buildCaCertificatePool")
+	slog.Debug("authentication::buildCaCertificatePool")
 	block, _ := pem.Decode(caCert)
 	if block == nil {
 		return nil, fmt.Errorf("failed to decode PEM block containing CA certificate")

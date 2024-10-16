@@ -8,12 +8,14 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"os"
 
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/observation"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/probation"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/synchronization"
-	"github.com/sirupsen/logrus"
+	"github.com/nginxinc/kubernetes-nginx-ingress/pkg/buildinfo"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/util/workqueue"
@@ -22,7 +24,8 @@ import (
 func main() {
 	err := run()
 	if err != nil {
-		logrus.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 }
 
@@ -40,7 +43,7 @@ func run() error {
 		return fmt.Errorf(`error occurred accessing configuration: %w`, err)
 	}
 
-	setLogLevel(settings.LogLevel)
+	initializeLogger(settings.LogLevel)
 
 	synchronizerWorkqueue := buildWorkQueue(settings.Synchronizer.WorkQueueSettings)
 
@@ -78,37 +81,30 @@ func run() error {
 	return nil
 }
 
-func setLogLevel(logLevel string) {
-	logrus.Debugf("Settings::setLogLevel: %s", logLevel)
+func initializeLogger(logLevel string) {
+	programLevel := new(slog.LevelVar)
+
 	switch logLevel {
-	case "panic":
-		logrus.SetLevel(logrus.PanicLevel)
-
-	case "fatal":
-		logrus.SetLevel(logrus.FatalLevel)
-
 	case "error":
-		logrus.SetLevel(logrus.ErrorLevel)
-
+		programLevel.Set(slog.LevelError)
 	case "warn":
-		logrus.SetLevel(logrus.WarnLevel)
-
+		programLevel.Set(slog.LevelWarn)
 	case "info":
-		logrus.SetLevel(logrus.InfoLevel)
-
+		programLevel.Set(slog.LevelInfo)
 	case "debug":
-		logrus.SetLevel(logrus.DebugLevel)
-
-	case "trace":
-		logrus.SetLevel(logrus.TraceLevel)
-
+		programLevel.Set(slog.LevelDebug)
 	default:
-		logrus.SetLevel(logrus.WarnLevel)
+		programLevel.Set(slog.LevelWarn)
 	}
+
+	handler := slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: programLevel})
+	logger := slog.New(handler).With("version", buildinfo.SemVer())
+	slog.SetDefault(logger)
+	slog.Debug("Settings::setLogLevel", slog.String("level", logLevel))
 }
 
 func buildKubernetesClient() (*kubernetes.Clientset, error) {
-	logrus.Debug("Watcher::buildKubernetesClient")
+	slog.Debug("Watcher::buildKubernetesClient")
 	k8sConfig, err := rest.InClusterConfig()
 	if err == rest.ErrNotInCluster {
 		return nil, fmt.Errorf(`not running in a Cluster: %w`, err)
@@ -125,7 +121,7 @@ func buildKubernetesClient() (*kubernetes.Clientset, error) {
 }
 
 func buildWorkQueue(settings configuration.WorkQueueSettings) workqueue.RateLimitingInterface {
-	logrus.Debug("Watcher::buildSynchronizerWorkQueue")
+	slog.Debug("Watcher::buildSynchronizerWorkQueue")
 
 	rateLimiter := workqueue.NewItemExponentialFailureRateLimiter(settings.RateLimiterBase, settings.RateLimiterMax)
 	return workqueue.NewNamedRateLimitingQueue(rateLimiter, settings.Name)

@@ -7,9 +7,9 @@ package application
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
-	"github.com/sirupsen/logrus"
 )
 
 // Interface defines the functions required to implement a Border Client.
@@ -19,8 +19,7 @@ type Interface interface {
 }
 
 // BorderClient defines any state need by the Border Client.
-type BorderClient struct {
-}
+type BorderClient struct{}
 
 // NewBorderClient is the Factory function for creating a Border Client.
 //
@@ -29,7 +28,7 @@ type BorderClient struct {
 // 2. Add a new constant in application_constants.go that acts as a key for selecting the client;
 // 3. Update the NewBorderClient factory method in border_client.go that returns the client;
 func NewBorderClient(clientType string, borderClient interface{}) (Interface, error) {
-	logrus.Debugf(`NewBorderClient for type: %s`, clientType)
+	slog.Debug("NewBorderClient", slog.String("client", clientType))
 
 	switch clientType {
 	case ClientTypeNginxStream:

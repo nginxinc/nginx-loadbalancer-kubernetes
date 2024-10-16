@@ -12,8 +12,8 @@ package certification
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
-	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
@@ -81,7 +81,7 @@ func (c *Certificates) GetClientCertificate() (core.SecretBytes, core.SecretByte
 
 // Initialize initializes the Certificates object. Sets up a SharedInformer for the Secrets Resource.
 func (c *Certificates) Initialize() error {
-	logrus.Info("Certificates::Initialize")
+	slog.Info("Certificates::Initialize")
 
 	var err error
 
@@ -101,7 +101,7 @@ func (c *Certificates) Initialize() error {
 
 // Run starts the SharedInformer.
 func (c *Certificates) Run() error {
-	logrus.Info("Certificates::Run")
+	slog.Info("Certificates::Run")
 
 	if c.informer == nil {
 		return fmt.Errorf(`initialize must be called before Run`)
@@ -115,7 +115,7 @@ func (c *Certificates) Run() error {
 }
 
 func (c *Certificates) buildInformer() cache.SharedInformer {
-	logrus.Debug("Certificates::buildInformer")
+	slog.Debug("Certificates::buildInformer")
 
 	options := informers.WithNamespace(SecretsNamespace)
 	factory := informers.NewSharedInformerFactoryWithOptions(c.k8sClient, 0, options)
@@ -125,7 +125,7 @@ func (c *Certificates) buildInformer() cache.SharedInformer {
 }
 
 func (c *Certificates) initializeEventHandlers() error {
-	logrus.Debug("Certificates::initializeEventHandlers")
+	slog.Debug("Certificates::initializeEventHandlers")
 
 	var err error
 
@@ -144,11 +144,11 @@ func (c *Certificates) initializeEventHandlers() error {
 }
 
 func (c *Certificates) handleAddEvent(obj interface{}) {
-	logrus.Debug("Certificates::handleAddEvent")
+	slog.Debug("Certificates::handleAddEvent")
 
 	secret, ok := obj.(*corev1.Secret)
 	if !ok {
-		logrus.Errorf("Certificates::handleAddEvent: unable to cast object to Secret")
+		slog.Error("Certificates::handleAddEvent: unable to cast object to Secret")
 		return
 	}
 
@@ -162,15 +162,15 @@ func (c *Certificates) handleAddEvent(obj interface{}) {
 		c.Certificates[secret.Name][k] = core.SecretBytes(v)
 	}
 
-	logrus.Debugf("Certificates::handleAddEvent: certificates (%d)", len(c.Certificates))
+	slog.Debug("Certificates::handleAddEvent", slog.Int("certCount", len(c.Certificates)))
 }
 
 func (c *Certificates) handleDeleteEvent(obj interface{}) {
-	logrus.Debug("Certificates::handleDeleteEvent")
+	slog.Debug("Certificates::handleDeleteEvent")
 
 	secret, ok := obj.(*corev1.Secret)
 	if !ok {
-		logrus.Errorf("Certificates::handleDeleteEvent: unable to cast object to Secret")
+		slog.Error("Certificates::handleDeleteEvent: unable to cast object to Secret")
 		return
 	}
 
@@ -178,15 +178,15 @@ func (c *Certificates) handleDeleteEvent(obj interface{}) {
 		delete(c.Certificates, secret.Name)
 	}
 
-	logrus.Debugf("Certificates::handleDeleteEvent: certificates (%d)", len(c.Certificates))
+	slog.Debug("Certificates::handleDeleteEvent", slog.Int("certCount", len(c.Certificates)))
 }
 
 func (c *Certificates) handleUpdateEvent(_ interface{}, newValue interface{}) {
-	logrus.Debug("Certificates::handleUpdateEvent")
+	slog.Debug("Certificates::handleUpdateEvent")
 
 	secret, ok := newValue.(*corev1.Secret)
 	if !ok {
-		logrus.Errorf("Certificates::handleUpdateEvent: unable to cast object to Secret")
+		slog.Error("Certificates::handleUpdateEvent: unable to cast object to Secret")
 		return
 	}
 
@@ -194,5 +194,5 @@ func (c *Certificates) handleUpdateEvent(_ interface{}, newValue interface{}) {
 		c.Certificates[secret.Name][k] = v
 	}
 
-	logrus.Debugf("Certificates::handleUpdateEvent: certificates (%d)", len(c.Certificates))
+	slog.Debug("Certificates::handleUpdateEvent", slog.Int("certCount", len(c.Certificates)))
 }

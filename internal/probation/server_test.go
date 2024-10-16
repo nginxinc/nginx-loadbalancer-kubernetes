@@ -6,11 +6,11 @@
 package probation
 
 import (
+	"log/slog"
 	"net/http"
 	"testing"
 
 	"github.com/nginxinc/kubernetes-nginx-ingress/test/mocks"
-	"github.com/sirupsen/logrus"
 )
 
 func TestHealthServer_HandleLive(t *testing.T) {
@@ -76,5 +76,5 @@ func TestHealthServer_Start(t *testing.T) {
 		t.Errorf("Expected status code %v, got %v", http.StatusAccepted, response.StatusCode)
 	}
 
-	logrus.Infof("received a response from the probe server: %v", response)
+	slog.Info("received a response from the probe server", "response", response)
 }

@@ -9,11 +9,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
-	"github.com/sirupsen/logrus"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -54,7 +54,7 @@ func NewWatcher(
 
 // Initialize initializes the Watcher, must be called before Watch
 func (w *Watcher) Initialize(ctx context.Context) error {
-	logrus.Debug("Watcher::Initialize")
+	slog.Debug("Watcher::Initialize")
 	var err error
 
 	w.informer = w.buildInformer()
@@ -70,7 +70,7 @@ func (w *Watcher) Initialize(ctx context.Context) error {
 // Watch starts the process of watching for changes to Kubernetes resources.
 // Initialize must be called before Watch.
 func (w *Watcher) Watch(ctx context.Context) error {
-	logrus.Debug("Watcher::Watch")
+	slog.Debug("Watcher::Watch")
 
 	if w.informer == nil {
 		return errors.New("error: Initialize must be called before Watch")
@@ -106,7 +106,7 @@ func (w *Watcher) isDesiredService(service *v1.Service) bool {
 // buildEventHandlerForAdd creates a function that is used as an event handler
 // for the informer when Add events are raised.
 func (w *Watcher) buildEventHandlerForAdd(ctx context.Context) func(interface{}) {
-	logrus.Info("Watcher::buildEventHandlerForAdd")
+	slog.Info("Watcher::buildEventHandlerForAdd")
 	return func(obj interface{}) {
 		service := obj.(*v1.Service)
 		if !w.isDesiredService(service) {
@@ -115,7 +115,7 @@ func (w *Watcher) buildEventHandlerForAdd(ctx context.Context) func(interface{})
 
 		nodeIps, err := w.retrieveNodeIps(ctx)
 		if err != nil {
-			logrus.Errorf(`error occurred retrieving node ips: %v`, err)
+			slog.Error("error occurred retrieving node ips", "error", err)
 			return
 		}
 
@@ -128,7 +128,7 @@ func (w *Watcher) buildEventHandlerForAdd(ctx context.Context) func(interface{})
 // buildEventHandlerForDelete creates a function that is used as an event handler
 // for the informer when Delete events are raised.
 func (w *Watcher) buildEventHandlerForDelete(ctx context.Context) func(interface{}) {
-	logrus.Info("Watcher::buildEventHandlerForDelete")
+	slog.Info("Watcher::buildEventHandlerForDelete")
 	return func(obj interface{}) {
 		service := obj.(*v1.Service)
 		if !w.isDesiredService(service) {
@@ -137,7 +137,7 @@ func (w *Watcher) buildEventHandlerForDelete(ctx context.Context) func(interface
 
 		nodeIps, err := w.retrieveNodeIps(ctx)
 		if err != nil {
-			logrus.Errorf(`error occurred retrieving node ips: %v`, err)
+			slog.Error("error occurred retrieving node ips", "error", err)
 			return
 		}
 
@@ -150,7 +150,7 @@ func (w *Watcher) buildEventHandlerForDelete(ctx context.Context) func(interface
 // buildEventHandlerForUpdate creates a function that is used as an event handler
 // for the informer when Update events are raised.
 func (w *Watcher) buildEventHandlerForUpdate(ctx context.Context) func(interface{}, interface{}) {
-	logrus.Info("Watcher::buildEventHandlerForUpdate")
+	slog.Info("Watcher::buildEventHandlerForUpdate")
 	return func(previous, updated interface{}) {
 		// TODO NLB-5435 Check for user removing annotation and send delete request to dataplane API
 		service := updated.(*v1.Service)
@@ -160,7 +160,7 @@ func (w *Watcher) buildEventHandlerForUpdate(ctx context.Context) func(interface
 
 		nodeIps, err := w.retrieveNodeIps(ctx)
 		if err != nil {
-			logrus.Errorf(`error occurred retrieving node ips: %v`, err)
+			slog.Error("error occurred retrieving node ips", "error", err)
 			return
 		}
 
@@ -172,7 +172,7 @@ func (w *Watcher) buildEventHandlerForUpdate(ctx context.Context) func(interface
 
 // buildInformer creates the informer used to watch for changes to Kubernetes resources.
 func (w *Watcher) buildInformer() cache.SharedIndexInformer {
-	logrus.Debug("Watcher::buildInformer")
+	slog.Debug("Watcher::buildInformer")
 
 	factory := informers.NewSharedInformerFactoryWithOptions(
 		w.k8sClient, w.settings.Watcher.ResyncPeriod,
@@ -184,7 +184,7 @@ func (w *Watcher) buildInformer() cache.SharedIndexInformer {
 
 // initializeEventListeners initializes the event listeners for the informer.
 func (w *Watcher) initializeEventListeners(ctx context.Context) error {
-	logrus.Debug("Watcher::initializeEventListeners")
+	slog.Debug("Watcher::initializeEventListeners")
 	var err error
 
 	handlers := cache.ResourceEventHandlerFuncs{
@@ -205,13 +205,13 @@ func (w *Watcher) initializeEventListeners(ctx context.Context) error {
 // because the master node may or may not be a worker node and thus may not be able to route traffic.
 func (w *Watcher) retrieveNodeIps(ctx context.Context) ([]string, error) {
 	started := time.Now()
-	logrus.Debug("Watcher::retrieveNodeIps")
+	slog.Debug("Watcher::retrieveNodeIps")
 
 	var nodeIps []string
 
 	nodes, err := w.k8sClient.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
 	if err != nil {
-		logrus.Errorf(`error occurred retrieving the list of nodes: %v`, err)
+		slog.Error("error occurred retrieving the list of nodes", "error", err)
 		return nil, err
 	}
 
@@ -226,14 +226,14 @@ func (w *Watcher) retrieveNodeIps(ctx context.Context) ([]string, error) {
 		}
 	}
 
-	logrus.Debugf("Watcher::retrieveNodeIps duration: %d", time.Since(started).Nanoseconds())
+	slog.Debug("Watcher::retrieveNodeIps duration", "duration", time.Since(started).Nanoseconds())
 
 	return nodeIps, nil
 }
 
 // notMasterNode determines if the node is a master node.
 func (w *Watcher) notMasterNode(node v1.Node) bool {
-	logrus.Debug("Watcher::notMasterNode")
+	slog.Debug("Watcher::notMasterNode")
 
 	_, found := node.Labels["node-role.kubernetes.io/master"]
 

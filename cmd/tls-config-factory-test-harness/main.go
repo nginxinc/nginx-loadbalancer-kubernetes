@@ -2,13 +2,13 @@ package main
 
 import (
 	"bufio"
+	"log/slog"
 	"os"
 
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/authentication"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/certification"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
-	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -22,14 +22,16 @@ type TLSConfiguration struct {
 }
 
 func main() {
-	logrus.SetLevel(logrus.DebugLevel)
+	handler := slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelDebug})
+	logger := slog.New(handler)
+	slog.SetDefault(logger)
 
 	configurations := buildConfigMap()
 
 	for name, settings := range configurations {
-		logrus.Infof("\033[H\033[2J")
+		slog.Info("\033[H\033[2J")
 
-		logrus.Infof("\n\n\t*** Building TLS config for <<< %s >>>\n\n", name)
+		slog.Info("\n\n\t*** Building TLS config\n\n", "name", name)
 
 		tlsConfig, err := authentication.NewTLSConfig(settings.Settings)
 		if err != nil {
@@ -47,15 +49,17 @@ func main() {
 			certificateCount = len(tlsConfig.Certificates)
 		}
 
-		logrus.Infof("Successfully built TLS config: \n\tDescription: %s \n\tRootCA count: %v\n\tCertificate count: %v",
-			settings.Description, rootCaCount, certificateCount,
+		slog.Info("Successfully built TLS config",
+			"description", settings.Description,
+			"rootCaCount", rootCaCount,
+			"certificateCount", certificateCount,
 		)
 
 		_, _ = bufio.NewReader(os.Stdin).ReadBytes('\n')
 	}
 
-	logrus.Infof("\033[H\033[2J")
-	logrus.Infof("\n\n\t*** All done! ***\n\n")
+	slog.Info("\033[H\033[2J")
+	slog.Info("\n\n\t*** All done! ***\n\n")
 }
 
 func buildConfigMap() map[string]TLSConfiguration {
