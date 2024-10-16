@@ -31,7 +31,7 @@ func TestNewHeaders(t *testing.T) {
 		t.Fatalf(`headers should not be nil`)
 	}
 
-	if len(headers) != 3 {
+	if len(headers) != 4 {
 		t.Fatalf(`headers should have 3 elements`)
 	}
 
@@ -43,8 +43,12 @@ func TestNewHeaders(t *testing.T) {
 		t.Fatalf(`headers[1] should be "Accept: application/json"`)
 	}
 
-	if headers[2] != "Authorization: ApiKey fakeKey" {
-		t.Fatalf(`headers[2] should be "Accept: Authorization: ApiKey fakeKey"`)
+	if headers[2] != "X-NLK-Version: " {
+		t.Fatalf(`headers[2] should be "X-NLK-Version: "`)
+	}
+
+	if headers[3] != "Authorization: ApiKey fakeKey" {
+		t.Fatalf(`headers[3] should be "Accept: Authorization: ApiKey fakeKey"`)
 	}
 }
 
@@ -56,7 +60,7 @@ func TestNewHeadersWithNoAPIKey(t *testing.T) {
 		t.Fatalf(`headers should not be nil`)
 	}
 
-	if len(headers) != 2 {
+	if len(headers) != 3 {
 		t.Fatalf(`headers should have 2 elements`)
 	}
 
@@ -66,6 +70,10 @@ func TestNewHeadersWithNoAPIKey(t *testing.T) {
 
 	if headers[1] != "Accept: application/json" {
 		t.Fatalf(`headers[1] should be "Accept: application/json"`)
+	}
+
+	if headers[2] != "X-NLK-Version: " {
+		t.Fatalf(`headers[2] should be "X-NLK-Version: "`)
 	}
 }
 

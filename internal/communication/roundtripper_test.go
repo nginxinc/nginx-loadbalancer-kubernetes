@@ -28,7 +28,7 @@ func TestNewRoundTripper(t *testing.T) {
 		t.Fatalf(`roundTripper.Headers should not be nil`)
 	}
 
-	if len(roundTripper.Headers) != 3 {
+	if len(roundTripper.Headers) != 4 {
 		t.Fatalf(`roundTripper.Headers should have 3 elements`)
 	}
 
@@ -40,8 +40,12 @@ func TestNewRoundTripper(t *testing.T) {
 		t.Fatalf(`roundTripper.Headers[1] should be "Accept: application/json"`)
 	}
 
-	if roundTripper.Headers[2] != "Authorization: ApiKey fakeKey" {
-		t.Fatalf(`headers[2] should be "Accept: Authorization: ApiKey fakeKey"`)
+	if roundTripper.Headers[2] != "X-NLK-Version: " {
+		t.Fatalf(`roundTripper.Headers[2] should be "X-NLK-Version: "`)
+	}
+
+	if roundTripper.Headers[3] != "Authorization: ApiKey fakeKey" {
+		t.Fatalf(`roundTripper.Headers[3] should be "Accept: Authorization: ApiKey fakeKey"`)
 	}
 
 	if roundTripper.RoundTripper == nil {

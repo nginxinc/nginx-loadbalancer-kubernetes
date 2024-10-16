@@ -14,6 +14,7 @@ import (
 
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/authentication"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
+	"github.com/nginxinc/kubernetes-nginx-ingress/pkg/buildinfo"
 )
 
 // NewHTTPClient is a factory method to create a new Http Client with a default configuration.
@@ -38,6 +39,7 @@ func NewHeaders(apiKey string) []string {
 	headers := []string{
 		"Content-Type: application/json",
 		"Accept: application/json",
+		fmt.Sprintf("X-NLK-Version: %s", buildinfo.SemVer()),
 	}
 
 	if apiKey != "" {
