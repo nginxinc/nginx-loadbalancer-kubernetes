@@ -7,4 +7,5 @@ clusterArmTemplate: "./armTemplate.json"
 uiDefinition: "./createUIDefinition.json"
 registryServer: "nlbmarketplaceacrprod.azurecr.io"
 extensionRegistrationParameters:
-  defaultScope: "namespace"
+  defaultScope: "cluster"
+  namespace: "nlk"
