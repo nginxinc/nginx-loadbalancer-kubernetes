@@ -230,7 +230,7 @@
                 "autoUpgradeMinorVersion": "[parameters('extensionAutoUpgrade')]",
                 "releaseTrain": "[variables('releaseTrain')]",
                 "configurationSettings": {
-                    "nlk.config.dataplaneApiKey": "[parameters('nginxaasDataplaneApiKey')]",
+                    "nlk.dataplaneApiKey": "[parameters('nginxaasDataplaneApiKey')]",
                     "nlk.config.nginxHosts": "[parameters('nginxaasDataplaneApiEndpoint')]"
                 },
                 "configurationProtectedSettings": {},
