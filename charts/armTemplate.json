@@ -235,8 +235,8 @@
                 },
                 "configurationProtectedSettings": {},
                 "scope": {
-                    "namespace": {
-                        "targetNamespace": "[parameters('extensionNamespace')]"
+                    "cluster": {
+                        "releaseNamespace": "[parameters('extensionNamespace')]"
                     }
                 }
             },
