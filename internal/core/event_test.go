@@ -11,9 +11,8 @@ func TestNewEvent(t *testing.T) {
 	expectedType := Created
 	expectedService := &v1.Service{}
 	expectedPreviousService := &v1.Service{}
-	expectedNodeIps := []string{"127.0.0.1"}
 
-	event := NewEvent(expectedType, expectedService, expectedPreviousService, expectedNodeIps)
+	event := NewEvent(expectedType, expectedService, expectedPreviousService)
 
 	if event.Type != expectedType {
 		t.Errorf("expected Created, got %v", event.Type)
@@ -25,9 +24,5 @@ func TestNewEvent(t *testing.T) {
 
 	if event.PreviousService != expectedPreviousService {
 		t.Errorf("expected previous service, got %#v", event.PreviousService)
-	}
-
-	if event.NodeIps[0] != expectedNodeIps[0] {
-		t.Errorf("expected node ips, got %#v", event.NodeIps)
 	}
 }

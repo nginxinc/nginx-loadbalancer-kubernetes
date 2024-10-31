@@ -6,6 +6,7 @@
 package observation
 
 import (
+	"context"
 	"testing"
 
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
@@ -33,7 +34,7 @@ func TestHandler_AddsEventToSynchronizer(t *testing.T) {
 
 	handler.AddRateLimitedEvent(event)
 
-	handler.handleNextEvent()
+	handler.handleNextEvent(context.Background())
 
 	if len(synchronizer.Events) != 1 {
 		t.Errorf(`handler.AddRateLimitedEvent did not add the event to the queue`)
@@ -46,7 +47,13 @@ func buildHandler() (
 	eventQueue := &mocks.MockRateLimiter{}
 	synchronizer := &mocks.MockSynchronizer{}
 
-	handler := NewHandler(configuration.Settings{}, synchronizer, eventQueue)
+	handler := NewHandler(configuration.Settings{}, synchronizer, eventQueue, &fakeTranslator{})
 
 	return synchronizer, handler
+}
+
+type fakeTranslator struct{}
+
+func (t *fakeTranslator) Translate(ctx context.Context, event *core.Event) (core.ServerUpdateEvents, error) {
+	return core.ServerUpdateEvents{{}}, nil
 }

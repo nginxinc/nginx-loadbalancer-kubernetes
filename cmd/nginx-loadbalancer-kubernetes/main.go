@@ -15,6 +15,7 @@ import (
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/observation"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/probation"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/synchronization"
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/translation"
 	"github.com/nginxinc/kubernetes-nginx-ingress/pkg/buildinfo"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -54,19 +55,19 @@ func run() error {
 
 	handlerWorkqueue := buildWorkQueue(settings.Synchronizer.WorkQueueSettings)
 
-	handler := observation.NewHandler(settings, synchronizer, handlerWorkqueue)
+	handler := observation.NewHandler(settings, synchronizer, handlerWorkqueue, translation.NewTranslator(k8sClient))
 
 	watcher, err := observation.NewWatcher(settings, handler, k8sClient)
 	if err != nil {
 		return fmt.Errorf(`error occurred creating a watcher: %w`, err)
 	}
 
-	err = watcher.Initialize(ctx)
+	err = watcher.Initialize()
 	if err != nil {
 		return fmt.Errorf(`error occurred initializing the watcher: %w`, err)
 	}
 
-	go handler.Run(ctx.Done())
+	go handler.Run(ctx)
 	go synchronizer.Run(ctx.Done())
 
 	probeServer := probation.NewHealthServer()

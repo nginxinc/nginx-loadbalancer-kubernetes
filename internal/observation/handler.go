@@ -6,13 +6,13 @@
 package observation
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/synchronization"
-	"github.com/nginxinc/kubernetes-nginx-ingress/internal/translation"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/workqueue"
 )
@@ -23,7 +23,7 @@ type HandlerInterface interface {
 	AddRateLimitedEvent(event *core.Event)
 
 	// Run defines the interface used to start the event handler
-	Run(stopCh <-chan struct{})
+	Run(ctx context.Context)
 
 	// ShutDown defines the interface used to stop the event handler
 	ShutDown()
@@ -42,6 +42,12 @@ type Handler struct {
 
 	// synchronizer is the synchronizer used to synchronize the internal representation with a Border Server
 	synchronizer synchronization.Interface
+
+	translator Translator
+}
+
+type Translator interface {
+	Translate(context.Context, *core.Event) (core.ServerUpdateEvents, error)
 }
 
 // NewHandler creates a new event handler
@@ -49,11 +55,13 @@ func NewHandler(
 	settings configuration.Settings,
 	synchronizer synchronization.Interface,
 	eventQueue workqueue.RateLimitingInterface,
+	translator Translator,
 ) *Handler {
 	return &Handler{
 		eventQueue:   eventQueue,
 		settings:     settings,
 		synchronizer: synchronizer,
+		translator:   translator,
 	}
 }
 
@@ -63,15 +71,21 @@ func (h *Handler) AddRateLimitedEvent(event *core.Event) {
 	h.eventQueue.AddRateLimited(event)
 }
 
-// Run starts the event handler, spins up Goroutines to process events, and waits for a stop signal
-func (h *Handler) Run(stopCh <-chan struct{}) {
+// Run starts the event handler, spins up Goroutines to process events, and waits for context to be done
+func (h *Handler) Run(ctx context.Context) {
 	slog.Debug("Handler::Run")
 
-	for i := 0; i < h.settings.Handler.Threads; i++ {
-		go wait.Until(h.worker, 0, stopCh)
+	worker := func() {
+		for h.handleNextEvent(ctx) {
+			// TODO: Add Telemetry
+		}
 	}
 
-	<-stopCh
+	for i := 0; i < h.settings.Handler.Threads; i++ {
+		go wait.Until(worker, 0, ctx.Done())
+	}
+
+	<-ctx.Done()
 }
 
 // ShutDown stops the event handler and shuts down the event queue
@@ -81,11 +95,11 @@ func (h *Handler) ShutDown() {
 }
 
 // handleEvent feeds translated events to the synchronizer
-func (h *Handler) handleEvent(e *core.Event) error {
+func (h *Handler) handleEvent(ctx context.Context, e *core.Event) error {
 	slog.Debug("Handler::handleEvent", "event", e)
 	// TODO: Add Telemetry
 
-	events, err := translation.Translate(e)
+	events, err := h.translator.Translate(ctx, e)
 	if err != nil {
 		return fmt.Errorf(`Handler::handleEvent error translating: %v`, err)
 	}
@@ -96,7 +110,7 @@ func (h *Handler) handleEvent(e *core.Event) error {
 }
 
 // handleNextEvent pulls an event from the event queue and feeds it to the event handler with retry logic
-func (h *Handler) handleNextEvent() bool {
+func (h *Handler) handleNextEvent(ctx context.Context) bool {
 	evt, quit := h.eventQueue.Get()
 	slog.Debug("Handler::handleNextEvent", "event", evt, "quit", quit)
 	if quit {
@@ -106,16 +120,9 @@ func (h *Handler) handleNextEvent() bool {
 	defer h.eventQueue.Done(evt)
 
 	event := evt.(*core.Event)
-	h.withRetry(h.handleEvent(event), event)
+	h.withRetry(h.handleEvent(ctx, event), event)
 
 	return true
-}
-
-// worker is the main message loop
-func (h *Handler) worker() {
-	for h.handleNextEvent() {
-		// TODO: Add Telemetry
-	}
 }
 
 // withRetry handles errors from the event handler and requeues events that fail

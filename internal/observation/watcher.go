@@ -10,12 +10,10 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"time"
 
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
@@ -53,13 +51,13 @@ func NewWatcher(
 }
 
 // Initialize initializes the Watcher, must be called before Watch
-func (w *Watcher) Initialize(ctx context.Context) error {
+func (w *Watcher) Initialize() error {
 	slog.Debug("Watcher::Initialize")
 	var err error
 
 	w.informer = w.buildInformer()
 
-	err = w.initializeEventListeners(ctx)
+	err = w.initializeEventListeners()
 	if err != nil {
 		return fmt.Errorf(`initialization error: %w`, err)
 	}
@@ -105,7 +103,7 @@ func (w *Watcher) isDesiredService(service *v1.Service) bool {
 
 // buildEventHandlerForAdd creates a function that is used as an event handler
 // for the informer when Add events are raised.
-func (w *Watcher) buildEventHandlerForAdd(ctx context.Context) func(interface{}) {
+func (w *Watcher) buildEventHandlerForAdd() func(interface{}) {
 	slog.Info("Watcher::buildEventHandlerForAdd")
 	return func(obj interface{}) {
 		service := obj.(*v1.Service)
@@ -113,21 +111,15 @@ func (w *Watcher) buildEventHandlerForAdd(ctx context.Context) func(interface{})
 			return
 		}
 
-		nodeIps, err := w.retrieveNodeIps(ctx)
-		if err != nil {
-			slog.Error("error occurred retrieving node ips", "error", err)
-			return
-		}
-
 		var previousService *v1.Service
-		e := core.NewEvent(core.Created, service, previousService, nodeIps)
+		e := core.NewEvent(core.Created, service, previousService)
 		w.handler.AddRateLimitedEvent(&e)
 	}
 }
 
 // buildEventHandlerForDelete creates a function that is used as an event handler
 // for the informer when Delete events are raised.
-func (w *Watcher) buildEventHandlerForDelete(ctx context.Context) func(interface{}) {
+func (w *Watcher) buildEventHandlerForDelete() func(interface{}) {
 	slog.Info("Watcher::buildEventHandlerForDelete")
 	return func(obj interface{}) {
 		service := obj.(*v1.Service)
@@ -135,21 +127,15 @@ func (w *Watcher) buildEventHandlerForDelete(ctx context.Context) func(interface
 			return
 		}
 
-		nodeIps, err := w.retrieveNodeIps(ctx)
-		if err != nil {
-			slog.Error("error occurred retrieving node ips", "error", err)
-			return
-		}
-
 		var previousService *v1.Service
-		e := core.NewEvent(core.Deleted, service, previousService, nodeIps)
+		e := core.NewEvent(core.Deleted, service, previousService)
 		w.handler.AddRateLimitedEvent(&e)
 	}
 }
 
 // buildEventHandlerForUpdate creates a function that is used as an event handler
 // for the informer when Update events are raised.
-func (w *Watcher) buildEventHandlerForUpdate(ctx context.Context) func(interface{}, interface{}) {
+func (w *Watcher) buildEventHandlerForUpdate() func(interface{}, interface{}) {
 	slog.Info("Watcher::buildEventHandlerForUpdate")
 	return func(previous, updated interface{}) {
 		// TODO NLB-5435 Check for user removing annotation and send delete request to dataplane API
@@ -158,14 +144,8 @@ func (w *Watcher) buildEventHandlerForUpdate(ctx context.Context) func(interface
 			return
 		}
 
-		nodeIps, err := w.retrieveNodeIps(ctx)
-		if err != nil {
-			slog.Error("error occurred retrieving node ips", "error", err)
-			return
-		}
-
 		previousService := previous.(*v1.Service)
-		e := core.NewEvent(core.Updated, service, previousService, nodeIps)
+		e := core.NewEvent(core.Updated, service, previousService)
 		w.handler.AddRateLimitedEvent(&e)
 	}
 }
@@ -183,14 +163,14 @@ func (w *Watcher) buildInformer() cache.SharedIndexInformer {
 }
 
 // initializeEventListeners initializes the event listeners for the informer.
-func (w *Watcher) initializeEventListeners(ctx context.Context) error {
+func (w *Watcher) initializeEventListeners() error {
 	slog.Debug("Watcher::initializeEventListeners")
 	var err error
 
 	handlers := cache.ResourceEventHandlerFuncs{
-		AddFunc:    w.buildEventHandlerForAdd(ctx),
-		DeleteFunc: w.buildEventHandlerForDelete(ctx),
-		UpdateFunc: w.buildEventHandlerForUpdate(ctx),
+		AddFunc:    w.buildEventHandlerForAdd(),
+		DeleteFunc: w.buildEventHandlerForDelete(),
+		UpdateFunc: w.buildEventHandlerForUpdate(),
 	}
 
 	w.eventHandlerRegistration, err = w.informer.AddEventHandler(handlers)
@@ -199,43 +179,4 @@ func (w *Watcher) initializeEventListeners(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-// notMasterNode retrieves the IP Addresses of the nodes in the cluster. Currently, the master node is excluded. This is
-// because the master node may or may not be a worker node and thus may not be able to route traffic.
-func (w *Watcher) retrieveNodeIps(ctx context.Context) ([]string, error) {
-	started := time.Now()
-	slog.Debug("Watcher::retrieveNodeIps")
-
-	var nodeIps []string
-
-	nodes, err := w.k8sClient.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
-	if err != nil {
-		slog.Error("error occurred retrieving the list of nodes", "error", err)
-		return nil, err
-	}
-
-	for _, node := range nodes.Items {
-		// this is kind of a broad assumption, should probably make this a configurable option
-		if w.notMasterNode(node) {
-			for _, address := range node.Status.Addresses {
-				if address.Type == v1.NodeInternalIP {
-					nodeIps = append(nodeIps, address.Address)
-				}
-			}
-		}
-	}
-
-	slog.Debug("Watcher::retrieveNodeIps duration", "duration", time.Since(started).Nanoseconds())
-
-	return nodeIps, nil
-}
-
-// notMasterNode determines if the node is a master node.
-func (w *Watcher) notMasterNode(node v1.Node) bool {
-	slog.Debug("Watcher::notMasterNode")
-
-	_, found := node.Labels["node-role.kubernetes.io/master"]
-
-	return !found
 }

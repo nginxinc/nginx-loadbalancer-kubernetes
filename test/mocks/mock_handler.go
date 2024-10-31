@@ -5,23 +5,22 @@
 
 package mocks
 
-import "github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
+import (
+	"context"
 
-type MockHandler struct {
-}
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
+)
+
+type MockHandler struct{}
 
 func (h *MockHandler) AddRateLimitedEvent(_ *core.Event) {
-
 }
 
 func (h *MockHandler) Initialize() {
-
 }
 
-func (h *MockHandler) Run(_ <-chan struct{}) {
-
+func (h *MockHandler) Run(ctx context.Context) {
 }
 
 func (h *MockHandler) ShutDown() {
-
 }
