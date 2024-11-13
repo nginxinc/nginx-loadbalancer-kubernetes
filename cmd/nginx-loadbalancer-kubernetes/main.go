@@ -58,11 +58,14 @@ func run() error {
 		k8sClient, settings.Watcher.ResyncPeriod,
 	)
 
+	serviceInformer := factory.Core().V1().Services()
+	endpointSliceInformer := factory.Discovery().V1().EndpointSlices()
+
 	handlerWorkqueue := buildWorkQueue(settings.Synchronizer.WorkQueueSettings)
 
 	handler := observation.NewHandler(settings, synchronizer, handlerWorkqueue, translation.NewTranslator(k8sClient))
 
-	watcher, err := observation.NewWatcher(settings, handler, factory.Core().V1().Services())
+	watcher, err := observation.NewWatcher(settings, handler, serviceInformer, endpointSliceInformer)
 	if err != nil {
 		return fmt.Errorf(`error occurred creating a watcher: %w`, err)
 	}

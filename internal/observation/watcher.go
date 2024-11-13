@@ -13,8 +13,10 @@ import (
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	v1 "k8s.io/api/core/v1"
+	discovery "k8s.io/api/discovery/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	coreinformers "k8s.io/client-go/informers/core/v1"
+	discoveryinformers "k8s.io/client-go/informers/discovery/v1"
 	"k8s.io/client-go/tools/cache"
 )
 
@@ -30,6 +32,11 @@ type Watcher struct {
 
 	// servicesInformer is the informer used to watch for changes to services
 	servicesInformer cache.SharedIndexInformer
+
+	// endpointSliceInformer is the informer used to watch for changes to endpoint slices
+	endpointSliceInformer cache.SharedIndexInformer
+
+	register *register
 }
 
 // NewWatcher creates a new Watcher
@@ -37,17 +44,25 @@ func NewWatcher(
 	settings configuration.Settings,
 	handler HandlerInterface,
 	serviceInformer coreinformers.ServiceInformer,
+	endpointSliceInformer discoveryinformers.EndpointSliceInformer,
 ) (*Watcher, error) {
 	if serviceInformer == nil {
 		return nil, fmt.Errorf("service informer cannot be nil")
 	}
 
+	if endpointSliceInformer == nil {
+		return nil, fmt.Errorf("endpoint slice informer cannot be nil")
+	}
+
 	servicesInformer := serviceInformer.Informer()
+	endpointSlicesInformer := endpointSliceInformer.Informer()
 
 	w := &Watcher{
-		handler:          handler,
-		settings:         settings,
-		servicesInformer: servicesInformer,
+		handler:               handler,
+		settings:              settings,
+		servicesInformer:      servicesInformer,
+		endpointSliceInformer: endpointSlicesInformer,
+		register:              newRegister(),
 	}
 
 	if err := w.initializeEventListeners(servicesInformer); err != nil {
@@ -83,6 +98,69 @@ func (w *Watcher) isDesiredService(service *v1.Service) bool {
 	return annotation == w.settings.Watcher.ServiceAnnotation
 }
 
+func (w *Watcher) buildEndpointSlicesEventHandlerForAdd() func(interface{}) {
+	slog.Info("Watcher::buildEndpointSlicesEventHandlerForAdd")
+	return func(obj interface{}) {
+		endpointSlice, ok := obj.(*discovery.EndpointSlice)
+		if !ok {
+			slog.Error("could not convert event object to EndpointSlice", "obj", obj)
+			return
+		}
+
+		service, ok := w.register.getService(endpointSlice.Namespace, endpointSlice.Labels["kubernetes.io/service-name"])
+		if !ok {
+			// not interested in any unregistered service
+			return
+		}
+
+		var previousService *v1.Service
+		e := core.NewEvent(core.Updated, service, previousService)
+		w.handler.AddRateLimitedEvent(&e)
+	}
+}
+
+func (w *Watcher) buildEndpointSlicesEventHandlerForUpdate() func(interface{}, interface{}) {
+	slog.Info("Watcher::buildEndpointSlicesEventHandlerForUpdate")
+	return func(previous, updated interface{}) {
+		endpointSlice, ok := updated.(*discovery.EndpointSlice)
+		if !ok {
+			slog.Error("could not convert event object to EndpointSlice", "obj", updated)
+			return
+		}
+
+		service, ok := w.register.getService(endpointSlice.Namespace, endpointSlice.Labels["kubernetes.io/service-name"])
+		if !ok {
+			// not interested in any unregistered service
+			return
+		}
+
+		var previousService *v1.Service
+		e := core.NewEvent(core.Updated, service, previousService)
+		w.handler.AddRateLimitedEvent(&e)
+	}
+}
+
+func (w *Watcher) buildEndpointSlicesEventHandlerForDelete() func(interface{}) {
+	slog.Info("Watcher::buildEndpointSlicesEventHandlerForDelete")
+	return func(obj interface{}) {
+		endpointSlice, ok := obj.(*discovery.EndpointSlice)
+		if !ok {
+			slog.Error("could not convert event object to EndpointSlice", "obj", obj)
+			return
+		}
+
+		service, ok := w.register.getService(endpointSlice.Namespace, endpointSlice.Labels["kubernetes.io/service-name"])
+		if !ok {
+			// not interested in any unregistered service
+			return
+		}
+
+		var previousService *v1.Service
+		e := core.NewEvent(core.Deleted, service, previousService)
+		w.handler.AddRateLimitedEvent(&e)
+	}
+}
+
 // buildServiceEventHandlerForAdd creates a function that is used as an event handler
 // for the informer when Add events are raised.
 func (w *Watcher) buildServiceEventHandlerForAdd() func(interface{}) {
@@ -92,6 +170,8 @@ func (w *Watcher) buildServiceEventHandlerForAdd() func(interface{}) {
 		if !w.isDesiredService(service) {
 			return
 		}
+
+		w.register.addOrUpdateService(service)
 
 		var previousService *v1.Service
 		e := core.NewEvent(core.Created, service, previousService)
@@ -108,6 +188,8 @@ func (w *Watcher) buildServiceEventHandlerForDelete() func(interface{}) {
 		if !w.isDesiredService(service) {
 			return
 		}
+
+		w.register.removeService(service)
 
 		var previousService *v1.Service
 		e := core.NewEvent(core.Deleted, service, previousService)
@@ -126,6 +208,8 @@ func (w *Watcher) buildServiceEventHandlerForUpdate() func(interface{}, interfac
 			return
 		}
 
+		w.register.addOrUpdateService(service)
+
 		previousService := previous.(*v1.Service)
 		e := core.NewEvent(core.Updated, service, previousService)
 		w.handler.AddRateLimitedEvent(&e)
@@ -139,15 +223,26 @@ func (w *Watcher) initializeEventListeners(
 	slog.Debug("Watcher::initializeEventListeners")
 	var err error
 
-	handlers := cache.ResourceEventHandlerFuncs{
+	serviceHandlers := cache.ResourceEventHandlerFuncs{
 		AddFunc:    w.buildServiceEventHandlerForAdd(),
 		DeleteFunc: w.buildServiceEventHandlerForDelete(),
 		UpdateFunc: w.buildServiceEventHandlerForUpdate(),
 	}
 
-	_, err = servicesInformer.AddEventHandler(handlers)
+	endpointSliceHandlers := cache.ResourceEventHandlerFuncs{
+		AddFunc:    w.buildEndpointSlicesEventHandlerForAdd(),
+		DeleteFunc: w.buildEndpointSlicesEventHandlerForDelete(),
+		UpdateFunc: w.buildEndpointSlicesEventHandlerForUpdate(),
+	}
+
+	_, err = servicesInformer.AddEventHandler(serviceHandlers)
 	if err != nil {
-		return fmt.Errorf(`error occurred adding event handlers: %w`, err)
+		return fmt.Errorf(`error occurred adding service event handlers: %w`, err)
+	}
+
+	_, err = w.endpointSliceInformer.AddEventHandler(endpointSliceHandlers)
+	if err != nil {
+		return fmt.Errorf(`error occurred adding endpoint slice event handlers: %w`, err)
 	}
 
 	return nil

@@ -21,5 +21,5 @@ func TestWatcher_ErrWithNilInformer(t *testing.T) {
 
 func buildWatcherWithNilInformer() (*Watcher, error) {
 	handler := &mocks.MockHandler{}
-	return NewWatcher(configuration.Settings{}, handler, nil)
+	return NewWatcher(configuration.Settings{}, handler, nil, nil)
 }
