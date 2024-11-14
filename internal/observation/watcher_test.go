@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestWatcher_ErrWithNilInformer(t *testing.T) {
+func TestWatcher_ErrWithNilInformers(t *testing.T) {
 	t.Parallel()
 	_, err := buildWatcherWithNilInformer()
 	require.Error(t, err, "expected construction of watcher with nil informer to fail")
@@ -21,5 +21,5 @@ func TestWatcher_ErrWithNilInformer(t *testing.T) {
 
 func buildWatcherWithNilInformer() (*Watcher, error) {
 	handler := &mocks.MockHandler{}
-	return NewWatcher(configuration.Settings{}, handler, nil, nil)
+	return NewWatcher(configuration.Settings{}, handler, nil, nil, nil)
 }

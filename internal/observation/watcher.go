@@ -36,6 +36,9 @@ type Watcher struct {
 	// endpointSliceInformer is the informer used to watch for changes to endpoint slices
 	endpointSliceInformer cache.SharedIndexInformer
 
+	// nodesInformer is the informer used to watch for changes to nodes
+	nodesInformer cache.SharedIndexInformer
+
 	register *register
 }
 
@@ -45,6 +48,7 @@ func NewWatcher(
 	handler HandlerInterface,
 	serviceInformer coreinformers.ServiceInformer,
 	endpointSliceInformer discoveryinformers.EndpointSliceInformer,
+	nodeInformer coreinformers.NodeInformer,
 ) (*Watcher, error) {
 	if serviceInformer == nil {
 		return nil, fmt.Errorf("service informer cannot be nil")
@@ -54,14 +58,20 @@ func NewWatcher(
 		return nil, fmt.Errorf("endpoint slice informer cannot be nil")
 	}
 
+	if nodeInformer == nil {
+		return nil, fmt.Errorf("node informer cannot be nil")
+	}
+
 	servicesInformer := serviceInformer.Informer()
 	endpointSlicesInformer := endpointSliceInformer.Informer()
+	nodesInformer := nodeInformer.Informer()
 
 	w := &Watcher{
 		handler:               handler,
 		settings:              settings,
 		servicesInformer:      servicesInformer,
 		endpointSliceInformer: endpointSlicesInformer,
+		nodesInformer:         nodesInformer,
 		register:              newRegister(),
 	}
 
@@ -98,9 +108,46 @@ func (w *Watcher) isDesiredService(service *v1.Service) bool {
 	return annotation == w.settings.Watcher.ServiceAnnotation
 }
 
+func (w *Watcher) buildNodesEventHandlerForAdd() func(interface{}) {
+	slog.Info("Watcher::buildNodesEventHandlerForAdd")
+	return func(obj interface{}) {
+		slog.Debug("received node add event")
+		for _, service := range w.register.listServices() {
+			var previousService *v1.Service
+			e := core.NewEvent(core.Updated, service, previousService)
+			w.handler.AddRateLimitedEvent(&e)
+		}
+	}
+}
+
+func (w *Watcher) buildNodesEventHandlerForUpdate() func(interface{}, interface{}) {
+	slog.Info("Watcher::buildNodesEventHandlerForUpdate")
+	return func(previous, updated interface{}) {
+		slog.Debug("received node update event")
+		for _, service := range w.register.listServices() {
+			var previousService *v1.Service
+			e := core.NewEvent(core.Updated, service, previousService)
+			w.handler.AddRateLimitedEvent(&e)
+		}
+	}
+}
+
+func (w *Watcher) buildNodesEventHandlerForDelete() func(interface{}) {
+	slog.Info("Watcher::buildNodesEventHandlerForDelete")
+	return func(obj interface{}) {
+		slog.Debug("received node delete event")
+		for _, service := range w.register.listServices() {
+			var previousService *v1.Service
+			e := core.NewEvent(core.Updated, service, previousService)
+			w.handler.AddRateLimitedEvent(&e)
+		}
+	}
+}
+
 func (w *Watcher) buildEndpointSlicesEventHandlerForAdd() func(interface{}) {
 	slog.Info("Watcher::buildEndpointSlicesEventHandlerForAdd")
 	return func(obj interface{}) {
+		slog.Debug("received endpoint slice add event")
 		endpointSlice, ok := obj.(*discovery.EndpointSlice)
 		if !ok {
 			slog.Error("could not convert event object to EndpointSlice", "obj", obj)
@@ -122,6 +169,7 @@ func (w *Watcher) buildEndpointSlicesEventHandlerForAdd() func(interface{}) {
 func (w *Watcher) buildEndpointSlicesEventHandlerForUpdate() func(interface{}, interface{}) {
 	slog.Info("Watcher::buildEndpointSlicesEventHandlerForUpdate")
 	return func(previous, updated interface{}) {
+		slog.Debug("received endpoint slice update event")
 		endpointSlice, ok := updated.(*discovery.EndpointSlice)
 		if !ok {
 			slog.Error("could not convert event object to EndpointSlice", "obj", updated)
@@ -143,6 +191,7 @@ func (w *Watcher) buildEndpointSlicesEventHandlerForUpdate() func(interface{}, i
 func (w *Watcher) buildEndpointSlicesEventHandlerForDelete() func(interface{}) {
 	slog.Info("Watcher::buildEndpointSlicesEventHandlerForDelete")
 	return func(obj interface{}) {
+		slog.Debug("received endpoint slice delete event")
 		endpointSlice, ok := obj.(*discovery.EndpointSlice)
 		if !ok {
 			slog.Error("could not convert event object to EndpointSlice", "obj", obj)
@@ -235,6 +284,12 @@ func (w *Watcher) initializeEventListeners(
 		UpdateFunc: w.buildEndpointSlicesEventHandlerForUpdate(),
 	}
 
+	nodeHandlers := cache.ResourceEventHandlerFuncs{
+		AddFunc:    w.buildNodesEventHandlerForAdd(),
+		DeleteFunc: w.buildNodesEventHandlerForDelete(),
+		UpdateFunc: w.buildNodesEventHandlerForUpdate(),
+	}
+
 	_, err = servicesInformer.AddEventHandler(serviceHandlers)
 	if err != nil {
 		return fmt.Errorf(`error occurred adding service event handlers: %w`, err)
@@ -243,6 +298,11 @@ func (w *Watcher) initializeEventListeners(
 	_, err = w.endpointSliceInformer.AddEventHandler(endpointSliceHandlers)
 	if err != nil {
 		return fmt.Errorf(`error occurred adding endpoint slice event handlers: %w`, err)
+	}
+
+	_, err = w.nodesInformer.AddEventHandler(nodeHandlers)
+	if err != nil {
+		return fmt.Errorf(`error occurred adding node event handlers: %w`, err)
 	}
 
 	return nil

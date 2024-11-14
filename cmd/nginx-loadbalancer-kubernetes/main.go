@@ -60,12 +60,13 @@ func run() error {
 
 	serviceInformer := factory.Core().V1().Services()
 	endpointSliceInformer := factory.Discovery().V1().EndpointSlices()
+	nodesInformer := factory.Core().V1().Nodes()
 
 	handlerWorkqueue := buildWorkQueue(settings.Synchronizer.WorkQueueSettings)
 
 	handler := observation.NewHandler(settings, synchronizer, handlerWorkqueue, translation.NewTranslator(k8sClient))
 
-	watcher, err := observation.NewWatcher(settings, handler, serviceInformer, endpointSliceInformer)
+	watcher, err := observation.NewWatcher(settings, handler, serviceInformer, endpointSliceInformer, nodesInformer)
 	if err != nil {
 		return fmt.Errorf(`error occurred creating a watcher: %w`, err)
 	}

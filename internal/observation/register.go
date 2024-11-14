@@ -47,3 +47,17 @@ func (r *register) getService(namespace string, serviceName string) (*v1.Service
 	s, ok := r.services[registerKey{namespace: namespace, serviceName: serviceName}]
 	return s, ok
 }
+
+// listServices returns all the services in the register
+func (r *register) listServices() []*v1.Service {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	services := make([]*v1.Service, 0, len(r.services))
+
+	for _, service := range r.services {
+		services = append(services, service)
+	}
+
+	return services
+}
