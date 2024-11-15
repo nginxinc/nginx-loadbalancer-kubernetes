@@ -13,11 +13,12 @@ import (
 
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	"github.com/nginxinc/kubernetes-nginx-ingress/pkg/pointer"
-	"golang.org/x/net/context"
 	v1 "k8s.io/api/core/v1"
 	discovery "k8s.io/api/discovery/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes/fake"
+	"k8s.io/apimachinery/pkg/labels"
+	corelisters "k8s.io/client-go/listers/core/v1"
+	discoverylisters "k8s.io/client-go/listers/discovery/v1"
 )
 
 const (
@@ -52,9 +53,12 @@ func TestCreatedTranslateNoPorts(t *testing.T) {
 			service := defaultService(tc.serviceType)
 			event := buildCreatedEvent(service)
 
-			translator := NewTranslator(NewFakeClient([]discovery.EndpointSlice{}, []v1.Node{}))
+			translator := NewTranslator(
+				NewFakeEndpointSliceLister([]*discovery.EndpointSlice{}, nil),
+				NewFakeNodeLister([]*v1.Node{}, nil),
+			)
 
-			translatedEvents, err := translator.Translate(context.TODO(), &event)
+			translatedEvents, err := translator.Translate(&event)
 			if err != nil {
 				t.Fatalf(TranslateErrorFormat, err)
 			}
@@ -86,9 +90,12 @@ func TestCreatedTranslateNoInterestingPorts(t *testing.T) {
 			service := serviceWithPorts(tc.serviceType, ports)
 			event := buildCreatedEvent(service)
 
-			translator := NewTranslator(NewFakeClient([]discovery.EndpointSlice{}, []v1.Node{}))
+			translator := NewTranslator(
+				NewFakeEndpointSliceLister([]*discovery.EndpointSlice{}, nil),
+				NewFakeNodeLister([]*v1.Node{}, nil),
+			)
 
-			translatedEvents, err := translator.Translate(context.TODO(), &event)
+			translatedEvents, err := translator.Translate(&event)
 			if err != nil {
 				t.Fatalf(TranslateErrorFormat, err)
 			}
@@ -106,8 +113,8 @@ func TestCreatedTranslateOneInterestingPort(t *testing.T) {
 	t.Parallel()
 	testcases := map[string]struct {
 		serviceType         v1.ServiceType
-		nodes               []v1.Node
-		endpoints           []discovery.EndpointSlice
+		nodes               []*v1.Node
+		endpoints           []*discovery.EndpointSlice
 		expectedServerCount int
 	}{
 		"nodePort": {
@@ -134,8 +141,8 @@ func TestCreatedTranslateOneInterestingPort(t *testing.T) {
 			service := serviceWithPorts(tc.serviceType, ports)
 			event := buildCreatedEvent(service)
 
-			translator := NewTranslator(NewFakeClient(tc.endpoints, tc.nodes))
-			translatedEvents, err := translator.Translate(context.TODO(), &event)
+			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
+			translatedEvents, err := translator.Translate(&event)
 			if err != nil {
 				t.Fatalf(TranslateErrorFormat, err)
 			}
@@ -155,8 +162,8 @@ func TestCreatedTranslateManyInterestingPorts(t *testing.T) {
 	t.Parallel()
 	testcases := map[string]struct {
 		serviceType         v1.ServiceType
-		nodes               []v1.Node
-		endpoints           []discovery.EndpointSlice
+		nodes               []*v1.Node
+		endpoints           []*discovery.EndpointSlice
 		expectedServerCount int
 	}{
 		"nodePort": {
@@ -183,8 +190,8 @@ func TestCreatedTranslateManyInterestingPorts(t *testing.T) {
 			service := serviceWithPorts(tc.serviceType, ports)
 			event := buildCreatedEvent(service)
 
-			translator := NewTranslator(NewFakeClient(tc.endpoints, tc.nodes))
-			translatedEvents, err := translator.Translate(context.TODO(), &event)
+			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
+			translatedEvents, err := translator.Translate(&event)
 			if err != nil {
 				t.Fatalf(TranslateErrorFormat, err)
 			}
@@ -205,8 +212,8 @@ func TestCreatedTranslateManyMixedPorts(t *testing.T) {
 
 	testcases := map[string]struct {
 		serviceType         v1.ServiceType
-		nodes               []v1.Node
-		endpoints           []discovery.EndpointSlice
+		nodes               []*v1.Node
+		endpoints           []*discovery.EndpointSlice
 		expectedServerCount int
 	}{
 		"nodePort": {
@@ -234,8 +241,8 @@ func TestCreatedTranslateManyMixedPorts(t *testing.T) {
 			service := serviceWithPorts(tc.serviceType, ports)
 			event := buildCreatedEvent(service)
 
-			translator := NewTranslator(NewFakeClient(tc.endpoints, tc.nodes))
-			translatedEvents, err := translator.Translate(context.TODO(), &event)
+			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
+			translatedEvents, err := translator.Translate(&event)
 			if err != nil {
 				t.Fatalf(TranslateErrorFormat, err)
 			}
@@ -255,8 +262,8 @@ func TestCreatedTranslateManyMixedPortsAndManyNodes(t *testing.T) {
 
 	testcases := map[string]struct {
 		serviceType         v1.ServiceType
-		nodes               []v1.Node
-		endpoints           []discovery.EndpointSlice
+		nodes               []*v1.Node
+		endpoints           []*discovery.EndpointSlice
 		expectedServerCount int
 	}{
 		"nodePort": {
@@ -283,8 +290,8 @@ func TestCreatedTranslateManyMixedPortsAndManyNodes(t *testing.T) {
 			service := serviceWithPorts(tc.serviceType, ports)
 			event := buildCreatedEvent(service)
 
-			translator := NewTranslator(NewFakeClient(tc.endpoints, tc.nodes))
-			translatedEvents, err := translator.Translate(context.TODO(), &event)
+			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
+			translatedEvents, err := translator.Translate(&event)
 			if err != nil {
 				t.Fatalf(TranslateErrorFormat, err)
 			}
@@ -308,8 +315,8 @@ func TestUpdatedTranslateNoPorts(t *testing.T) {
 
 	testcases := map[string]struct {
 		serviceType         v1.ServiceType
-		nodes               []v1.Node
-		endpoints           []discovery.EndpointSlice
+		nodes               []*v1.Node
+		endpoints           []*discovery.EndpointSlice
 		expectedServerCount int
 	}{
 		"nodePort": {
@@ -333,8 +340,8 @@ func TestUpdatedTranslateNoPorts(t *testing.T) {
 			service := defaultService(tc.serviceType)
 			event := buildUpdatedEvent(service)
 
-			translator := NewTranslator(NewFakeClient(tc.endpoints, tc.nodes))
-			translatedEvents, err := translator.Translate(context.TODO(), &event)
+			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
+			translatedEvents, err := translator.Translate(&event)
 			if err != nil {
 				t.Fatalf(TranslateErrorFormat, err)
 			}
@@ -352,8 +359,8 @@ func TestUpdatedTranslateNoInterestingPorts(t *testing.T) {
 
 	testcases := map[string]struct {
 		serviceType         v1.ServiceType
-		nodes               []v1.Node
-		endpoints           []discovery.EndpointSlice
+		nodes               []*v1.Node
+		endpoints           []*discovery.EndpointSlice
 		expectedServerCount int
 	}{
 		"nodePort": {
@@ -379,8 +386,8 @@ func TestUpdatedTranslateNoInterestingPorts(t *testing.T) {
 			service := serviceWithPorts(tc.serviceType, ports)
 			event := buildUpdatedEvent(service)
 
-			translator := NewTranslator(NewFakeClient(tc.endpoints, tc.nodes))
-			translatedEvents, err := translator.Translate(context.TODO(), &event)
+			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
+			translatedEvents, err := translator.Translate(&event)
 			if err != nil {
 				t.Fatalf(TranslateErrorFormat, err)
 			}
@@ -398,8 +405,8 @@ func TestUpdatedTranslateOneInterestingPort(t *testing.T) {
 
 	testcases := map[string]struct {
 		serviceType         v1.ServiceType
-		nodes               []v1.Node
-		endpoints           []discovery.EndpointSlice
+		nodes               []*v1.Node
+		endpoints           []*discovery.EndpointSlice
 		expectedServerCount int
 	}{
 		"nodePort": {
@@ -425,8 +432,8 @@ func TestUpdatedTranslateOneInterestingPort(t *testing.T) {
 			service := serviceWithPorts(tc.serviceType, ports)
 			event := buildUpdatedEvent(service)
 
-			translator := NewTranslator(NewFakeClient(tc.endpoints, tc.nodes))
-			translatedEvents, err := translator.Translate(context.TODO(), &event)
+			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
+			translatedEvents, err := translator.Translate(&event)
 			if err != nil {
 				t.Fatalf(TranslateErrorFormat, err)
 			}
@@ -447,8 +454,8 @@ func TestUpdatedTranslateManyInterestingPorts(t *testing.T) {
 
 	testcases := map[string]struct {
 		serviceType         v1.ServiceType
-		nodes               []v1.Node
-		endpoints           []discovery.EndpointSlice
+		nodes               []*v1.Node
+		endpoints           []*discovery.EndpointSlice
 		expectedServerCount int
 	}{
 		"nodePort": {
@@ -474,8 +481,8 @@ func TestUpdatedTranslateManyInterestingPorts(t *testing.T) {
 			service := serviceWithPorts(tc.serviceType, ports)
 			event := buildUpdatedEvent(service)
 
-			translator := NewTranslator(NewFakeClient(tc.endpoints, tc.nodes))
-			translatedEvents, err := translator.Translate(context.TODO(), &event)
+			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
+			translatedEvents, err := translator.Translate(&event)
 			if err != nil {
 				t.Fatalf(TranslateErrorFormat, err)
 			}
@@ -496,8 +503,8 @@ func TestUpdatedTranslateManyMixedPorts(t *testing.T) {
 
 	testcases := map[string]struct {
 		serviceType         v1.ServiceType
-		nodes               []v1.Node
-		endpoints           []discovery.EndpointSlice
+		nodes               []*v1.Node
+		endpoints           []*discovery.EndpointSlice
 		expectedServerCount int
 	}{
 		"nodePort": {
@@ -524,8 +531,8 @@ func TestUpdatedTranslateManyMixedPorts(t *testing.T) {
 			service := serviceWithPorts(tc.serviceType, ports)
 			event := buildUpdatedEvent(service)
 
-			translator := NewTranslator(NewFakeClient(tc.endpoints, tc.nodes))
-			translatedEvents, err := translator.Translate(context.TODO(), &event)
+			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
+			translatedEvents, err := translator.Translate(&event)
 			if err != nil {
 				t.Fatalf(TranslateErrorFormat, err)
 			}
@@ -546,8 +553,8 @@ func TestUpdatedTranslateManyMixedPortsAndManyNodes(t *testing.T) {
 
 	testcases := map[string]struct {
 		serviceType         v1.ServiceType
-		nodes               []v1.Node
-		endpoints           []discovery.EndpointSlice
+		nodes               []*v1.Node
+		endpoints           []*discovery.EndpointSlice
 		expectedServerCount int
 	}{
 		"nodePort": {
@@ -574,8 +581,8 @@ func TestUpdatedTranslateManyMixedPortsAndManyNodes(t *testing.T) {
 			service := serviceWithPorts(tc.serviceType, ports)
 			event := buildUpdatedEvent(service)
 
-			translator := NewTranslator(NewFakeClient(tc.endpoints, tc.nodes))
-			translatedEvents, err := translator.Translate(context.TODO(), &event)
+			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
+			translatedEvents, err := translator.Translate(&event)
 			if err != nil {
 				t.Fatalf(TranslateErrorFormat, err)
 			}
@@ -599,8 +606,8 @@ func TestDeletedTranslateNoPortsAndNoNodes(t *testing.T) {
 
 	testcases := map[string]struct {
 		serviceType v1.ServiceType
-		nodes       []v1.Node
-		endpoints   []discovery.EndpointSlice
+		nodes       []*v1.Node
+		endpoints   []*discovery.EndpointSlice
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
@@ -620,8 +627,8 @@ func TestDeletedTranslateNoPortsAndNoNodes(t *testing.T) {
 			service := defaultService(tc.serviceType)
 			event := buildDeletedEvent(service)
 
-			translator := NewTranslator(NewFakeClient(tc.endpoints, tc.nodes))
-			translatedEvents, err := translator.Translate(context.TODO(), &event)
+			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
+			translatedEvents, err := translator.Translate(&event)
 			if err != nil {
 				t.Fatalf(TranslateErrorFormat, err)
 			}
@@ -641,8 +648,8 @@ func TestDeletedTranslateNoInterestingPortsAndNoNodes(t *testing.T) {
 
 	testcases := map[string]struct {
 		serviceType v1.ServiceType
-		nodes       []v1.Node
-		endpoints   []discovery.EndpointSlice
+		nodes       []*v1.Node
+		endpoints   []*discovery.EndpointSlice
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
@@ -663,8 +670,8 @@ func TestDeletedTranslateNoInterestingPortsAndNoNodes(t *testing.T) {
 			service := serviceWithPorts(tc.serviceType, ports)
 			event := buildDeletedEvent(service)
 
-			translator := NewTranslator(NewFakeClient(tc.endpoints, tc.nodes))
-			translatedEvents, err := translator.Translate(context.TODO(), &event)
+			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
+			translatedEvents, err := translator.Translate(&event)
 			if err != nil {
 				t.Fatalf(TranslateErrorFormat, err)
 			}
@@ -685,8 +692,8 @@ func TestDeletedTranslateOneInterestingPortAndNoNodes(t *testing.T) {
 
 	testcases := map[string]struct {
 		serviceType v1.ServiceType
-		nodes       []v1.Node
-		endpoints   []discovery.EndpointSlice
+		nodes       []*v1.Node
+		endpoints   []*discovery.EndpointSlice
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
@@ -709,8 +716,8 @@ func TestDeletedTranslateOneInterestingPortAndNoNodes(t *testing.T) {
 			service := serviceWithPorts(tc.serviceType, ports)
 			event := buildDeletedEvent(service)
 
-			translator := NewTranslator(NewFakeClient(tc.endpoints, tc.nodes))
-			translatedEvents, err := translator.Translate(context.TODO(), &event)
+			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
+			translatedEvents, err := translator.Translate(&event)
 			if err != nil {
 				t.Fatalf(TranslateErrorFormat, err)
 			}
@@ -731,8 +738,8 @@ func TestDeletedTranslateManyInterestingPortsAndNoNodes(t *testing.T) {
 
 	testcases := map[string]struct {
 		serviceType v1.ServiceType
-		nodes       []v1.Node
-		endpoints   []discovery.EndpointSlice
+		nodes       []*v1.Node
+		endpoints   []*discovery.EndpointSlice
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
@@ -754,8 +761,8 @@ func TestDeletedTranslateManyInterestingPortsAndNoNodes(t *testing.T) {
 			service := serviceWithPorts(tc.serviceType, ports)
 			event := buildDeletedEvent(service)
 
-			translator := NewTranslator(NewFakeClient(tc.endpoints, tc.nodes))
-			translatedEvents, err := translator.Translate(context.TODO(), &event)
+			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
+			translatedEvents, err := translator.Translate(&event)
 			if err != nil {
 				t.Fatalf(TranslateErrorFormat, err)
 			}
@@ -775,8 +782,8 @@ func TestDeletedTranslateManyMixedPortsAndNoNodes(t *testing.T) {
 
 	testcases := map[string]struct {
 		serviceType v1.ServiceType
-		nodes       []v1.Node
-		endpoints   []discovery.EndpointSlice
+		nodes       []*v1.Node
+		endpoints   []*discovery.EndpointSlice
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
@@ -800,8 +807,8 @@ func TestDeletedTranslateManyMixedPortsAndNoNodes(t *testing.T) {
 			service := serviceWithPorts(tc.serviceType, ports)
 			event := buildDeletedEvent(service)
 
-			translator := NewTranslator(NewFakeClient(tc.endpoints, tc.nodes))
-			translatedEvents, err := translator.Translate(context.TODO(), &event)
+			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
+			translatedEvents, err := translator.Translate(&event)
 			if err != nil {
 				t.Fatalf(TranslateErrorFormat, err)
 			}
@@ -822,8 +829,8 @@ func TestDeletedTranslateNoPortsAndOneNode(t *testing.T) {
 
 	testcases := map[string]struct {
 		serviceType v1.ServiceType
-		nodes       []v1.Node
-		endpoints   []discovery.EndpointSlice
+		nodes       []*v1.Node
+		endpoints   []*discovery.EndpointSlice
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
@@ -845,8 +852,8 @@ func TestDeletedTranslateNoPortsAndOneNode(t *testing.T) {
 			service := defaultService(tc.serviceType)
 			event := buildDeletedEvent(service)
 
-			translator := NewTranslator(NewFakeClient(tc.endpoints, tc.nodes))
-			translatedEvents, err := translator.Translate(context.TODO(), &event)
+			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
+			translatedEvents, err := translator.Translate(&event)
 			if err != nil {
 				t.Fatalf(TranslateErrorFormat, err)
 			}
@@ -866,8 +873,8 @@ func TestDeletedTranslateNoInterestingPortsAndOneNode(t *testing.T) {
 
 	testcases := map[string]struct {
 		serviceType v1.ServiceType
-		nodes       []v1.Node
-		endpoints   []discovery.EndpointSlice
+		nodes       []*v1.Node
+		endpoints   []*discovery.EndpointSlice
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
@@ -890,8 +897,8 @@ func TestDeletedTranslateNoInterestingPortsAndOneNode(t *testing.T) {
 			service := serviceWithPorts(tc.serviceType, ports)
 			event := buildDeletedEvent(service)
 
-			translator := NewTranslator(NewFakeClient(tc.endpoints, tc.nodes))
-			translatedEvents, err := translator.Translate(context.TODO(), &event)
+			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
+			translatedEvents, err := translator.Translate(&event)
 			if err != nil {
 				t.Fatalf(TranslateErrorFormat, err)
 			}
@@ -912,8 +919,8 @@ func TestDeletedTranslateOneInterestingPortAndOneNode(t *testing.T) {
 
 	testcases := map[string]struct {
 		serviceType v1.ServiceType
-		nodes       []v1.Node
-		endpoints   []discovery.EndpointSlice
+		nodes       []*v1.Node
+		endpoints   []*discovery.EndpointSlice
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
@@ -937,8 +944,8 @@ func TestDeletedTranslateOneInterestingPortAndOneNode(t *testing.T) {
 			service := serviceWithPorts(tc.serviceType, ports)
 			event := buildDeletedEvent(service)
 
-			translator := NewTranslator(NewFakeClient(tc.endpoints, tc.nodes))
-			translatedEvents, err := translator.Translate(context.TODO(), &event)
+			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
+			translatedEvents, err := translator.Translate(&event)
 			if err != nil {
 				t.Fatalf(TranslateErrorFormat, err)
 			}
@@ -959,8 +966,8 @@ func TestDeletedTranslateManyInterestingPortsAndOneNode(t *testing.T) {
 
 	testcases := map[string]struct {
 		serviceType v1.ServiceType
-		nodes       []v1.Node
-		endpoints   []discovery.EndpointSlice
+		nodes       []*v1.Node
+		endpoints   []*discovery.EndpointSlice
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
@@ -984,8 +991,8 @@ func TestDeletedTranslateManyInterestingPortsAndOneNode(t *testing.T) {
 			service := serviceWithPorts(tc.serviceType, ports)
 			event := buildDeletedEvent(service)
 
-			translator := NewTranslator(NewFakeClient(tc.endpoints, tc.nodes))
-			translatedEvents, err := translator.Translate(context.TODO(), &event)
+			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
+			translatedEvents, err := translator.Translate(&event)
 			if err != nil {
 				t.Fatalf(TranslateErrorFormat, err)
 			}
@@ -1005,8 +1012,8 @@ func TestDeletedTranslateManyMixedPortsAndOneNode(t *testing.T) {
 
 	testcases := map[string]struct {
 		serviceType v1.ServiceType
-		nodes       []v1.Node
-		endpoints   []discovery.EndpointSlice
+		nodes       []*v1.Node
+		endpoints   []*discovery.EndpointSlice
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
@@ -1030,8 +1037,8 @@ func TestDeletedTranslateManyMixedPortsAndOneNode(t *testing.T) {
 			service := serviceWithPorts(tc.serviceType, ports)
 			event := buildDeletedEvent(service)
 
-			translator := NewTranslator(NewFakeClient(tc.endpoints, tc.nodes))
-			translatedEvents, err := translator.Translate(context.TODO(), &event)
+			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
+			translatedEvents, err := translator.Translate(&event)
 			if err != nil {
 				t.Fatalf(TranslateErrorFormat, err)
 			}
@@ -1052,8 +1059,8 @@ func TestDeletedTranslateNoPortsAndManyNodes(t *testing.T) {
 
 	testcases := map[string]struct {
 		serviceType v1.ServiceType
-		nodes       []v1.Node
-		endpoints   []discovery.EndpointSlice
+		nodes       []*v1.Node
+		endpoints   []*discovery.EndpointSlice
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
@@ -1074,8 +1081,8 @@ func TestDeletedTranslateNoPortsAndManyNodes(t *testing.T) {
 			service := defaultService(tc.serviceType)
 			event := buildDeletedEvent(service)
 
-			translator := NewTranslator(NewFakeClient(tc.endpoints, tc.nodes))
-			translatedEvents, err := translator.Translate(context.TODO(), &event)
+			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
+			translatedEvents, err := translator.Translate(&event)
 			if err != nil {
 				t.Fatalf(TranslateErrorFormat, err)
 			}
@@ -1095,8 +1102,8 @@ func TestDeletedTranslateNoInterestingPortsAndManyNodes(t *testing.T) {
 
 	testcases := map[string]struct {
 		serviceType v1.ServiceType
-		nodes       []v1.Node
-		endpoints   []discovery.EndpointSlice
+		nodes       []*v1.Node
+		endpoints   []*discovery.EndpointSlice
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
@@ -1120,8 +1127,8 @@ func TestDeletedTranslateNoInterestingPortsAndManyNodes(t *testing.T) {
 			service := serviceWithPorts(tc.serviceType, ports)
 			event := buildDeletedEvent(service)
 
-			translator := NewTranslator(NewFakeClient(tc.endpoints, tc.nodes))
-			translatedEvents, err := translator.Translate(context.TODO(), &event)
+			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
+			translatedEvents, err := translator.Translate(&event)
 			if err != nil {
 				t.Fatalf(TranslateErrorFormat, err)
 			}
@@ -1142,8 +1149,8 @@ func TestDeletedTranslateOneInterestingPortAndManyNodes(t *testing.T) {
 
 	testcases := map[string]struct {
 		serviceType v1.ServiceType
-		nodes       []v1.Node
-		endpoints   []discovery.EndpointSlice
+		nodes       []*v1.Node
+		endpoints   []*discovery.EndpointSlice
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
@@ -1166,8 +1173,8 @@ func TestDeletedTranslateOneInterestingPortAndManyNodes(t *testing.T) {
 			service := serviceWithPorts(tc.serviceType, ports)
 			event := buildDeletedEvent(service)
 
-			translator := NewTranslator(NewFakeClient(tc.endpoints, tc.nodes))
-			translatedEvents, err := translator.Translate(context.TODO(), &event)
+			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
+			translatedEvents, err := translator.Translate(&event)
 			if err != nil {
 				t.Fatalf(TranslateErrorFormat, err)
 			}
@@ -1188,8 +1195,8 @@ func TestDeletedTranslateManyInterestingPortsAndManyNodes(t *testing.T) {
 
 	testcases := map[string]struct {
 		serviceType v1.ServiceType
-		nodes       []v1.Node
-		endpoints   []discovery.EndpointSlice
+		nodes       []*v1.Node
+		endpoints   []*discovery.EndpointSlice
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
@@ -1212,8 +1219,8 @@ func TestDeletedTranslateManyInterestingPortsAndManyNodes(t *testing.T) {
 			service := serviceWithPorts(tc.serviceType, ports)
 			event := buildDeletedEvent(service)
 
-			translator := NewTranslator(NewFakeClient(tc.endpoints, tc.nodes))
-			translatedEvents, err := translator.Translate(context.TODO(), &event)
+			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
+			translatedEvents, err := translator.Translate(&event)
 			if err != nil {
 				t.Fatalf(TranslateErrorFormat, err)
 			}
@@ -1233,8 +1240,8 @@ func TestDeletedTranslateManyMixedPortsAndManyNodes(t *testing.T) {
 
 	testcases := map[string]struct {
 		serviceType v1.ServiceType
-		nodes       []v1.Node
-		endpoints   []discovery.EndpointSlice
+		nodes       []*v1.Node
+		endpoints   []*discovery.EndpointSlice
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
@@ -1258,8 +1265,8 @@ func TestDeletedTranslateManyMixedPortsAndManyNodes(t *testing.T) {
 			service := serviceWithPorts(tc.serviceType, ports)
 			event := buildDeletedEvent(service)
 
-			translator := NewTranslator(NewFakeClient(tc.endpoints, tc.nodes))
-			translatedEvents, err := translator.Translate(context.TODO(), &event)
+			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
+			translatedEvents, err := translator.Translate(&event)
 			if err != nil {
 				t.Fatalf(TranslateErrorFormat, err)
 			}
@@ -1324,9 +1331,9 @@ func buildEvent(eventType core.EventType, service *v1.Service) core.Event {
 	return event
 }
 
-func generateNodes(count int) (nodes []v1.Node) {
+func generateNodes(count int) (nodes []*v1.Node) {
 	for i := 0; i < count; i++ {
-		nodes = append(nodes, v1.Node{
+		nodes = append(nodes, &v1.Node{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: fmt.Sprintf("node%d", i),
 			},
@@ -1345,7 +1352,7 @@ func generateNodes(count int) (nodes []v1.Node) {
 }
 
 func generateEndpointSlices(endpointCount, portCount, updatablePortCount int,
-) (endpointSlices []discovery.EndpointSlice) {
+) (endpointSlices []*discovery.EndpointSlice) {
 	servicePorts := generateUpdatablePorts(portCount, updatablePortCount)
 
 	ports := make([]discovery.EndpointPort, 0, len(servicePorts))
@@ -1365,7 +1372,7 @@ func generateEndpointSlices(endpointCount, portCount, updatablePortCount int,
 		})
 	}
 
-	endpointSlices = append(endpointSlices, discovery.EndpointSlice{
+	endpointSlices = append(endpointSlices, &discovery.EndpointSlice{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   "endpointSlice",
 			Labels: map[string]string{"kubernetes.io/service-name": "default-service"},
@@ -1415,13 +1422,47 @@ func generateUpdatablePorts(portCount int, updatableCount int) []v1.ServicePort 
 	return ports
 }
 
-func NewFakeClient(endpointSlices []discovery.EndpointSlice, nodes []v1.Node) *fake.Clientset {
-	return fake.NewSimpleClientset(
-		&discovery.EndpointSliceList{
-			Items: endpointSlices,
-		},
-		&v1.NodeList{
-			Items: nodes,
-		},
-	)
+func NewFakeEndpointSliceLister(list []*discovery.EndpointSlice, err error) discoverylisters.EndpointSliceLister {
+	return &endpointSliceLister{
+		list: list,
+		err:  err,
+	}
+}
+
+func NewFakeNodeLister(list []*v1.Node, err error) corelisters.NodeLister {
+	return &nodeLister{
+		list: list,
+		err:  err,
+	}
+}
+
+type nodeLister struct {
+	list []*v1.Node
+	err  error
+}
+
+func (l *nodeLister) List(selector labels.Selector) (ret []*v1.Node, err error) {
+	return l.list, l.err
+}
+
+// currently unused
+func (l *nodeLister) Get(name string) (*v1.Node, error) {
+	return nil, nil
+}
+
+type endpointSliceLister struct {
+	list []*discovery.EndpointSlice
+	err  error
+}
+
+func (l *endpointSliceLister) List(selector labels.Selector) (ret []*discovery.EndpointSlice, err error) {
+	return l.list, l.err
+}
+
+func (l *endpointSliceLister) Get(name string) (*discovery.EndpointSlice, error) {
+	return nil, nil
+}
+
+func (l *endpointSliceLister) EndpointSlices(name string) discoverylisters.EndpointSliceNamespaceLister {
+	return l
 }

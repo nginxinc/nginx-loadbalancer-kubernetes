@@ -60,11 +60,14 @@ func run() error {
 
 	serviceInformer := factory.Core().V1().Services()
 	endpointSliceInformer := factory.Discovery().V1().EndpointSlices()
+	endpointSliceLister := endpointSliceInformer.Lister()
 	nodesInformer := factory.Core().V1().Nodes()
+	nodesLister := nodesInformer.Lister()
 
 	handlerWorkqueue := buildWorkQueue(settings.Synchronizer.WorkQueueSettings)
 
-	handler := observation.NewHandler(settings, synchronizer, handlerWorkqueue, translation.NewTranslator(k8sClient))
+	translator := translation.NewTranslator(endpointSliceLister, nodesLister)
+	handler := observation.NewHandler(settings, synchronizer, handlerWorkqueue, translator)
 
 	watcher, err := observation.NewWatcher(settings, handler, serviceInformer, endpointSliceInformer, nodesInformer)
 	if err != nil {

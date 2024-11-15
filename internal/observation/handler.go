@@ -47,7 +47,7 @@ type Handler struct {
 }
 
 type Translator interface {
-	Translate(context.Context, *core.Event) (core.ServerUpdateEvents, error)
+	Translate(*core.Event) (core.ServerUpdateEvents, error)
 }
 
 // NewHandler creates a new event handler
@@ -76,7 +76,7 @@ func (h *Handler) Run(ctx context.Context) {
 	slog.Debug("Handler::Run")
 
 	worker := func() {
-		for h.handleNextEvent(ctx) {
+		for h.handleNextEvent() {
 			// TODO: Add Telemetry
 		}
 	}
@@ -95,11 +95,11 @@ func (h *Handler) ShutDown() {
 }
 
 // handleEvent feeds translated events to the synchronizer
-func (h *Handler) handleEvent(ctx context.Context, e *core.Event) error {
+func (h *Handler) handleEvent(e *core.Event) error {
 	slog.Debug("Handler::handleEvent", "event", e)
 	// TODO: Add Telemetry
 
-	events, err := h.translator.Translate(ctx, e)
+	events, err := h.translator.Translate(e)
 	if err != nil {
 		return fmt.Errorf(`Handler::handleEvent error translating: %v`, err)
 	}
@@ -110,7 +110,7 @@ func (h *Handler) handleEvent(ctx context.Context, e *core.Event) error {
 }
 
 // handleNextEvent pulls an event from the event queue and feeds it to the event handler with retry logic
-func (h *Handler) handleNextEvent(ctx context.Context) bool {
+func (h *Handler) handleNextEvent() bool {
 	evt, quit := h.eventQueue.Get()
 	slog.Debug("Handler::handleNextEvent", "event", evt, "quit", quit)
 	if quit {
@@ -120,7 +120,7 @@ func (h *Handler) handleNextEvent(ctx context.Context) bool {
 	defer h.eventQueue.Done(evt)
 
 	event := evt.(*core.Event)
-	h.withRetry(h.handleEvent(ctx, event), event)
+	h.withRetry(h.handleEvent(event), event)
 
 	return true
 }

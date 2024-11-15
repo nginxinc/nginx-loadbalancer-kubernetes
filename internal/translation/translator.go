@@ -6,7 +6,6 @@
 package translation
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -14,24 +13,32 @@ import (
 
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
+	"k8s.io/apimachinery/pkg/labels"
+	corelisters "k8s.io/client-go/listers/core/v1"
+	discoverylisters "k8s.io/client-go/listers/discovery/v1"
 )
 
 type Translator struct {
-	k8sClient kubernetes.Interface
+	endpointSliceLister discoverylisters.EndpointSliceLister
+	nodeLister          corelisters.NodeLister
 }
 
-func NewTranslator(k8sClient kubernetes.Interface) *Translator {
-	return &Translator{k8sClient}
+func NewTranslator(
+	endpointSliceLister discoverylisters.EndpointSliceLister,
+	nodeLister corelisters.NodeLister,
+) *Translator {
+	return &Translator{
+		endpointSliceLister: endpointSliceLister,
+		nodeLister:          nodeLister,
+	}
 }
 
 // Translate transforms event data into an intermediate format that can be consumed by the BorderClient implementations
 // and used to update the Border Servers.
-func (t *Translator) Translate(ctx context.Context, event *core.Event) (core.ServerUpdateEvents, error) {
+func (t *Translator) Translate(event *core.Event) (core.ServerUpdateEvents, error) {
 	slog.Debug("Translate::Translate")
 
-	return t.buildServerUpdateEvents(ctx, event.Service.Spec.Ports, event)
+	return t.buildServerUpdateEvents(event.Service.Spec.Ports, event)
 }
 
 // buildServerUpdateEvents builds a list of ServerUpdateEvents based on the event type
@@ -40,15 +47,15 @@ func (t *Translator) Translate(ctx context.Context, event *core.Event) (core.Ser
 // and the list of servers in NGINX+.
 // The NGINX+ Client uses a single server for Deleted events;
 // so the list of servers is broken up into individual events.
-func (t *Translator) buildServerUpdateEvents(ctx context.Context, ports []v1.ServicePort, event *core.Event,
+func (t *Translator) buildServerUpdateEvents(ports []v1.ServicePort, event *core.Event,
 ) (events core.ServerUpdateEvents, err error) {
 	slog.Debug("Translate::buildServerUpdateEvents", "ports", ports)
 
 	switch event.Service.Spec.Type {
 	case v1.ServiceTypeNodePort:
-		return t.buildNodeIPEvents(ctx, ports, event)
+		return t.buildNodeIPEvents(ports, event)
 	case v1.ServiceTypeClusterIP:
-		return t.buildClusterIPEvents(ctx, event)
+		return t.buildClusterIPEvents(event)
 	default:
 		return events, fmt.Errorf("unsupported service type: %s", event.Service.Spec.Type)
 	}
@@ -59,8 +66,7 @@ type upstream struct {
 	name    string
 }
 
-func (t *Translator) buildClusterIPEvents(ctx context.Context, event *core.Event,
-) (events core.ServerUpdateEvents, err error) {
+func (t *Translator) buildClusterIPEvents(event *core.Event) (events core.ServerUpdateEvents, err error) {
 	namespace := event.Service.GetObjectMeta().GetNamespace()
 	serviceName := event.Service.Name
 
@@ -79,8 +85,14 @@ func (t *Translator) buildClusterIPEvents(ctx context.Context, event *core.Event
 		return events, nil
 	}
 
-	s := t.k8sClient.DiscoveryV1().EndpointSlices(namespace)
-	list, err := s.List(ctx, metav1.ListOptions{LabelSelector: fmt.Sprintf("kubernetes.io/service-name=%s", serviceName)})
+	lister := t.endpointSliceLister.EndpointSlices(namespace)
+	selector, err := labels.Parse(fmt.Sprintf("kubernetes.io/service-name=%s", serviceName))
+	if err != nil {
+		logger.Error(`error occurred parsing the selector`, "error", err)
+		return events, err
+	}
+
+	list, err := lister.List(selector)
 	if err != nil {
 		logger.Error(`error occurred retrieving the list of endpoint slices`, "error", err)
 		return events, err
@@ -88,7 +100,7 @@ func (t *Translator) buildClusterIPEvents(ctx context.Context, event *core.Event
 
 	upstreams := make(map[upstream][]*core.UpstreamServer)
 
-	for _, endpointSlice := range list.Items {
+	for _, endpointSlice := range list {
 		for _, port := range endpointSlice.Ports {
 			if port.Name == nil || port.Port == nil {
 				continue
@@ -124,7 +136,7 @@ func (t *Translator) buildClusterIPEvents(ctx context.Context, event *core.Event
 	return events, nil
 }
 
-func (t *Translator) buildNodeIPEvents(ctx context.Context, ports []v1.ServicePort, event *core.Event,
+func (t *Translator) buildNodeIPEvents(ports []v1.ServicePort, event *core.Event,
 ) (core.ServerUpdateEvents, error) {
 	slog.Debug("Translate::buildNodeIPEvents", "ports", ports)
 
@@ -136,7 +148,7 @@ func (t *Translator) buildNodeIPEvents(ctx context.Context, ports []v1.ServicePo
 			continue
 		}
 
-		addresses, err := t.retrieveNodeIps(ctx)
+		addresses, err := t.retrieveNodeIps()
 		if err != nil {
 			return nil, err
 		}
@@ -192,21 +204,26 @@ func getContextAndUpstreamName(portName string) (clientType string, appName stri
 
 // notMasterNode retrieves the IP Addresses of the nodes in the cluster. Currently, the master node is excluded. This is
 // because the master node may or may not be a worker node and thus may not be able to route traffic.
-func (t *Translator) retrieveNodeIps(ctx context.Context) ([]string, error) {
+func (t *Translator) retrieveNodeIps() ([]string, error) {
 	started := time.Now()
 	slog.Debug("Translator::retrieveNodeIps")
 
 	var nodeIps []string
 
-	nodes, err := t.k8sClient.CoreV1().Nodes().List(ctx, metav1.ListOptions{})
+	nodes, err := t.nodeLister.List(labels.Everything())
 	if err != nil {
 		slog.Error("error occurred retrieving the list of nodes", "error", err)
 		return nil, err
 	}
 
-	for _, node := range nodes.Items {
+	for _, node := range nodes {
+		if node == nil {
+			slog.Error("list contains nil node")
+			continue
+		}
+
 		// this is kind of a broad assumption, should probably make this a configurable option
-		if notMasterNode(node) {
+		if notMasterNode(*node) {
 			for _, address := range node.Status.Addresses {
 				if address.Type == v1.NodeInternalIP {
 					nodeIps = append(nodeIps, address.Address)
