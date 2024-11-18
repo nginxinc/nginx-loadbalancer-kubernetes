@@ -23,6 +23,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Clear Sigstore cache
+        run: rm -rf ~/.sigstore
+
       - uses: anchore/sbom-action@v0
         with:
           image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
@@ -31,9 +34,9 @@ jobs:
           registry-password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install cosign
-        uses: sigstore/cosign-installer@9614fae9e5c5eddabb09f90a270fcb487c9f7149 #v3.0.2
+        uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da #v3.7.0
         with:
-          cosign-release: 'v1.13.1'
+          cosign-release: 'v2.4.1'
 
       - name: Log into registry ${{ env.REGISTRY }} for ${{ github.actor }}
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d
