@@ -2,7 +2,7 @@
 # Use of this source code is governed by the Apache
 # license that can be found in the LICENSE file.
 
-FROM golang:1.19.5-alpine3.16 AS builder
+FROM golang:1.23.3-alpine3.20 AS builder
 
 WORKDIR /app
 
@@ -14,7 +14,7 @@ COPY . .
 
 RUN go build -o nginx-loadbalancer-kubernetes ./cmd/nginx-loadbalancer-kubernetes/main.go
 
-FROM alpine:3.16
+FROM alpine:3.20
 
 WORKDIR /opt/nginx-loadbalancer-kubernetes
 

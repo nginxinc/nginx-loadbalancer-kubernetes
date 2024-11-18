@@ -11,7 +11,7 @@ import (
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/communication"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
-	nginxClient "github.com/nginxinc/nginx-plus-go-client/client"
+	nginxClient "github.com/nginxinc/nginx-plus-go-client/v2/client"
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/workqueue"
@@ -112,7 +112,9 @@ func (s *Synchronizer) buildBorderClient(event *core.ServerUpdateEvent) (applica
 		return nil, fmt.Errorf(`error creating HTTP client: %v`, err)
 	}
 
-	ngxClient, err := nginxClient.NewNginxClient(httpClient, event.NginxHost)
+	opts := nginxClient.WithHTTPClient(httpClient)
+
+	ngxClient, err := nginxClient.NewNginxClient(event.NginxHost, opts)
 	if err != nil {
 		return nil, fmt.Errorf(`error creating Nginx Plus client: %v`, err)
 	}

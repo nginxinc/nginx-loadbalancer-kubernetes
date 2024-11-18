@@ -8,7 +8,7 @@ package application
 import (
 	"fmt"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
-	nginxClient "github.com/nginxinc/nginx-plus-go-client/client"
+	nginxClient "github.com/nginxinc/nginx-plus-go-client/v2/client"
 )
 
 // NginxStreamBorderClient implements the BorderClient interface for stream upstreams.
