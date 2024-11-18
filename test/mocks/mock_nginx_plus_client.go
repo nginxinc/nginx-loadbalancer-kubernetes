@@ -5,7 +5,7 @@
 
 package mocks
 
-import nginxClient "github.com/nginxinc/nginx-plus-go-client/client"
+import nginxClient "github.com/nginxinc/nginx-plus-go-client/v2/client"
 
 type MockNginxClient struct {
 	CalledFunctions map[string]bool

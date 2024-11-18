@@ -5,7 +5,7 @@
 
 package application
 
-import nginxClient "github.com/nginxinc/nginx-plus-go-client/client"
+import nginxClient "github.com/nginxinc/nginx-plus-go-client/v2/client"
 
 // NginxClientInterface defines the functions used on the NGINX Plus client, abstracting away the full details of that client.
 type NginxClientInterface interface {
