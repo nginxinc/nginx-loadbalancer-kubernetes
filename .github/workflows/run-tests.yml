@@ -8,11 +8,6 @@ on:
     types:
       - created
 
-  push:
-    branches:
-      - main
-      - *
-
 jobs:
 
   build:
