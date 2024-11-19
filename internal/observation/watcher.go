@@ -252,14 +252,20 @@ func (w *Watcher) buildServiceEventHandlerForUpdate() func(interface{}, interfac
 	slog.Info("Watcher::buildServiceEventHandlerForUpdate")
 	return func(previous, updated interface{}) {
 		// TODO NLB-5435 Check for user removing annotation and send delete request to dataplane API
+		previousService := previous.(*v1.Service)
 		service := updated.(*v1.Service)
+
+		if w.isDesiredService(previousService) && !w.isDesiredService(service) {
+			w.register.removeService(previousService)
+			return
+		}
+
 		if !w.isDesiredService(service) {
 			return
 		}
 
 		w.register.addOrUpdateService(service)
 
-		previousService := previous.(*v1.Service)
 		e := core.NewEvent(core.Updated, service, previousService)
 		w.handler.AddRateLimitedEvent(&e)
 	}
