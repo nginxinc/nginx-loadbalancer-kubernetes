@@ -65,7 +65,7 @@ jobs:
           COSIGN_EXPERIMENTAL: "true"
         # This step uses the identity token to provision an ephemeral certificate
         # against the sigstore community Fulcio instance.
-        run: cosign sign "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.docker-build-and-push.outputs.digest }}"
+        run: cosign sign --yes "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.docker-build-and-push.outputs.digest }}"
 
       # NOTE: This runs statically against the latest tag in Docker Hub which was not produced by this workflow
       # This should be updated once this workflow is fully implemented
