@@ -33,11 +33,11 @@ func TestNewRoundTripper(t *testing.T) {
 		t.Fatalf(`roundTripper.Headers should have 2 elements`)
 	}
 
-	if roundTripper.Headers[0] != "Content-Type: application/json" {
+	if roundTripper.Headers[0] != expectedHeaders[0] {
 		t.Fatalf(`roundTripper.Headers[0] should be "Content-Type: application/json"`)
 	}
 
-	if roundTripper.Headers[1] != "Accept: application/json" {
+	if roundTripper.Headers[1] != expectedHeaders[1] {
 		t.Fatalf(`roundTripper.Headers[1] should be "Accept: application/json"`)
 	}
 
@@ -53,7 +53,7 @@ func TestRoundTripperRoundTrip(t *testing.T) {
 	transport := NewTransport(NewTlsConfig(settings))
 	roundTripper := NewRoundTripper(headers, transport)
 
-	request, err := NewRequest("GET", "http://example.com", nil)
+	request, err := NewRequest("GET", "http://x.com", nil)
 	if err != nil {
 		t.Fatalf(`Unexpected error: %v`, err)
 	}

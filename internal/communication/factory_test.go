@@ -12,6 +12,17 @@ import (
 	"testing"
 )
 
+var expectedHeaders = []Header{
+	{
+		Key:   "Content-Type",
+		Value: "application/json",
+	},
+	{
+		Key:   "Accept",
+		Value: "application/json",
+	},
+}
+
 func TestNewHttpClient(t *testing.T) {
 	k8sClient := fake.NewSimpleClientset()
 	settings, err := configuration.NewSettings(context.Background(), k8sClient)
@@ -37,11 +48,11 @@ func TestNewHeaders(t *testing.T) {
 		t.Fatalf(`headers should have 2 elements`)
 	}
 
-	if headers[0] != "Content-Type: application/json" {
+	if headers[0] != expectedHeaders[0] {
 		t.Fatalf(`headers[0] should be "Content-Type: application/json"`)
 	}
 
-	if headers[1] != "Accept: application/json" {
+	if headers[1] != expectedHeaders[1] {
 		t.Fatalf(`headers[1] should be "Accept: application/json"`)
 	}
 }

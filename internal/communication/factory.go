@@ -32,10 +32,16 @@ func NewHttpClient(settings *configuration.Settings) (*netHttp.Client, error) {
 }
 
 // NewHeaders is a factory method to create a new basic Http Headers slice.
-func NewHeaders() []string {
-	return []string{
-		"Content-Type: application/json",
-		"Accept: application/json",
+func NewHeaders() []Header {
+	return []Header{
+		Header{
+			Key:   "Content-Type",
+			Value: "application/json",
+		},
+		Header{
+			Key:   "Accept",
+			Value: "application/json",
+		},
 	}
 }
 

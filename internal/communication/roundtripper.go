@@ -7,37 +7,38 @@ package communication
 
 import (
 	"net/http"
-	netHttp "net/http"
-	"strings"
 )
 
-// RoundTripper is a simple type that wraps the default net/communication RoundTripper to add additional headers.
+// Header represents a structured header key-value pair.
+type Header struct {
+	Key   string
+	Value string
+}
+
+// RoundTripper wraps a RoundTripper to add custom headers to requests.
 type RoundTripper struct {
-	Headers      []string
+	Headers      []Header
 	RoundTripper http.RoundTripper
 }
 
-// NewRoundTripper is a factory method to create a new RoundTripper.
-func NewRoundTripper(headers []string, transport *netHttp.Transport) *RoundTripper {
+// NewRoundTripper creates a new RoundTripper with the given headers and transport.
+func NewRoundTripper(headers []Header, baseTransport http.RoundTripper) *RoundTripper {
+	if baseTransport == nil {
+		baseTransport = http.DefaultTransport
+	}
 	return &RoundTripper{
 		Headers:      headers,
-		RoundTripper: transport,
+		RoundTripper: baseTransport,
 	}
 }
 
-// RoundTrip This simply adds our default headers to the request before passing it on to the default RoundTripper.
-func (roundTripper *RoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
-	newRequest := new(http.Request)
-	*newRequest = *req
-	newRequest.Header = make(http.Header, len(req.Header))
-	for k, s := range req.Header {
-		newRequest.Header[k] = append([]string(nil), s...)
-	}
-	for _, s := range roundTripper.Headers {
-		split := strings.SplitN(s, ":", 2)
-		if len(split) >= 2 {
-			newRequest.Header[split[0]] = append([]string(nil), split[1])
+// RoundTrip adds custom headers to the request before passing it to the base RoundTripper.
+func (rt *RoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	newRequest := req.Clone(req.Context()) // Clone the request
+	for _, header := range rt.Headers {
+		if _, exists := newRequest.Header[header.Key]; !exists {
+			newRequest.Header.Add(header.Key, header.Value)
 		}
 	}
-	return roundTripper.RoundTripper.RoundTrip(newRequest)
+	return rt.RoundTripper.RoundTrip(newRequest)
 }
