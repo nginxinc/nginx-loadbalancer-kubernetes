@@ -1,17 +1,16 @@
 ---
 apiVersion: v2
-appVersion: 0.4.0
+appVersion: 0.8.0
 description: NGINXaaS LoadBalancer for Kubernetes
 name: nginxaas-loadbalancer-kubernetes
 keywords:
-- nginx
-- nginxaas
-- loadbalancer
+  - nginx
+  - nginxaas
+  - loadbalancer
 kubeVersion: '>= 1.22.0-0'
 maintainers:
-- name: "@ciroque"
-- name: "@chrisakker"
-- name: "@abdennour"
-
+  - name: "@ciroque"
+  - name: "@chrisakker"
+  - name: "@abdennour"
 type: application
-version: 0.4.0
+version: 0.8.0
