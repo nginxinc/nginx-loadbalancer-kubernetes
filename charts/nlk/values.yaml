@@ -31,7 +31,7 @@ nlk:
     annotations: {}
   config:
     ## trace,debug,info,warn,error,fatal,panic
-    # logLevel: "warn"
+    logLevel: "info"
 
     ## the nginx hosts (comma-separated) to send upstream updates to
     nginxHosts: ""
