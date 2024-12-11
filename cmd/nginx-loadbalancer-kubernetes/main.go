@@ -17,6 +17,7 @@ import (
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/synchronization"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/translation"
 	"github.com/nginxinc/kubernetes-nginx-ingress/pkg/buildinfo"
+	"golang.org/x/sync/errgroup"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -80,18 +81,17 @@ func run() error {
 		}
 	}
 
-	go synchronizer.Run(ctx.Done())
+	g, ctx := errgroup.WithContext(ctx)
+
+	g.Go(func() error { return synchronizer.Run(ctx) })
 
 	probeServer := probation.NewHealthServer()
 	probeServer.Start()
 
-	err = watcher.Run(ctx)
-	if err != nil {
-		return fmt.Errorf(`error occurred running watcher: %w`, err)
-	}
+	g.Go(func() error { return watcher.Run(ctx) })
 
-	<-ctx.Done()
-	return nil
+	err = g.Wait()
+	return err
 }
 
 func initializeLogger(logLevel string) {

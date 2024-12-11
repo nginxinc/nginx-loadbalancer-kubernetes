@@ -6,6 +6,7 @@
 package synchronization
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -27,7 +28,7 @@ type Interface interface {
 	AddEvent(event core.Event)
 
 	// Run starts the synchronizer.
-	Run(stopCh <-chan struct{})
+	Run(ctx context.Context) error
 
 	// ShutDown shuts down the synchronizer.
 	ShutDown()
@@ -87,14 +88,15 @@ func (s *Synchronizer) AddEvent(event core.Event) {
 }
 
 // Run starts the Synchronizer, spins up Goroutines to process events, and waits for a stop signal.
-func (s *Synchronizer) Run(stopCh <-chan struct{}) {
+func (s *Synchronizer) Run(ctx context.Context) error {
 	slog.Debug(`Synchronizer::Run`)
 
 	for i := 0; i < s.settings.Synchronizer.Threads; i++ {
-		go wait.Until(s.worker, 0, stopCh)
+		go wait.Until(s.worker, 0, ctx.Done())
 	}
 
-	<-stopCh
+	<-ctx.Done()
+	return nil
 }
 
 // ShutDown stops the Synchronizer and shuts down the event queue
