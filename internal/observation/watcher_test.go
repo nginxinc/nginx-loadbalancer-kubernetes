@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
-	"github.com/nginxinc/kubernetes-nginx-ingress/test/mocks"
 	"github.com/stretchr/testify/require"
 )
 
@@ -20,6 +19,5 @@ func TestWatcher_ErrWithNilInformers(t *testing.T) {
 }
 
 func buildWatcherWithNilInformer() (*Watcher, error) {
-	handler := &mocks.MockHandler{}
-	return NewWatcher(configuration.Settings{}, handler, nil, nil, nil)
+	return NewWatcher(configuration.Settings{}, nil, nil, nil, nil)
 }

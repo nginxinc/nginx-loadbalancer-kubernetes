@@ -49,11 +49,6 @@ func run() error {
 
 	synchronizerWorkqueue := buildWorkQueue(settings.Synchronizer.WorkQueueSettings)
 
-	synchronizer, err := synchronization.NewSynchronizer(settings, synchronizerWorkqueue)
-	if err != nil {
-		return fmt.Errorf(`error initializing synchronizer: %w`, err)
-	}
-
 	factory := informers.NewSharedInformerFactoryWithOptions(
 		k8sClient, settings.Watcher.ResyncPeriod,
 	)
@@ -64,12 +59,15 @@ func run() error {
 	nodesInformer := factory.Core().V1().Nodes()
 	nodesLister := nodesInformer.Lister()
 
-	handlerWorkqueue := buildWorkQueue(settings.Synchronizer.WorkQueueSettings)
-
 	translator := translation.NewTranslator(endpointSliceLister, nodesLister)
-	handler := observation.NewHandler(settings, synchronizer, handlerWorkqueue, translator)
 
-	watcher, err := observation.NewWatcher(settings, handler, serviceInformer, endpointSliceInformer, nodesInformer)
+	synchronizer, err := synchronization.NewSynchronizer(
+		settings, synchronizerWorkqueue, translator, serviceInformer.Lister())
+	if err != nil {
+		return fmt.Errorf(`error initializing synchronizer: %w`, err)
+	}
+
+	watcher, err := observation.NewWatcher(settings, synchronizer, serviceInformer, endpointSliceInformer, nodesInformer)
 	if err != nil {
 		return fmt.Errorf(`error occurred creating a watcher: %w`, err)
 	}
@@ -82,7 +80,6 @@ func run() error {
 		}
 	}
 
-	go handler.Run(ctx)
 	go synchronizer.Run(ctx.Done())
 
 	probeServer := probation.NewHealthServer()

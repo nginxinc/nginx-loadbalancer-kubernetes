@@ -12,6 +12,7 @@ import (
 
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
+	"github.com/nginxinc/kubernetes-nginx-ingress/internal/synchronization"
 	v1 "k8s.io/api/core/v1"
 	discovery "k8s.io/api/discovery/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -24,8 +25,7 @@ import (
 // Particularly, Services in the namespace defined in the WatcherSettings::NginxIngressNamespace setting.
 // When a change is detected, an Event is generated and added to the Handler's queue.
 type Watcher struct {
-	// handler is the event handler
-	handler HandlerInterface
+	synchronizer synchronization.Interface
 
 	// settings is the configuration settings
 	settings configuration.Settings
@@ -45,7 +45,7 @@ type Watcher struct {
 // NewWatcher creates a new Watcher
 func NewWatcher(
 	settings configuration.Settings,
-	handler HandlerInterface,
+	synchronizer synchronization.Interface,
 	serviceInformer coreinformers.ServiceInformer,
 	endpointSliceInformer discoveryinformers.EndpointSliceInformer,
 	nodeInformer coreinformers.NodeInformer,
@@ -67,7 +67,7 @@ func NewWatcher(
 	nodesInformer := nodeInformer.Informer()
 
 	w := &Watcher{
-		handler:               handler,
+		synchronizer:          synchronizer,
 		settings:              settings,
 		servicesInformer:      servicesInformer,
 		endpointSliceInformer: endpointSlicesInformer,
@@ -92,7 +92,7 @@ func (w *Watcher) Run(ctx context.Context) error {
 	slog.Debug("Watcher::Watch")
 
 	defer utilruntime.HandleCrash()
-	defer w.handler.ShutDown()
+	defer w.synchronizer.ShutDown()
 
 	<-ctx.Done()
 	return nil
@@ -115,7 +115,7 @@ func (w *Watcher) buildNodesEventHandlerForAdd() func(interface{}) {
 		for _, service := range w.register.listServices() {
 			var previousService *v1.Service
 			e := core.NewEvent(core.Updated, service, previousService)
-			w.handler.AddRateLimitedEvent(&e)
+			w.synchronizer.AddEvent(e)
 		}
 	}
 }
@@ -127,7 +127,7 @@ func (w *Watcher) buildNodesEventHandlerForUpdate() func(interface{}, interface{
 		for _, service := range w.register.listServices() {
 			var previousService *v1.Service
 			e := core.NewEvent(core.Updated, service, previousService)
-			w.handler.AddRateLimitedEvent(&e)
+			w.synchronizer.AddEvent(e)
 		}
 	}
 }
@@ -139,7 +139,7 @@ func (w *Watcher) buildNodesEventHandlerForDelete() func(interface{}) {
 		for _, service := range w.register.listServices() {
 			var previousService *v1.Service
 			e := core.NewEvent(core.Updated, service, previousService)
-			w.handler.AddRateLimitedEvent(&e)
+			w.synchronizer.AddEvent(e)
 		}
 	}
 }
@@ -162,7 +162,7 @@ func (w *Watcher) buildEndpointSlicesEventHandlerForAdd() func(interface{}) {
 
 		var previousService *v1.Service
 		e := core.NewEvent(core.Updated, service, previousService)
-		w.handler.AddRateLimitedEvent(&e)
+		w.synchronizer.AddEvent(e)
 	}
 }
 
@@ -184,7 +184,7 @@ func (w *Watcher) buildEndpointSlicesEventHandlerForUpdate() func(interface{}, i
 
 		var previousService *v1.Service
 		e := core.NewEvent(core.Updated, service, previousService)
-		w.handler.AddRateLimitedEvent(&e)
+		w.synchronizer.AddEvent(e)
 	}
 }
 
@@ -206,7 +206,7 @@ func (w *Watcher) buildEndpointSlicesEventHandlerForDelete() func(interface{}) {
 
 		var previousService *v1.Service
 		e := core.NewEvent(core.Deleted, service, previousService)
-		w.handler.AddRateLimitedEvent(&e)
+		w.synchronizer.AddEvent(e)
 	}
 }
 
@@ -224,7 +224,7 @@ func (w *Watcher) buildServiceEventHandlerForAdd() func(interface{}) {
 
 		var previousService *v1.Service
 		e := core.NewEvent(core.Created, service, previousService)
-		w.handler.AddRateLimitedEvent(&e)
+		w.synchronizer.AddEvent(e)
 	}
 }
 
@@ -242,7 +242,7 @@ func (w *Watcher) buildServiceEventHandlerForDelete() func(interface{}) {
 
 		var previousService *v1.Service
 		e := core.NewEvent(core.Deleted, service, previousService)
-		w.handler.AddRateLimitedEvent(&e)
+		w.synchronizer.AddEvent(e)
 	}
 }
 
@@ -267,7 +267,7 @@ func (w *Watcher) buildServiceEventHandlerForUpdate() func(interface{}, interfac
 		w.register.addOrUpdateService(service)
 
 		e := core.NewEvent(core.Updated, service, previousService)
-		w.handler.AddRateLimitedEvent(&e)
+		w.synchronizer.AddEvent(e)
 	}
 }
 
