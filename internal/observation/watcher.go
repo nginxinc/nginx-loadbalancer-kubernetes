@@ -113,8 +113,7 @@ func (w *Watcher) buildNodesEventHandlerForAdd() func(interface{}) {
 	return func(obj interface{}) {
 		slog.Debug("received node add event")
 		for _, service := range w.register.listServices() {
-			var previousService *v1.Service
-			e := core.NewEvent(core.Updated, service, previousService)
+			e := core.NewEvent(core.Updated, service)
 			w.synchronizer.AddEvent(e)
 		}
 	}
@@ -125,8 +124,7 @@ func (w *Watcher) buildNodesEventHandlerForUpdate() func(interface{}, interface{
 	return func(previous, updated interface{}) {
 		slog.Debug("received node update event")
 		for _, service := range w.register.listServices() {
-			var previousService *v1.Service
-			e := core.NewEvent(core.Updated, service, previousService)
+			e := core.NewEvent(core.Updated, service)
 			w.synchronizer.AddEvent(e)
 		}
 	}
@@ -137,8 +135,7 @@ func (w *Watcher) buildNodesEventHandlerForDelete() func(interface{}) {
 	return func(obj interface{}) {
 		slog.Debug("received node delete event")
 		for _, service := range w.register.listServices() {
-			var previousService *v1.Service
-			e := core.NewEvent(core.Updated, service, previousService)
+			e := core.NewEvent(core.Updated, service)
 			w.synchronizer.AddEvent(e)
 		}
 	}
@@ -160,8 +157,7 @@ func (w *Watcher) buildEndpointSlicesEventHandlerForAdd() func(interface{}) {
 			return
 		}
 
-		var previousService *v1.Service
-		e := core.NewEvent(core.Updated, service, previousService)
+		e := core.NewEvent(core.Updated, service)
 		w.synchronizer.AddEvent(e)
 	}
 }
@@ -182,8 +178,7 @@ func (w *Watcher) buildEndpointSlicesEventHandlerForUpdate() func(interface{}, i
 			return
 		}
 
-		var previousService *v1.Service
-		e := core.NewEvent(core.Updated, service, previousService)
+		e := core.NewEvent(core.Updated, service)
 		w.synchronizer.AddEvent(e)
 	}
 }
@@ -204,8 +199,7 @@ func (w *Watcher) buildEndpointSlicesEventHandlerForDelete() func(interface{}) {
 			return
 		}
 
-		var previousService *v1.Service
-		e := core.NewEvent(core.Deleted, service, previousService)
+		e := core.NewEvent(core.Deleted, service)
 		w.synchronizer.AddEvent(e)
 	}
 }
@@ -222,8 +216,7 @@ func (w *Watcher) buildServiceEventHandlerForAdd() func(interface{}) {
 
 		w.register.addOrUpdateService(service)
 
-		var previousService *v1.Service
-		e := core.NewEvent(core.Created, service, previousService)
+		e := core.NewEvent(core.Created, service)
 		w.synchronizer.AddEvent(e)
 	}
 }
@@ -240,8 +233,7 @@ func (w *Watcher) buildServiceEventHandlerForDelete() func(interface{}) {
 
 		w.register.removeService(service)
 
-		var previousService *v1.Service
-		e := core.NewEvent(core.Deleted, service, previousService)
+		e := core.NewEvent(core.Deleted, service)
 		w.synchronizer.AddEvent(e)
 	}
 }
@@ -266,7 +258,7 @@ func (w *Watcher) buildServiceEventHandlerForUpdate() func(interface{}, interfac
 
 		w.register.addOrUpdateService(service)
 
-		e := core.NewEvent(core.Updated, service, previousService)
+		e := core.NewEvent(core.Updated, service)
 		w.synchronizer.AddEvent(e)
 	}
 }

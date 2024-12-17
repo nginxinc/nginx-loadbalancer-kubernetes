@@ -1324,9 +1324,7 @@ func buildUpdatedEvent(service *v1.Service) core.Event {
 }
 
 func buildEvent(eventType core.EventType, service *v1.Service) core.Event {
-	previousService := defaultService(service.Spec.Type)
-
-	event := core.NewEvent(eventType, service, previousService)
+	event := core.NewEvent(eventType, service)
 	event.Service.Name = "default-service"
 	return event
 }

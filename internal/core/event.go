@@ -29,16 +29,12 @@ type Event struct {
 
 	// Service represents the service object in its current state
 	Service *v1.Service
-
-	// PreviousService represents the service object in its previous state
-	PreviousService *v1.Service
 }
 
 // NewEvent factory method to create a new Event
-func NewEvent(eventType EventType, service *v1.Service, previousService *v1.Service) Event {
+func NewEvent(eventType EventType, service *v1.Service) Event {
 	return Event{
-		Type:            eventType,
-		Service:         service,
-		PreviousService: previousService,
+		Type:    eventType,
+		Service: service,
 	}
 }
