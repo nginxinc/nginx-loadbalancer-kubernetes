@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/application"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/communication"
@@ -246,11 +247,17 @@ func (s *Synchronizer) handleDeletedEvent(serverUpdateEvent *core.ServerUpdateEv
 		return fmt.Errorf(`error occurred creating the border client: %w`, err)
 	}
 
-	if err = borderClient.Delete(serverUpdateEvent); err != nil {
+	err = borderClient.Update(serverUpdateEvent)
+
+	switch {
+	case err == nil:
+		return nil
+	// checking the string is not ideal, but the plus client gives us no option
+	case strings.Contains(err.Error(), "status=404"):
+		return nil
+	default:
 		return fmt.Errorf(`error occurred deleting the %s upstream servers: %w`, serverUpdateEvent.ClientType, err)
 	}
-
-	return nil
 }
 
 // handleNextServiceEvent pulls a service from the event queue and feeds it to
