@@ -6,6 +6,7 @@
 package application
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 
@@ -14,8 +15,8 @@ import (
 
 // Interface defines the functions required to implement a Border Client.
 type Interface interface {
-	Update(*core.ServerUpdateEvent) error
-	Delete(*core.ServerUpdateEvent) error
+	Update(context.Context, *core.ServerUpdateEvent) error
+	Delete(context.Context, *core.ServerUpdateEvent) error
 }
 
 // BorderClient defines any state need by the Border Client.

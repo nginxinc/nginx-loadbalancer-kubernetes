@@ -9,6 +9,7 @@
 package application
 
 import (
+	"context"
 	"testing"
 )
 
@@ -20,7 +21,7 @@ func TestHttpBorderClient_Delete(t *testing.T) {
 		t.Fatalf(`error occurred creating a new border client: %v`, err)
 	}
 
-	err = borderClient.Delete(event)
+	err = borderClient.Delete(context.Background(), event)
 	if err != nil {
 		t.Fatalf(`error occurred deleting the nginx+ upstream server: %v`, err)
 	}
@@ -38,7 +39,7 @@ func TestHttpBorderClient_Update(t *testing.T) {
 		t.Fatalf(`error occurred creating a new border client: %v`, err)
 	}
 
-	err = borderClient.Update(event)
+	err = borderClient.Update(context.Background(), event)
 	if err != nil {
 		t.Fatalf(`error occurred deleting the nginx+ upstream server: %v`, err)
 	}
@@ -65,7 +66,7 @@ func TestHttpBorderClient_DeleteReturnsError(t *testing.T) {
 		t.Fatalf(`error occurred creating a new border client: %v`, err)
 	}
 
-	err = borderClient.Delete(event)
+	err = borderClient.Delete(context.Background(), event)
 
 	if err == nil {
 		t.Fatalf(`expected an error to occur when deleting the nginx+ upstream server`)
@@ -80,7 +81,7 @@ func TestHttpBorderClient_UpdateReturnsError(t *testing.T) {
 		t.Fatalf(`error occurred creating a new border client: %v`, err)
 	}
 
-	err = borderClient.Update(event)
+	err = borderClient.Update(context.Background(), event)
 
 	if err == nil {
 		t.Fatalf(`expected an error to occur when deleting the nginx+ upstream server`)

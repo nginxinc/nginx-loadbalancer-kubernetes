@@ -12,11 +12,11 @@ import (
 	"log/slog"
 	"strings"
 
+	nginxClient "github.com/nginx/nginx-plus-go-client/v2/client"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/application"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/communication"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
-	nginxClient "github.com/nginxinc/nginx-plus-go-client/client"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/util/wait"
 	corelisters "k8s.io/client-go/listers/core/v1"
@@ -92,8 +92,15 @@ func (s *Synchronizer) AddEvent(event core.Event) {
 func (s *Synchronizer) Run(ctx context.Context) error {
 	slog.Debug(`Synchronizer::Run`)
 
+	// worker is the main message loop
+	worker := func() {
+		slog.Debug(`Synchronizer::worker`)
+		for s.handleNextServiceEvent(ctx) {
+		}
+	}
+
 	for i := 0; i < s.settings.Synchronizer.Threads; i++ {
-		go wait.Until(s.worker, 0, ctx.Done())
+		go wait.Until(worker, 0, ctx.Done())
 	}
 
 	<-ctx.Done()
@@ -148,7 +155,7 @@ func (s *Synchronizer) fanOutEventToHosts(event core.ServerUpdateEvents) core.Se
 // handleServiceEvent gets the latest state for the service from the shared
 // informer cache, translates the service event into server update events and
 // dispatches these events to the proper handler function.
-func (s *Synchronizer) handleServiceEvent(key ServiceKey) (err error) {
+func (s *Synchronizer) handleServiceEvent(ctx context.Context, key ServiceKey) (err error) {
 	logger := slog.With("service", key)
 	logger.Debug(`Synchronizer::handleServiceEvent`)
 
@@ -191,11 +198,11 @@ func (s *Synchronizer) handleServiceEvent(key ServiceKey) (err error) {
 	for _, evt := range events {
 		switch event.Type {
 		case core.Created, core.Updated:
-			if handleErr := s.handleCreatedUpdatedEvent(evt); handleErr != nil {
+			if handleErr := s.handleCreatedUpdatedEvent(ctx, evt); handleErr != nil {
 				err = errors.Join(err, handleErr)
 			}
 		case core.Deleted:
-			if handleErr := s.handleDeletedEvent(evt); handleErr != nil {
+			if handleErr := s.handleDeletedEvent(ctx, evt); handleErr != nil {
 				err = errors.Join(err, handleErr)
 			}
 		default:
@@ -219,7 +226,7 @@ func (s *Synchronizer) handleServiceEvent(key ServiceKey) (err error) {
 }
 
 // handleCreatedUpdatedEvent handles events of type Created or Updated.
-func (s *Synchronizer) handleCreatedUpdatedEvent(serverUpdateEvent *core.ServerUpdateEvent) error {
+func (s *Synchronizer) handleCreatedUpdatedEvent(ctx context.Context, serverUpdateEvent *core.ServerUpdateEvent) error {
 	slog.Debug(`Synchronizer::handleCreatedUpdatedEvent`, "eventID", serverUpdateEvent.ID)
 
 	var err error
@@ -229,7 +236,7 @@ func (s *Synchronizer) handleCreatedUpdatedEvent(serverUpdateEvent *core.ServerU
 		return fmt.Errorf(`error occurred creating the border client: %w`, err)
 	}
 
-	if err = borderClient.Update(serverUpdateEvent); err != nil {
+	if err = borderClient.Update(ctx, serverUpdateEvent); err != nil {
 		return fmt.Errorf(`error occurred updating the %s upstream servers: %w`, serverUpdateEvent.ClientType, err)
 	}
 
@@ -237,7 +244,7 @@ func (s *Synchronizer) handleCreatedUpdatedEvent(serverUpdateEvent *core.ServerU
 }
 
 // handleDeletedEvent handles events of type Deleted.
-func (s *Synchronizer) handleDeletedEvent(serverUpdateEvent *core.ServerUpdateEvent) error {
+func (s *Synchronizer) handleDeletedEvent(ctx context.Context, serverUpdateEvent *core.ServerUpdateEvent) error {
 	slog.Debug(`Synchronizer::handleDeletedEvent`, "eventID", serverUpdateEvent.ID)
 
 	var err error
@@ -247,7 +254,7 @@ func (s *Synchronizer) handleDeletedEvent(serverUpdateEvent *core.ServerUpdateEv
 		return fmt.Errorf(`error occurred creating the border client: %w`, err)
 	}
 
-	err = borderClient.Update(serverUpdateEvent)
+	err = borderClient.Update(ctx, serverUpdateEvent)
 
 	switch {
 	case err == nil:
@@ -262,7 +269,7 @@ func (s *Synchronizer) handleDeletedEvent(serverUpdateEvent *core.ServerUpdateEv
 
 // handleNextServiceEvent pulls a service from the event queue and feeds it to
 // the service event handler with retry logic
-func (s *Synchronizer) handleNextServiceEvent() bool {
+func (s *Synchronizer) handleNextServiceEvent(ctx context.Context) bool {
 	slog.Debug(`Synchronizer::handleNextServiceEvent`)
 
 	svc, quit := s.eventQueue.Get()
@@ -278,16 +285,9 @@ func (s *Synchronizer) handleNextServiceEvent() bool {
 		return true
 	}
 
-	s.withRetry(s.handleServiceEvent(key), key)
+	s.withRetry(s.handleServiceEvent(ctx, key), key)
 
 	return true
-}
-
-// worker is the main message loop
-func (s *Synchronizer) worker() {
-	slog.Debug(`Synchronizer::worker`)
-	for s.handleNextServiceEvent() {
-	}
 }
 
 // withRetry handles errors from the event handler and requeues events that fail

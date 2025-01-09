@@ -7,10 +7,11 @@
 package application
 
 import (
+	"context"
 	"fmt"
 
+	nginxClient "github.com/nginx/nginx-plus-go-client/v2/client"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
-	nginxClient "github.com/nginxinc/nginx-plus-go-client/client"
 )
 
 // NginxStreamBorderClient implements the BorderClient interface for stream upstreams.
@@ -32,9 +33,9 @@ func NewNginxStreamBorderClient(client interface{}) (Interface, error) {
 }
 
 // Update manages the Upstream servers for the Upstream Name given in the ServerUpdateEvent.
-func (tbc *NginxStreamBorderClient) Update(event *core.ServerUpdateEvent) error {
+func (tbc *NginxStreamBorderClient) Update(ctx context.Context, event *core.ServerUpdateEvent) error {
 	streamUpstreamServers := asNginxStreamUpstreamServers(event.UpstreamServers)
-	_, _, _, err := tbc.nginxClient.UpdateStreamServers(event.UpstreamName, streamUpstreamServers)
+	_, _, _, err := tbc.nginxClient.UpdateStreamServers(ctx, event.UpstreamName, streamUpstreamServers)
 	if err != nil {
 		return fmt.Errorf(`error occurred updating the nginx+ upstream server: %w`, err)
 	}
@@ -43,8 +44,8 @@ func (tbc *NginxStreamBorderClient) Update(event *core.ServerUpdateEvent) error 
 }
 
 // Delete deletes the Upstream server for the Upstream Name given in the ServerUpdateEvent.
-func (tbc *NginxStreamBorderClient) Delete(event *core.ServerUpdateEvent) error {
-	err := tbc.nginxClient.DeleteStreamServer(event.UpstreamName, event.UpstreamServers[0].Host)
+func (tbc *NginxStreamBorderClient) Delete(ctx context.Context, event *core.ServerUpdateEvent) error {
+	err := tbc.nginxClient.DeleteStreamServer(ctx, event.UpstreamName, event.UpstreamServers[0].Host)
 	if err != nil {
 		return fmt.Errorf(`error occurred deleting the nginx+ upstream server: %w`, err)
 	}

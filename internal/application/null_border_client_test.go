@@ -5,12 +5,15 @@
 
 package application
 
-import "testing"
+import (
+	"context"
+	"testing"
+)
 
 func TestNullBorderClient_Delete(t *testing.T) {
 	t.Parallel()
 	client := NullBorderClient{}
-	err := client.Delete(nil)
+	err := client.Delete(context.Background(), nil)
 	if err != nil {
 		t.Errorf(`expected no error deleting border client, got: %v`, err)
 	}
@@ -19,7 +22,7 @@ func TestNullBorderClient_Delete(t *testing.T) {
 func TestNullBorderClient_Update(t *testing.T) {
 	t.Parallel()
 	client := NullBorderClient{}
-	err := client.Update(nil)
+	err := client.Update(context.Background(), nil)
 	if err != nil {
 		t.Errorf(`expected no error updating border client, got: %v`, err)
 	}
