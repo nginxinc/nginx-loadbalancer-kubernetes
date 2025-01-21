@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"time"
 
 	nginxClient "github.com/nginx/nginx-plus-go-client/v2/client"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/application"
@@ -84,7 +85,12 @@ func (s *Synchronizer) AddEvent(event core.Event) {
 	}
 
 	key := ServiceKey{Name: event.Service.Name, Namespace: event.Service.Namespace}
-	s.cache.add(key, event.Service)
+	var deletedAt time.Time
+	if event.Type == core.Deleted {
+		deletedAt = time.Now()
+	}
+
+	s.cache.add(key, service{event.Service, deletedAt})
 	s.eventQueue.AddRateLimited(key)
 }
 
@@ -162,6 +168,8 @@ func (s *Synchronizer) handleServiceEvent(ctx context.Context, key ServiceKey) (
 	// if a service exists in the shared informer cache, we can assume that we need to update it
 	event := core.Event{Type: core.Updated}
 
+	cachedService, exists := s.cache.get(key)
+
 	namespaceLister := s.serviceLister.Services(key.Namespace)
 	k8sService, err := namespaceLister.Get(key.Name)
 	switch {
@@ -169,16 +177,18 @@ func (s *Synchronizer) handleServiceEvent(ctx context.Context, key ServiceKey) (
 	// gather the last known state of the service so we can delete its
 	// upstream servers
 	case err != nil && apierrors.IsNotFound(err):
-		service, ok := s.cache.get(key)
-		if !ok {
+		if !exists {
 			logger.Warn(`Synchronizer::handleServiceEvent: no information could be gained about service`)
 			return nil
 		}
 		// no matter what type the cached event has, the service no longer exists, so the type is Deleted
 		event.Type = core.Deleted
-		event.Service = service
+		event.Service = cachedService.service
 	case err != nil:
 		return err
+	case exists && !cachedService.removedAt.IsZero():
+		event.Type = core.Deleted
+		event.Service = cachedService.service
 	default:
 		event.Service = k8sService
 	}

@@ -2,6 +2,7 @@ package synchronization
 
 import (
 	"sync"
+	"time"
 
 	v1 "k8s.io/api/core/v1"
 )
@@ -11,23 +12,31 @@ import (
 // caller can access the spec of the deleted service for cleanup.
 type cache struct {
 	mu    sync.RWMutex
-	store map[ServiceKey]*v1.Service
+	store map[ServiceKey]service
+}
+
+type service struct {
+	service *v1.Service
+	// removedAt indicates when the service was removed from NGINXaaS
+	// monitoring. A zero time indicates that the service is still actively
+	// being monitored by NGINXaaS.
+	removedAt time.Time
 }
 
 func newCache() *cache {
 	return &cache{
-		store: make(map[ServiceKey]*v1.Service),
+		store: make(map[ServiceKey]service),
 	}
 }
 
-func (s *cache) get(key ServiceKey) (*v1.Service, bool) {
+func (s *cache) get(key ServiceKey) (service, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	service, ok := s.store[key]
-	return service, ok
+	svc, ok := s.store[key]
+	return svc, ok
 }
 
-func (s *cache) add(key ServiceKey, service *v1.Service) {
+func (s *cache) add(key ServiceKey, service service) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.store[key] = service
