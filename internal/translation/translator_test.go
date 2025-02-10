@@ -39,8 +39,9 @@ const (
 func TestCreatedTranslateNoPorts(t *testing.T) {
 	t.Parallel()
 	testcases := map[string]struct{ serviceType v1.ServiceType }{
-		"nodePort":  {v1.ServiceTypeNodePort},
-		"clusterIP": {v1.ServiceTypeClusterIP},
+		"nodePort":     {v1.ServiceTypeNodePort},
+		"clusterIP":    {v1.ServiceTypeClusterIP},
+		"loadBalancer": {v1.ServiceTypeLoadBalancer},
 	}
 
 	for name, tc := range testcases {
@@ -51,7 +52,7 @@ func TestCreatedTranslateNoPorts(t *testing.T) {
 			const expectedEventCount = 0
 
 			service := defaultService(tc.serviceType)
-			event := buildCreatedEvent(service)
+			event := buildCreatedEvent(service, 0)
 
 			translator := NewTranslator(
 				NewFakeEndpointSliceLister([]*discovery.EndpointSlice{}, nil),
@@ -74,8 +75,9 @@ func TestCreatedTranslateNoPorts(t *testing.T) {
 func TestCreatedTranslateNoInterestingPorts(t *testing.T) {
 	t.Parallel()
 	testcases := map[string]struct{ serviceType v1.ServiceType }{
-		"nodePort":  {v1.ServiceTypeNodePort},
-		"clusterIP": {v1.ServiceTypeClusterIP},
+		"nodePort":     {v1.ServiceTypeNodePort},
+		"clusterIP":    {v1.ServiceTypeClusterIP},
+		"loadBalancer": {v1.ServiceTypeLoadBalancer},
 	}
 
 	for name, tc := range testcases {
@@ -88,7 +90,7 @@ func TestCreatedTranslateNoInterestingPorts(t *testing.T) {
 
 			ports := generateUpdatablePorts(portCount, 0)
 			service := serviceWithPorts(tc.serviceType, ports)
-			event := buildCreatedEvent(service)
+			event := buildCreatedEvent(service, 0)
 
 			translator := NewTranslator(
 				NewFakeEndpointSliceLister([]*discovery.EndpointSlice{}, nil),
@@ -114,6 +116,7 @@ func TestCreatedTranslateOneInterestingPort(t *testing.T) {
 	testcases := map[string]struct {
 		serviceType         v1.ServiceType
 		nodes               []*v1.Node
+		ingresses           int
 		endpoints           []*discovery.EndpointSlice
 		expectedServerCount int
 	}{
@@ -127,6 +130,11 @@ func TestCreatedTranslateOneInterestingPort(t *testing.T) {
 			endpoints:           generateEndpointSlices(OneEndpointSlice, 1, 1),
 			expectedServerCount: OneEndpointSlice,
 		},
+		"loadBalancer": {
+			serviceType:         v1.ServiceTypeLoadBalancer,
+			expectedServerCount: OneNode,
+			ingresses:           1,
+		},
 	}
 
 	for name, tc := range testcases {
@@ -139,7 +147,7 @@ func TestCreatedTranslateOneInterestingPort(t *testing.T) {
 
 			ports := generatePorts(portCount)
 			service := serviceWithPorts(tc.serviceType, ports)
-			event := buildCreatedEvent(service)
+			event := buildCreatedEvent(service, tc.ingresses)
 
 			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
 			translatedEvents, err := translator.Translate(&event)
@@ -163,6 +171,7 @@ func TestCreatedTranslateManyInterestingPorts(t *testing.T) {
 	testcases := map[string]struct {
 		serviceType         v1.ServiceType
 		nodes               []*v1.Node
+		ingresses           int
 		endpoints           []*discovery.EndpointSlice
 		expectedServerCount int
 	}{
@@ -176,6 +185,11 @@ func TestCreatedTranslateManyInterestingPorts(t *testing.T) {
 			endpoints:           generateEndpointSlices(OneEndpointSlice, 4, 4),
 			expectedServerCount: OneEndpointSlice,
 		},
+		"loadBalancer": {
+			serviceType:         v1.ServiceTypeLoadBalancer,
+			expectedServerCount: OneNode,
+			ingresses:           1,
+		},
 	}
 
 	for name, tc := range testcases {
@@ -188,7 +202,7 @@ func TestCreatedTranslateManyInterestingPorts(t *testing.T) {
 
 			ports := generatePorts(portCount)
 			service := serviceWithPorts(tc.serviceType, ports)
-			event := buildCreatedEvent(service)
+			event := buildCreatedEvent(service, tc.ingresses)
 
 			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
 			translatedEvents, err := translator.Translate(&event)
@@ -213,6 +227,7 @@ func TestCreatedTranslateManyMixedPorts(t *testing.T) {
 	testcases := map[string]struct {
 		serviceType         v1.ServiceType
 		nodes               []*v1.Node
+		ingresses           int
 		endpoints           []*discovery.EndpointSlice
 		expectedServerCount int
 	}{
@@ -225,6 +240,11 @@ func TestCreatedTranslateManyMixedPorts(t *testing.T) {
 			serviceType:         v1.ServiceTypeClusterIP,
 			endpoints:           generateEndpointSlices(OneEndpointSlice, 6, 2),
 			expectedServerCount: OneEndpointSlice,
+		},
+		"loadBalancer": {
+			serviceType:         v1.ServiceTypeLoadBalancer,
+			expectedServerCount: OneNode,
+			ingresses:           1,
 		},
 	}
 
@@ -239,7 +259,7 @@ func TestCreatedTranslateManyMixedPorts(t *testing.T) {
 
 			ports := generateUpdatablePorts(portCount, updatablePortCount)
 			service := serviceWithPorts(tc.serviceType, ports)
-			event := buildCreatedEvent(service)
+			event := buildCreatedEvent(service, tc.ingresses)
 
 			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
 			translatedEvents, err := translator.Translate(&event)
@@ -263,6 +283,7 @@ func TestCreatedTranslateManyMixedPortsAndManyNodes(t *testing.T) {
 	testcases := map[string]struct {
 		serviceType         v1.ServiceType
 		nodes               []*v1.Node
+		ingresses           int
 		endpoints           []*discovery.EndpointSlice
 		expectedServerCount int
 	}{
@@ -276,6 +297,11 @@ func TestCreatedTranslateManyMixedPortsAndManyNodes(t *testing.T) {
 			endpoints:           generateEndpointSlices(ManyEndpointSlices, 6, 2),
 			expectedServerCount: ManyEndpointSlices,
 		},
+		"loadBalancer": {
+			serviceType:         v1.ServiceTypeLoadBalancer,
+			ingresses:           ManyNodes,
+			expectedServerCount: ManyNodes,
+		},
 	}
 
 	for name, tc := range testcases {
@@ -288,7 +314,7 @@ func TestCreatedTranslateManyMixedPortsAndManyNodes(t *testing.T) {
 
 			ports := generateUpdatablePorts(portCount, updatablePortCount)
 			service := serviceWithPorts(tc.serviceType, ports)
-			event := buildCreatedEvent(service)
+			event := buildCreatedEvent(service, tc.ingresses)
 
 			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
 			translatedEvents, err := translator.Translate(&event)
@@ -316,6 +342,7 @@ func TestUpdatedTranslateNoPorts(t *testing.T) {
 	testcases := map[string]struct {
 		serviceType         v1.ServiceType
 		nodes               []*v1.Node
+		ingresses           int
 		endpoints           []*discovery.EndpointSlice
 		expectedServerCount int
 	}{
@@ -329,6 +356,11 @@ func TestUpdatedTranslateNoPorts(t *testing.T) {
 			endpoints:           generateEndpointSlices(OneEndpointSlice, 0, 0),
 			expectedServerCount: OneEndpointSlice,
 		},
+		"loadBalancer": {
+			serviceType:         v1.ServiceTypeLoadBalancer,
+			expectedServerCount: OneNode,
+			ingresses:           OneNode,
+		},
 	}
 
 	for name, tc := range testcases {
@@ -338,7 +370,7 @@ func TestUpdatedTranslateNoPorts(t *testing.T) {
 			const expectedEventCount = 0
 
 			service := defaultService(tc.serviceType)
-			event := buildUpdatedEvent(service)
+			event := buildUpdatedEvent(service, tc.ingresses)
 
 			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
 			translatedEvents, err := translator.Translate(&event)
@@ -360,6 +392,7 @@ func TestUpdatedTranslateNoInterestingPorts(t *testing.T) {
 	testcases := map[string]struct {
 		serviceType         v1.ServiceType
 		nodes               []*v1.Node
+		ingresses           int
 		endpoints           []*discovery.EndpointSlice
 		expectedServerCount int
 	}{
@@ -373,6 +406,11 @@ func TestUpdatedTranslateNoInterestingPorts(t *testing.T) {
 			endpoints:           generateEndpointSlices(OneEndpointSlice, 1, 0),
 			expectedServerCount: OneEndpointSlice,
 		},
+		"loadBalancer": {
+			serviceType:         v1.ServiceTypeLoadBalancer,
+			expectedServerCount: OneNode,
+			ingresses:           OneNode,
+		},
 	}
 
 	for name, tc := range testcases {
@@ -384,7 +422,7 @@ func TestUpdatedTranslateNoInterestingPorts(t *testing.T) {
 
 			ports := generateUpdatablePorts(portCount, 0)
 			service := serviceWithPorts(tc.serviceType, ports)
-			event := buildUpdatedEvent(service)
+			event := buildUpdatedEvent(service, tc.ingresses)
 
 			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
 			translatedEvents, err := translator.Translate(&event)
@@ -406,6 +444,7 @@ func TestUpdatedTranslateOneInterestingPort(t *testing.T) {
 	testcases := map[string]struct {
 		serviceType         v1.ServiceType
 		nodes               []*v1.Node
+		ingresses           int
 		endpoints           []*discovery.EndpointSlice
 		expectedServerCount int
 	}{
@@ -419,6 +458,11 @@ func TestUpdatedTranslateOneInterestingPort(t *testing.T) {
 			endpoints:           generateEndpointSlices(OneEndpointSlice, 1, 1),
 			expectedServerCount: OneEndpointSlice,
 		},
+		"loadBalancer": {
+			serviceType:         v1.ServiceTypeLoadBalancer,
+			expectedServerCount: OneNode,
+			ingresses:           OneNode,
+		},
 	}
 
 	for name, tc := range testcases {
@@ -430,7 +474,7 @@ func TestUpdatedTranslateOneInterestingPort(t *testing.T) {
 
 			ports := generatePorts(portCount)
 			service := serviceWithPorts(tc.serviceType, ports)
-			event := buildUpdatedEvent(service)
+			event := buildUpdatedEvent(service, tc.ingresses)
 
 			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
 			translatedEvents, err := translator.Translate(&event)
@@ -455,6 +499,7 @@ func TestUpdatedTranslateManyInterestingPorts(t *testing.T) {
 	testcases := map[string]struct {
 		serviceType         v1.ServiceType
 		nodes               []*v1.Node
+		ingresses           int
 		endpoints           []*discovery.EndpointSlice
 		expectedServerCount int
 	}{
@@ -468,6 +513,11 @@ func TestUpdatedTranslateManyInterestingPorts(t *testing.T) {
 			endpoints:           generateEndpointSlices(OneEndpointSlice, 4, 4),
 			expectedServerCount: OneEndpointSlice,
 		},
+		"loadBalancer": {
+			serviceType:         v1.ServiceTypeLoadBalancer,
+			expectedServerCount: OneNode,
+			ingresses:           OneNode,
+		},
 	}
 
 	for name, tc := range testcases {
@@ -479,7 +529,7 @@ func TestUpdatedTranslateManyInterestingPorts(t *testing.T) {
 
 			ports := generatePorts(portCount)
 			service := serviceWithPorts(tc.serviceType, ports)
-			event := buildUpdatedEvent(service)
+			event := buildUpdatedEvent(service, tc.ingresses)
 
 			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
 			translatedEvents, err := translator.Translate(&event)
@@ -504,6 +554,7 @@ func TestUpdatedTranslateManyMixedPorts(t *testing.T) {
 	testcases := map[string]struct {
 		serviceType         v1.ServiceType
 		nodes               []*v1.Node
+		ingresses           int
 		endpoints           []*discovery.EndpointSlice
 		expectedServerCount int
 	}{
@@ -517,6 +568,11 @@ func TestUpdatedTranslateManyMixedPorts(t *testing.T) {
 			endpoints:           generateEndpointSlices(OneEndpointSlice, 6, 2),
 			expectedServerCount: OneEndpointSlice,
 		},
+		"loadBalancer": {
+			serviceType:         v1.ServiceTypeLoadBalancer,
+			expectedServerCount: OneNode,
+			ingresses:           OneNode,
+		},
 	}
 
 	for name, tc := range testcases {
@@ -529,7 +585,7 @@ func TestUpdatedTranslateManyMixedPorts(t *testing.T) {
 
 			ports := generateUpdatablePorts(portCount, updatablePortCount)
 			service := serviceWithPorts(tc.serviceType, ports)
-			event := buildUpdatedEvent(service)
+			event := buildUpdatedEvent(service, tc.ingresses)
 
 			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
 			translatedEvents, err := translator.Translate(&event)
@@ -554,6 +610,7 @@ func TestUpdatedTranslateManyMixedPortsAndManyNodes(t *testing.T) {
 	testcases := map[string]struct {
 		serviceType         v1.ServiceType
 		nodes               []*v1.Node
+		ingresses           int
 		endpoints           []*discovery.EndpointSlice
 		expectedServerCount int
 	}{
@@ -567,6 +624,11 @@ func TestUpdatedTranslateManyMixedPortsAndManyNodes(t *testing.T) {
 			endpoints:           generateEndpointSlices(ManyEndpointSlices, 6, 2),
 			expectedServerCount: ManyEndpointSlices,
 		},
+		"loadBalancer": {
+			serviceType:         v1.ServiceTypeLoadBalancer,
+			expectedServerCount: ManyNodes,
+			ingresses:           ManyNodes,
+		},
 	}
 
 	for name, tc := range testcases {
@@ -579,7 +641,7 @@ func TestUpdatedTranslateManyMixedPortsAndManyNodes(t *testing.T) {
 
 			ports := generateUpdatablePorts(portCount, updatablePortCount)
 			service := serviceWithPorts(tc.serviceType, ports)
-			event := buildUpdatedEvent(service)
+			event := buildUpdatedEvent(service, tc.ingresses)
 
 			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
 			translatedEvents, err := translator.Translate(&event)
@@ -608,12 +670,16 @@ func TestDeletedTranslateNoPortsAndNoNodes(t *testing.T) {
 		serviceType v1.ServiceType
 		nodes       []*v1.Node
 		endpoints   []*discovery.EndpointSlice
+		ingresses   int
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
 		},
 		"clusterIP": {
 			serviceType: v1.ServiceTypeClusterIP,
+		},
+		"loadBalancer": {
+			serviceType: v1.ServiceTypeLoadBalancer,
 		},
 	}
 
@@ -625,7 +691,7 @@ func TestDeletedTranslateNoPortsAndNoNodes(t *testing.T) {
 			const expectedEventCount = 0
 
 			service := defaultService(tc.serviceType)
-			event := buildDeletedEvent(service)
+			event := buildDeletedEvent(service, tc.ingresses)
 
 			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
 			translatedEvents, err := translator.Translate(&event)
@@ -650,12 +716,16 @@ func TestDeletedTranslateNoInterestingPortsAndNoNodes(t *testing.T) {
 		serviceType v1.ServiceType
 		nodes       []*v1.Node
 		endpoints   []*discovery.EndpointSlice
+		ingresses   int
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
 		},
 		"clusterIP": {
 			serviceType: v1.ServiceTypeClusterIP,
+		},
+		"loadBalancer": {
+			serviceType: v1.ServiceTypeLoadBalancer,
 		},
 	}
 
@@ -668,7 +738,7 @@ func TestDeletedTranslateNoInterestingPortsAndNoNodes(t *testing.T) {
 
 			ports := generateUpdatablePorts(portCount, 0)
 			service := serviceWithPorts(tc.serviceType, ports)
-			event := buildDeletedEvent(service)
+			event := buildDeletedEvent(service, tc.ingresses)
 
 			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
 			translatedEvents, err := translator.Translate(&event)
@@ -694,6 +764,7 @@ func TestDeletedTranslateOneInterestingPortAndNoNodes(t *testing.T) {
 		serviceType v1.ServiceType
 		nodes       []*v1.Node
 		endpoints   []*discovery.EndpointSlice
+		ingresses   int
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
@@ -701,6 +772,9 @@ func TestDeletedTranslateOneInterestingPortAndNoNodes(t *testing.T) {
 		"clusterIP": {
 			serviceType: v1.ServiceTypeClusterIP,
 			endpoints:   generateEndpointSlices(0, 1, 1),
+		},
+		"loadBalancer": {
+			serviceType: v1.ServiceTypeLoadBalancer,
 		},
 	}
 
@@ -714,7 +788,7 @@ func TestDeletedTranslateOneInterestingPortAndNoNodes(t *testing.T) {
 
 			ports := generatePorts(portCount)
 			service := serviceWithPorts(tc.serviceType, ports)
-			event := buildDeletedEvent(service)
+			event := buildDeletedEvent(service, tc.ingresses)
 
 			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
 			translatedEvents, err := translator.Translate(&event)
@@ -740,6 +814,7 @@ func TestDeletedTranslateManyInterestingPortsAndNoNodes(t *testing.T) {
 		serviceType v1.ServiceType
 		nodes       []*v1.Node
 		endpoints   []*discovery.EndpointSlice
+		ingresses   int
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
@@ -747,6 +822,9 @@ func TestDeletedTranslateManyInterestingPortsAndNoNodes(t *testing.T) {
 		"clusterIP": {
 			serviceType: v1.ServiceTypeClusterIP,
 			endpoints:   generateEndpointSlices(0, 4, 4),
+		},
+		"loadBalancer": {
+			serviceType: v1.ServiceTypeLoadBalancer,
 		},
 	}
 
@@ -759,7 +837,7 @@ func TestDeletedTranslateManyInterestingPortsAndNoNodes(t *testing.T) {
 
 			ports := generatePorts(portCount)
 			service := serviceWithPorts(tc.serviceType, ports)
-			event := buildDeletedEvent(service)
+			event := buildDeletedEvent(service, tc.ingresses)
 
 			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
 			translatedEvents, err := translator.Translate(&event)
@@ -784,6 +862,7 @@ func TestDeletedTranslateManyMixedPortsAndNoNodes(t *testing.T) {
 		serviceType v1.ServiceType
 		nodes       []*v1.Node
 		endpoints   []*discovery.EndpointSlice
+		ingresses   int
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
@@ -791,6 +870,9 @@ func TestDeletedTranslateManyMixedPortsAndNoNodes(t *testing.T) {
 		"clusterIP": {
 			serviceType: v1.ServiceTypeClusterIP,
 			endpoints:   generateEndpointSlices(0, 6, 2),
+		},
+		"loadBalancer": {
+			serviceType: v1.ServiceTypeLoadBalancer,
 		},
 	}
 
@@ -805,7 +887,7 @@ func TestDeletedTranslateManyMixedPortsAndNoNodes(t *testing.T) {
 
 			ports := generateUpdatablePorts(portCount, updatablePortCount)
 			service := serviceWithPorts(tc.serviceType, ports)
-			event := buildDeletedEvent(service)
+			event := buildDeletedEvent(service, tc.ingresses)
 
 			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
 			translatedEvents, err := translator.Translate(&event)
@@ -831,6 +913,7 @@ func TestDeletedTranslateNoPortsAndOneNode(t *testing.T) {
 		serviceType v1.ServiceType
 		nodes       []*v1.Node
 		endpoints   []*discovery.EndpointSlice
+		ingresses   int
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
@@ -839,6 +922,10 @@ func TestDeletedTranslateNoPortsAndOneNode(t *testing.T) {
 		"clusterIP": {
 			serviceType: v1.ServiceTypeClusterIP,
 			endpoints:   generateEndpointSlices(OneEndpointSlice, 0, 0),
+		},
+		"loadBalancer": {
+			serviceType: v1.ServiceTypeLoadBalancer,
+			ingresses:   OneNode,
 		},
 	}
 
@@ -850,7 +937,7 @@ func TestDeletedTranslateNoPortsAndOneNode(t *testing.T) {
 			const expectedEventCount = 0
 
 			service := defaultService(tc.serviceType)
-			event := buildDeletedEvent(service)
+			event := buildDeletedEvent(service, tc.ingresses)
 
 			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
 			translatedEvents, err := translator.Translate(&event)
@@ -875,6 +962,7 @@ func TestDeletedTranslateNoInterestingPortsAndOneNode(t *testing.T) {
 		serviceType v1.ServiceType
 		nodes       []*v1.Node
 		endpoints   []*discovery.EndpointSlice
+		ingresses   int
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
@@ -883,6 +971,10 @@ func TestDeletedTranslateNoInterestingPortsAndOneNode(t *testing.T) {
 		"clusterIP": {
 			serviceType: v1.ServiceTypeClusterIP,
 			endpoints:   generateEndpointSlices(OneEndpointSlice, 1, 0),
+		},
+		"loadBalancer": {
+			serviceType: v1.ServiceTypeLoadBalancer,
+			ingresses:   OneNode,
 		},
 	}
 
@@ -895,7 +987,7 @@ func TestDeletedTranslateNoInterestingPortsAndOneNode(t *testing.T) {
 
 			ports := generateUpdatablePorts(portCount, 0)
 			service := serviceWithPorts(tc.serviceType, ports)
-			event := buildDeletedEvent(service)
+			event := buildDeletedEvent(service, tc.ingresses)
 
 			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
 			translatedEvents, err := translator.Translate(&event)
@@ -921,6 +1013,7 @@ func TestDeletedTranslateOneInterestingPortAndOneNode(t *testing.T) {
 		serviceType v1.ServiceType
 		nodes       []*v1.Node
 		endpoints   []*discovery.EndpointSlice
+		ingresses   int
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
@@ -929,6 +1022,10 @@ func TestDeletedTranslateOneInterestingPortAndOneNode(t *testing.T) {
 		"clusterIP": {
 			serviceType: v1.ServiceTypeClusterIP,
 			endpoints:   generateEndpointSlices(OneEndpointSlice, 1, 1),
+		},
+		"loadBalancer": {
+			serviceType: v1.ServiceTypeLoadBalancer,
+			ingresses:   OneNode,
 		},
 	}
 
@@ -942,7 +1039,7 @@ func TestDeletedTranslateOneInterestingPortAndOneNode(t *testing.T) {
 
 			ports := generatePorts(portCount)
 			service := serviceWithPorts(tc.serviceType, ports)
-			event := buildDeletedEvent(service)
+			event := buildDeletedEvent(service, tc.ingresses)
 
 			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
 			translatedEvents, err := translator.Translate(&event)
@@ -968,6 +1065,7 @@ func TestDeletedTranslateManyInterestingPortsAndOneNode(t *testing.T) {
 		serviceType v1.ServiceType
 		nodes       []*v1.Node
 		endpoints   []*discovery.EndpointSlice
+		ingresses   int
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
@@ -976,6 +1074,10 @@ func TestDeletedTranslateManyInterestingPortsAndOneNode(t *testing.T) {
 		"clusterIP": {
 			serviceType: v1.ServiceTypeClusterIP,
 			endpoints:   generateEndpointSlices(OneEndpointSlice, 4, 4),
+		},
+		"loadBalancer": {
+			serviceType: v1.ServiceTypeLoadBalancer,
+			ingresses:   OneNode,
 		},
 	}
 
@@ -989,7 +1091,7 @@ func TestDeletedTranslateManyInterestingPortsAndOneNode(t *testing.T) {
 
 			ports := generatePorts(portCount)
 			service := serviceWithPorts(tc.serviceType, ports)
-			event := buildDeletedEvent(service)
+			event := buildDeletedEvent(service, tc.ingresses)
 
 			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
 			translatedEvents, err := translator.Translate(&event)
@@ -1014,6 +1116,7 @@ func TestDeletedTranslateManyMixedPortsAndOneNode(t *testing.T) {
 		serviceType v1.ServiceType
 		nodes       []*v1.Node
 		endpoints   []*discovery.EndpointSlice
+		ingresses   int
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
@@ -1022,6 +1125,10 @@ func TestDeletedTranslateManyMixedPortsAndOneNode(t *testing.T) {
 		"clusterIP": {
 			serviceType: v1.ServiceTypeClusterIP,
 			endpoints:   generateEndpointSlices(OneEndpointSlice, 6, 2),
+		},
+		"loadBalancer": {
+			serviceType: v1.ServiceTypeLoadBalancer,
+			ingresses:   OneNode,
 		},
 	}
 
@@ -1035,7 +1142,7 @@ func TestDeletedTranslateManyMixedPortsAndOneNode(t *testing.T) {
 
 			ports := generateUpdatablePorts(portCount, updatablePortCount)
 			service := serviceWithPorts(tc.serviceType, ports)
-			event := buildDeletedEvent(service)
+			event := buildDeletedEvent(service, tc.ingresses)
 
 			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
 			translatedEvents, err := translator.Translate(&event)
@@ -1061,6 +1168,7 @@ func TestDeletedTranslateNoPortsAndManyNodes(t *testing.T) {
 		serviceType v1.ServiceType
 		nodes       []*v1.Node
 		endpoints   []*discovery.EndpointSlice
+		ingresses   int
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
@@ -1069,6 +1177,10 @@ func TestDeletedTranslateNoPortsAndManyNodes(t *testing.T) {
 		"clusterIP": {
 			serviceType: v1.ServiceTypeClusterIP,
 			endpoints:   generateEndpointSlices(ManyEndpointSlices, 0, 0),
+		},
+		"loadBalancer": {
+			serviceType: v1.ServiceTypeLoadBalancer,
+			ingresses:   ManyNodes,
 		},
 	}
 
@@ -1079,7 +1191,7 @@ func TestDeletedTranslateNoPortsAndManyNodes(t *testing.T) {
 			const expectedEventCount = 0
 
 			service := defaultService(tc.serviceType)
-			event := buildDeletedEvent(service)
+			event := buildDeletedEvent(service, tc.ingresses)
 
 			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
 			translatedEvents, err := translator.Translate(&event)
@@ -1104,6 +1216,7 @@ func TestDeletedTranslateNoInterestingPortsAndManyNodes(t *testing.T) {
 		serviceType v1.ServiceType
 		nodes       []*v1.Node
 		endpoints   []*discovery.EndpointSlice
+		ingresses   int
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
@@ -1112,6 +1225,10 @@ func TestDeletedTranslateNoInterestingPortsAndManyNodes(t *testing.T) {
 		"clusterIP": {
 			serviceType: v1.ServiceTypeClusterIP,
 			endpoints:   generateEndpointSlices(ManyEndpointSlices, 1, 0),
+		},
+		"loadBalancer": {
+			serviceType: v1.ServiceTypeLoadBalancer,
+			ingresses:   ManyNodes,
 		},
 	}
 
@@ -1125,7 +1242,7 @@ func TestDeletedTranslateNoInterestingPortsAndManyNodes(t *testing.T) {
 
 			ports := generateUpdatablePorts(portCount, updatablePortCount)
 			service := serviceWithPorts(tc.serviceType, ports)
-			event := buildDeletedEvent(service)
+			event := buildDeletedEvent(service, tc.ingresses)
 
 			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
 			translatedEvents, err := translator.Translate(&event)
@@ -1151,6 +1268,7 @@ func TestDeletedTranslateOneInterestingPortAndManyNodes(t *testing.T) {
 		serviceType v1.ServiceType
 		nodes       []*v1.Node
 		endpoints   []*discovery.EndpointSlice
+		ingresses   int
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
@@ -1159,6 +1277,10 @@ func TestDeletedTranslateOneInterestingPortAndManyNodes(t *testing.T) {
 		"clusterIP": {
 			serviceType: v1.ServiceTypeClusterIP,
 			endpoints:   generateEndpointSlices(ManyEndpointSlices, 1, 1),
+		},
+		"loadBalancer": {
+			serviceType: v1.ServiceTypeLoadBalancer,
+			ingresses:   ManyNodes,
 		},
 	}
 
@@ -1171,7 +1293,7 @@ func TestDeletedTranslateOneInterestingPortAndManyNodes(t *testing.T) {
 
 			ports := generatePorts(portCount)
 			service := serviceWithPorts(tc.serviceType, ports)
-			event := buildDeletedEvent(service)
+			event := buildDeletedEvent(service, tc.ingresses)
 
 			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
 			translatedEvents, err := translator.Translate(&event)
@@ -1197,6 +1319,7 @@ func TestDeletedTranslateManyInterestingPortsAndManyNodes(t *testing.T) {
 		serviceType v1.ServiceType
 		nodes       []*v1.Node
 		endpoints   []*discovery.EndpointSlice
+		ingresses   int
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
@@ -1205,6 +1328,10 @@ func TestDeletedTranslateManyInterestingPortsAndManyNodes(t *testing.T) {
 		"clusterIP": {
 			serviceType: v1.ServiceTypeClusterIP,
 			endpoints:   generateEndpointSlices(ManyEndpointSlices, 4, 4),
+		},
+		"loadBalancer": {
+			serviceType: v1.ServiceTypeLoadBalancer,
+			ingresses:   ManyNodes,
 		},
 	}
 
@@ -1217,7 +1344,7 @@ func TestDeletedTranslateManyInterestingPortsAndManyNodes(t *testing.T) {
 
 			ports := generatePorts(portCount)
 			service := serviceWithPorts(tc.serviceType, ports)
-			event := buildDeletedEvent(service)
+			event := buildDeletedEvent(service, tc.ingresses)
 
 			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
 			translatedEvents, err := translator.Translate(&event)
@@ -1242,6 +1369,7 @@ func TestDeletedTranslateManyMixedPortsAndManyNodes(t *testing.T) {
 		serviceType v1.ServiceType
 		nodes       []*v1.Node
 		endpoints   []*discovery.EndpointSlice
+		ingresses   int
 	}{
 		"nodePort": {
 			serviceType: v1.ServiceTypeNodePort,
@@ -1263,7 +1391,7 @@ func TestDeletedTranslateManyMixedPortsAndManyNodes(t *testing.T) {
 
 			ports := generateUpdatablePorts(portCount, updatablePortCount)
 			service := serviceWithPorts(tc.serviceType, ports)
-			event := buildDeletedEvent(service)
+			event := buildDeletedEvent(service, tc.ingresses)
 
 			translator := NewTranslator(NewFakeEndpointSliceLister(tc.endpoints, nil), NewFakeNodeLister(tc.nodes, nil))
 			translatedEvents, err := translator.Translate(&event)
@@ -1311,21 +1439,27 @@ func serviceWithPorts(serviceType v1.ServiceType, ports []v1.ServicePort) *v1.Se
 	}
 }
 
-func buildCreatedEvent(service *v1.Service) core.Event {
-	return buildEvent(core.Created, service)
+func buildCreatedEvent(service *v1.Service, ingressCount int) core.Event {
+	return buildEvent(core.Created, service, ingressCount)
 }
 
-func buildDeletedEvent(service *v1.Service) core.Event {
-	return buildEvent(core.Deleted, service)
+func buildDeletedEvent(service *v1.Service, ingressCount int) core.Event {
+	return buildEvent(core.Deleted, service, ingressCount)
 }
 
-func buildUpdatedEvent(service *v1.Service) core.Event {
-	return buildEvent(core.Updated, service)
+func buildUpdatedEvent(service *v1.Service, ingressCount int) core.Event {
+	return buildEvent(core.Updated, service, ingressCount)
 }
 
-func buildEvent(eventType core.EventType, service *v1.Service) core.Event {
+func buildEvent(eventType core.EventType, service *v1.Service, ingressCount int) core.Event {
 	event := core.NewEvent(eventType, service)
 	event.Service.Name = "default-service"
+	ingresses := make([]v1.LoadBalancerIngress, 0, ingressCount)
+	for i := range ingressCount {
+		ingress := v1.LoadBalancerIngress{IP: fmt.Sprintf("ipAddress%d", i)}
+		ingresses = append(ingresses, ingress)
+	}
+	event.Service.Status.LoadBalancer.Ingress = ingresses
 	return event
 }
 

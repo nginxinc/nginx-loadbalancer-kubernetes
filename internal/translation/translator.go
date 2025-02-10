@@ -56,6 +56,8 @@ func (t *Translator) buildServerUpdateEvents(ports []v1.ServicePort, event *core
 		return t.buildNodeIPEvents(ports, event)
 	case v1.ServiceTypeClusterIP:
 		return t.buildClusterIPEvents(event)
+	case v1.ServiceTypeLoadBalancer:
+		return t.buildLoadBalancerEvents(event)
 	default:
 		return events, fmt.Errorf("unsupported service type: %s", event.Service.Spec.Type)
 	}
@@ -64,6 +66,38 @@ func (t *Translator) buildServerUpdateEvents(ports []v1.ServicePort, event *core
 type upstream struct {
 	context string
 	name    string
+}
+
+func (t *Translator) buildLoadBalancerEvents(event *core.Event) (events core.ServerUpdateEvents, err error) {
+	slog.Debug("Translator::buildLoadBalancerEvents", "ports", event.Service.Spec.Ports)
+
+	addresses := make([]string, 0, len(event.Service.Status.LoadBalancer.Ingress))
+	for _, ingress := range event.Service.Status.LoadBalancer.Ingress {
+		addresses = append(addresses, ingress.IP)
+	}
+
+	for _, port := range event.Service.Spec.Ports {
+		context, upstreamName, err := getContextAndUpstreamName(port.Name)
+		if err != nil {
+			slog.Info("Translator::buildLoadBalancerEvents: ignoring port", "err", err, "name", port.Name)
+			continue
+		}
+
+		upstreamServers := buildUpstreamServers(addresses, port.Port)
+
+		switch event.Type {
+		case core.Created, core.Updated:
+			events = append(events, core.NewServerUpdateEvent(event.Type, upstreamName, context, upstreamServers))
+		case core.Deleted:
+			events = append(events, core.NewServerUpdateEvent(
+				core.Updated, upstreamName, context, nil,
+			))
+		default:
+			slog.Warn(`Translator::buildLoadBalancerEvents: unknown event type`, "type", event.Type)
+		}
+	}
+
+	return events, nil
 }
 
 func (t *Translator) buildClusterIPEvents(event *core.Event) (events core.ServerUpdateEvents, err error) {
@@ -153,7 +187,7 @@ func (t *Translator) buildNodeIPEvents(ports []v1.ServicePort, event *core.Event
 			return nil, err
 		}
 
-		upstreamServers := buildUpstreamServers(addresses, port)
+		upstreamServers := buildUpstreamServers(addresses, port.NodePort)
 
 		switch event.Type {
 		case core.Created:
@@ -175,11 +209,11 @@ func (t *Translator) buildNodeIPEvents(ports []v1.ServicePort, event *core.Event
 	return events, nil
 }
 
-func buildUpstreamServers(nodeIPs []string, port v1.ServicePort) core.UpstreamServers {
+func buildUpstreamServers(ipAddresses []string, port int32) core.UpstreamServers {
 	var servers core.UpstreamServers
 
-	for _, nodeIP := range nodeIPs {
-		host := fmt.Sprintf("%s:%d", nodeIP, port.NodePort)
+	for _, ip := range ipAddresses {
+		host := fmt.Sprintf("%s:%d", ip, port)
 		server := core.NewUpstreamServer(host)
 		servers = append(servers, server)
 	}
