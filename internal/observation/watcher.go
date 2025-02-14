@@ -8,6 +8,8 @@ package observation
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	"github.com/sirupsen/logrus"
@@ -16,7 +18,6 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/tools/cache"
-	"time"
 )
 
 // Watcher is responsible for watching for changes to Kubernetes resources.
@@ -163,7 +164,7 @@ func (w *Watcher) initializeEventListeners() error {
 	return nil
 }
 
-// notMasterNode retrieves the IP Addresses of the nodes in the cluster. Currently, the master node is excluded. This is
+// notControlPlaneNode retrieves the IP Addresses of the nodes in the cluster. Currently, the master node is excluded. This is
 // because the master node may or may not be a worker node and thus may not be able to route traffic.
 func (w *Watcher) retrieveNodeIps() ([]string, error) {
 	started := time.Now()
@@ -180,7 +181,7 @@ func (w *Watcher) retrieveNodeIps() ([]string, error) {
 	for _, node := range nodes.Items {
 
 		// this is kind of a broad assumption, should probably make this a configurable option
-		if w.notMasterNode(node) {
+		if w.notControlPlaneNode(node) {
 			for _, address := range node.Status.Addresses {
 				if address.Type == v1.NodeInternalIP {
 					nodeIps = append(nodeIps, address.Address)
@@ -194,11 +195,11 @@ func (w *Watcher) retrieveNodeIps() ([]string, error) {
 	return nodeIps, nil
 }
 
-// notMasterNode determines if the node is a master node.
-func (w *Watcher) notMasterNode(node v1.Node) bool {
-	logrus.Debug("Watcher::notMasterNode")
+// notControlPlaneNode determines if the node is a master node.
+func (w *Watcher) notControlPlaneNode(node v1.Node) bool {
+	logrus.Debug("Watcher::notControlPlaneNode")
 
-	_, found := node.Labels["node-role.kubernetes.io/master"]
+	_, found := node.Labels["node-role.kubernetes.io/control-plane"]
 
 	return !found
 }
