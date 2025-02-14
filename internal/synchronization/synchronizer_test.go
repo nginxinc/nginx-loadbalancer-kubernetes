@@ -185,23 +185,6 @@ func TestSynchronizer_AddEventsManyHosts(t *testing.T) {
 	}
 }
 
-//func TestBuildBorderClient(t *testing.T) {
-//	events := buildEvents(1)
-//
-//	settings, err := configuration.NewSettings(context.Background(), nil)
-//	rateLimiter := &mocks.MockRateLimiter{}
-//
-//	synchronizer, err := NewSynchronizer(settings, rateLimiter)
-//	if err != nil {
-//		t.Fatalf(`should have been no error, %v`, err)
-//	}
-//
-//	_, err = synchronizer.buildBorderClient(events[0])
-//	if err != nil {
-//		t.Fatalf(`should have been no error, %v`, err)
-//	}
-//}
-
 func buildEvents(count int) core.ServerUpdateEvents {
 	events := make(core.ServerUpdateEvents, count)
 	for i := 0; i < count; i++ {
