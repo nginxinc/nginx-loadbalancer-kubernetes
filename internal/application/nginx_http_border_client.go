@@ -6,7 +6,9 @@
 package application
 
 import (
+	"context"
 	"fmt"
+
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	nginxClient "github.com/nginxinc/nginx-plus-go-client/v2/client"
 )
@@ -15,6 +17,7 @@ import (
 type NginxHttpBorderClient struct {
 	BorderClient
 	nginxClient NginxClientInterface
+	ctx         context.Context
 }
 
 // NewNginxHttpBorderClient is the Factory function for creating an NginxHttpBorderClient.
@@ -26,13 +29,14 @@ func NewNginxHttpBorderClient(client interface{}) (Interface, error) {
 
 	return &NginxHttpBorderClient{
 		nginxClient: ngxClient,
+		ctx:         context.Background(),
 	}, nil
 }
 
 // Update manages the Upstream servers for the Upstream Name given in the ServerUpdateEvent.
 func (hbc *NginxHttpBorderClient) Update(event *core.ServerUpdateEvent) error {
 	httpUpstreamServers := asNginxHttpUpstreamServers(event.UpstreamServers)
-	_, _, _, err := hbc.nginxClient.UpdateHTTPServers(event.UpstreamName, httpUpstreamServers)
+	_, _, _, err := hbc.nginxClient.UpdateHTTPServers(hbc.ctx, event.UpstreamName, httpUpstreamServers)
 	if err != nil {
 		return fmt.Errorf(`error occurred updating the nginx+ upstream server: %w`, err)
 	}
@@ -42,7 +46,7 @@ func (hbc *NginxHttpBorderClient) Update(event *core.ServerUpdateEvent) error {
 
 // Delete deletes the Upstream server for the Upstream Name given in the ServerUpdateEvent.
 func (hbc *NginxHttpBorderClient) Delete(event *core.ServerUpdateEvent) error {
-	err := hbc.nginxClient.DeleteHTTPServer(event.UpstreamName, event.UpstreamServers[0].Host)
+	err := hbc.nginxClient.DeleteHTTPServer(hbc.ctx, event.UpstreamName, event.UpstreamServers[0].Host)
 	if err != nil {
 		return fmt.Errorf(`error occurred deleting the nginx+ upstream server: %w`, err)
 	}

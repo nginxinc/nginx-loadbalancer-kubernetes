@@ -8,6 +8,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/observation"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/probation"
@@ -15,6 +17,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/workqueue"
 )
 
@@ -88,18 +91,34 @@ func run() error {
 	return nil
 }
 
+// buildKubernetesClient builds a Kubernetes clientset, supporting both in-cluster and out-of-cluster (kubeconfig) configurations.
 func buildKubernetesClient() (*kubernetes.Clientset, error) {
-	logrus.Debug("Watcher::buildKubernetesClient")
-	k8sConfig, err := rest.InClusterConfig()
-	if err == rest.ErrNotInCluster {
-		return nil, fmt.Errorf(`not running in a Cluster: %w`, err)
-	} else if err != nil {
-		return nil, fmt.Errorf(`error occurred getting the Cluster config: %w`, err)
+	var config *rest.Config
+	var err error
+
+	// Try in-cluster config first
+	config, err = rest.InClusterConfig()
+	if err != nil {
+		if err == rest.ErrNotInCluster {
+			// Not running in a cluster, fall back to kubeconfig
+			kubeconfigPath := os.Getenv("KUBECONFIG")
+			if kubeconfigPath == "" {
+				kubeconfigPath = clientcmd.RecommendedHomeFile // ~/.kube/config
+			}
+
+			config, err = clientcmd.BuildConfigFromFlags("", kubeconfigPath)
+			if err != nil {
+				return nil, fmt.Errorf("could not get Kubernetes config: %w", err)
+			}
+		} else {
+			return nil, fmt.Errorf("error occurred getting the in-cluster config: %w", err)
+		}
 	}
 
-	client, err := kubernetes.NewForConfig(k8sConfig)
+	// Create the clientset
+	client, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		return nil, fmt.Errorf(`error occurred creating a client: %w`, err)
+		return nil, fmt.Errorf("error occurred creating a Kubernetes client: %w", err)
 	}
 
 	return client, nil
