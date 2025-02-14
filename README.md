@@ -33,7 +33,7 @@ The NGINX Loadbalancer for Kubernetes, or _NLK_, is a Kubernetes controller that
 
 ### What you will need
 
-- [ ] A Kubernetes cluster running on-premise.
+- [ ] A On-Premise Kubernetes cluster running version 1.24 or higher.
 - [ ] One or more NGINX Plus hosts running outside your Kubernetes cluster (NGINX Plus hosts must have the ability to route traffic to the cluster).
 
 There is a more detailed [Installation Reference](docs/README.md) available in the `docs/` directory.

@@ -8,10 +8,13 @@ package communication
 import (
 	"bytes"
 	"context"
+	"fmt"
+	netHttp "net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"k8s.io/client-go/kubernetes/fake"
-	netHttp "net/http"
-	"testing"
 )
 
 func TestNewRoundTripper(t *testing.T) {
@@ -47,32 +50,49 @@ func TestNewRoundTripper(t *testing.T) {
 }
 
 func TestRoundTripperRoundTrip(t *testing.T) {
+	// Create a mock HTTP server
+	mockServer := httptest.NewServer(netHttp.HandlerFunc(func(w netHttp.ResponseWriter, r *netHttp.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("x-mock-header", "test-value")
+		w.WriteHeader(netHttp.StatusOK)
+		fmt.Fprintln(w, `{"message": "mock response"}`)
+	}))
+	defer mockServer.Close()
+
+	// Initialize dependencies
 	k8sClient := fake.NewSimpleClientset()
 	settings, err := configuration.NewSettings(context.Background(), k8sClient)
+	if err != nil {
+		t.Fatalf("Unexpected error creating settings: %v", err)
+	}
+
 	headers := NewHeaders()
 	transport := NewTransport(NewTlsConfig(settings))
 	roundTripper := NewRoundTripper(headers, transport)
 
-	request, err := NewRequest("GET", "http://example.com", nil)
+	// Use the mock server URL
+	request, err := NewRequest("GET", mockServer.URL, nil)
 	if err != nil {
-		t.Fatalf(`Unexpected error: %v`, err)
+		t.Fatalf("Unexpected error: %v", err)
 	}
 
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("x-nginx-loadbalancer-kubernetes", "nlk")
 
+	// Perform the request
 	response, err := roundTripper.RoundTrip(request)
 	if err != nil {
-		t.Fatalf(`Unexpected error: %v`, err)
+		t.Fatalf("Unexpected error: %v", err)
 	}
 
 	if response == nil {
-		t.Fatalf(`response should not be nil`)
+		t.Fatalf("Response should not be nil")
 	}
 
+	// Validate response headers
 	headerLen := len(response.Header)
 	if headerLen <= 2 {
-		t.Fatalf(`response.Header should have at least 2 elements, found %d`, headerLen)
+		t.Fatalf("Response headers should have at least 2 elements, found %d", headerLen)
 	}
 }
 
