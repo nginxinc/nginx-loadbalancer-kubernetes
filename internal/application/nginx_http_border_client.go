@@ -18,6 +18,7 @@ import (
 type NginxHTTPBorderClient struct {
 	BorderClient
 	nginxClient NginxClientInterface
+	ctx         context.Context
 }
 
 // NewNginxHTTPBorderClient is the Factory function for creating an NewNginxHTTPBorderClient.
@@ -29,6 +30,7 @@ func NewNginxHTTPBorderClient(client interface{}) (Interface, error) {
 
 	return &NginxHTTPBorderClient{
 		nginxClient: ngxClient,
+		ctx:         context.Background(),
 	}, nil
 }
 
