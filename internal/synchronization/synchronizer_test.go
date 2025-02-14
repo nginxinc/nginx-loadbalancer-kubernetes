@@ -8,10 +8,11 @@ package synchronization
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/core"
 	"github.com/nginxinc/kubernetes-nginx-ingress/test/mocks"
-	"testing"
 )
 
 func TestSynchronizer_NewSynchronizer(t *testing.T) {
@@ -183,6 +184,23 @@ func TestSynchronizer_AddEventsManyHosts(t *testing.T) {
 		t.Fatalf(`expected %v events, got %v`, expectedEventCount, actualEventCount)
 	}
 }
+
+//func TestBuildBorderClient(t *testing.T) {
+//	events := buildEvents(1)
+//
+//	settings, err := configuration.NewSettings(context.Background(), nil)
+//	rateLimiter := &mocks.MockRateLimiter{}
+//
+//	synchronizer, err := NewSynchronizer(settings, rateLimiter)
+//	if err != nil {
+//		t.Fatalf(`should have been no error, %v`, err)
+//	}
+//
+//	_, err = synchronizer.buildBorderClient(events[0])
+//	if err != nil {
+//		t.Fatalf(`should have been no error, %v`, err)
+//	}
+//}
 
 func buildEvents(count int) core.ServerUpdateEvents {
 	events := make(core.ServerUpdateEvents, count)
