@@ -50,6 +50,8 @@ type ServiceKey struct {
 // a Border Client as specified in the Service annotation for the Upstream.
 // See application/border_client.go and application/application_constants.go for details.
 type Synchronizer struct {
+	// TODO: NLB-6294 change to use new typed workqueues
+	//nolint:staticcheck //ignore deprecation warnings
 	eventQueue    workqueue.RateLimitingInterface
 	settings      configuration.Settings
 	translator    Translator
@@ -60,6 +62,7 @@ type Synchronizer struct {
 // NewSynchronizer creates a new Synchronizer.
 func NewSynchronizer(
 	settings configuration.Settings,
+	//nolint:staticcheck //ignore deprecation warnings
 	eventQueue workqueue.RateLimitingInterface,
 	translator Translator,
 	serviceLister corelisters.ServiceLister,

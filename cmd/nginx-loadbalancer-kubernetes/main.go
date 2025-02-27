@@ -133,9 +133,13 @@ func buildKubernetesClient() (*kubernetes.Clientset, error) {
 	return client, nil
 }
 
+// TODO: NLB-6294 change to use new typed workqueues
+//
+//nolint:staticcheck //ignore deprecation warnings
 func buildWorkQueue(settings configuration.WorkQueueSettings) workqueue.RateLimitingInterface {
 	slog.Debug("Watcher::buildSynchronizerWorkQueue")
 
+	//nolint:staticcheck //ignore deprecation warnings
 	rateLimiter := workqueue.NewItemExponentialFailureRateLimiter(settings.RateLimiterBase, settings.RateLimiterMax)
 	return workqueue.NewNamedRateLimitingQueue(rateLimiter, settings.Name)
 }

@@ -26,7 +26,6 @@ linters:
     - misspell
     - nakedret
     - prealloc
-    - exportloopref
     - stylecheck
     - unconvert
     - unparam
@@ -38,20 +37,17 @@ linters:
 run:
   # 10 minute timeout for analysis
   timeout: 10m
-  skip-dirs-use-default: true
-  skip-dirs:
-    - .go/pkg/mod
-    - pkg/spec/api # Generated code
-    - vendor
-    - vendor-fork
 # Specific linter settings
 linters-settings:
   gocyclo:
     # Minimal code complexity to report
     min-complexity: 16
   govet:
-    # Report shadowed variables
-    check-shadowing: true
+    disable-all: true
+    enable:
+      # Report shadowed variables
+      - shadow
+
   misspell:
     # Correct spellings using locale preferences for US
     locale: US
@@ -63,8 +59,8 @@ linters-settings:
     # If this list is empty, all structs are tested.
     # Default: []
     include:
-      - 'gitlab.com/f5/nginx/nginxazurelb/azure-resource-provider/pkg/token.TokenID'
-      - 'gitlab.com/f5/nginx/nginxazurelb/azure-resource-provider/internal/dpo/agent/certificates.CertGetRequest'
+      - "gitlab.com/f5/nginx/nginxazurelb/azure-resource-provider/pkg/token.TokenID"
+      - "gitlab.com/f5/nginx/nginxazurelb/azure-resource-provider/internal/dpo/agent/certificates.CertGetRequest"
 
 issues:
   # Exclude configuration
