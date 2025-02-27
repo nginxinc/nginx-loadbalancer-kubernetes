@@ -13,6 +13,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"sync"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/informers"
@@ -34,10 +35,8 @@ const (
 )
 
 type Certificates struct {
-	Certificates map[string]map[string]core.SecretBytes
-
-	// Context is the context used to control the application.
-	Context context.Context
+	mu           sync.Mutex // guards Certificates
+	certificates map[string]map[string]core.SecretBytes
 
 	// CaCertificateSecretKey is the name of the Secret that contains the Certificate Authority certificate.
 	CaCertificateSecretKey string
@@ -56,25 +55,32 @@ type Certificates struct {
 }
 
 // NewCertificates factory method that returns a new Certificates object.
-func NewCertificates(ctx context.Context, k8sClient kubernetes.Interface) *Certificates {
+func NewCertificates(
+	k8sClient kubernetes.Interface, certificates map[string]map[string]core.SecretBytes,
+) *Certificates {
 	return &Certificates{
 		k8sClient:    k8sClient,
-		Context:      ctx,
-		Certificates: nil,
+		certificates: certificates,
 	}
 }
 
 // GetCACertificate returns the Certificate Authority certificate.
 func (c *Certificates) GetCACertificate() core.SecretBytes {
-	bytes := c.Certificates[c.CaCertificateSecretKey][CertificateKey]
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	bytes := c.certificates[c.CaCertificateSecretKey][CertificateKey]
 
 	return bytes
 }
 
 // GetClientCertificate returns the Client certificate and key.
 func (c *Certificates) GetClientCertificate() (core.SecretBytes, core.SecretBytes) {
-	keyBytes := c.Certificates[c.ClientCertificateSecretKey][CertificateKeyKey]
-	certificateBytes := c.Certificates[c.ClientCertificateSecretKey][CertificateKey]
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	keyBytes := c.certificates[c.ClientCertificateSecretKey][CertificateKeyKey]
+	certificateBytes := c.certificates[c.ClientCertificateSecretKey][CertificateKey]
 
 	return keyBytes, certificateBytes
 }
@@ -85,7 +91,9 @@ func (c *Certificates) Initialize() error {
 
 	var err error
 
-	c.Certificates = make(map[string]map[string]core.SecretBytes)
+	c.mu.Lock()
+	c.certificates = make(map[string]map[string]core.SecretBytes)
+	c.mu.Unlock()
 
 	informer := c.buildInformer()
 
@@ -100,16 +108,16 @@ func (c *Certificates) Initialize() error {
 }
 
 // Run starts the SharedInformer.
-func (c *Certificates) Run() error {
+func (c *Certificates) Run(ctx context.Context) error {
 	slog.Info("Certificates::Run")
 
 	if c.informer == nil {
 		return fmt.Errorf(`initialize must be called before Run`)
 	}
 
-	c.informer.Run(c.Context.Done())
+	c.informer.Run(ctx.Done())
 
-	<-c.Context.Done()
+	<-ctx.Done()
 
 	return nil
 }
@@ -152,17 +160,20 @@ func (c *Certificates) handleAddEvent(obj interface{}) {
 		return
 	}
 
-	c.Certificates[secret.Name] = map[string]core.SecretBytes{}
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.certificates[secret.Name] = map[string]core.SecretBytes{}
 
 	// Input from the secret comes in the form
 	//   tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUVCVEN...
 	//   tls.key: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2Z0l...
 	// Where the keys are `tls.crt` and `tls.key` and the values are []byte
 	for k, v := range secret.Data {
-		c.Certificates[secret.Name][k] = core.SecretBytes(v)
+		c.certificates[secret.Name][k] = core.SecretBytes(v)
 	}
 
-	slog.Debug("Certificates::handleAddEvent", slog.Int("certCount", len(c.Certificates)))
+	slog.Debug("Certificates::handleAddEvent", slog.Int("certCount", len(c.certificates)))
 }
 
 func (c *Certificates) handleDeleteEvent(obj interface{}) {
@@ -174,11 +185,14 @@ func (c *Certificates) handleDeleteEvent(obj interface{}) {
 		return
 	}
 
-	if c.Certificates[secret.Name] != nil {
-		delete(c.Certificates, secret.Name)
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.certificates[secret.Name] != nil {
+		delete(c.certificates, secret.Name)
 	}
 
-	slog.Debug("Certificates::handleDeleteEvent", slog.Int("certCount", len(c.Certificates)))
+	slog.Debug("Certificates::handleDeleteEvent", slog.Int("certCount", len(c.certificates)))
 }
 
 func (c *Certificates) handleUpdateEvent(_ interface{}, newValue interface{}) {
@@ -190,9 +204,12 @@ func (c *Certificates) handleUpdateEvent(_ interface{}, newValue interface{}) {
 		return
 	}
 
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	for k, v := range secret.Data {
-		c.Certificates[secret.Name][k] = v
+		c.certificates[secret.Name][k] = v
 	}
 
-	slog.Debug("Certificates::handleUpdateEvent", slog.Int("certCount", len(c.Certificates)))
+	slog.Debug("Certificates::handleUpdateEvent", slog.Int("certCount", len(c.certificates)))
 }

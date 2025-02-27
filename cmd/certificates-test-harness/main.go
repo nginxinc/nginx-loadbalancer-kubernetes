@@ -37,14 +37,14 @@ func run() error {
 		return fmt.Errorf(`error building a Kubernetes client: %w`, err)
 	}
 
-	certificates := certification.NewCertificates(ctx, k8sClient)
+	certificates := certification.NewCertificates(k8sClient, nil)
 
 	err = certificates.Initialize()
 	if err != nil {
 		return fmt.Errorf(`error occurred initializing certificates: %w`, err)
 	}
 
-	go certificates.Run() //nolint:errcheck
+	go certificates.Run(ctx) //nolint:errcheck
 
 	<-ctx.Done()
 	return nil

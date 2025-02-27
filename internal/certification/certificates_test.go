@@ -23,9 +23,8 @@ const (
 
 func TestNewCertificate(t *testing.T) {
 	t.Parallel()
-	ctx := context.Background()
 
-	certificates := NewCertificates(ctx, nil)
+	certificates := NewCertificates(nil, nil)
 
 	if certificates == nil {
 		t.Fatalf(`certificates should not be nil`)
@@ -34,7 +33,7 @@ func TestNewCertificate(t *testing.T) {
 
 func TestCertificates_Initialize(t *testing.T) {
 	t.Parallel()
-	certificates := NewCertificates(context.Background(), nil)
+	certificates := NewCertificates(nil, nil)
 
 	err := certificates.Initialize()
 	if err != nil {
@@ -44,9 +43,9 @@ func TestCertificates_Initialize(t *testing.T) {
 
 func TestCertificates_RunWithoutInitialize(t *testing.T) {
 	t.Parallel()
-	certificates := NewCertificates(context.Background(), nil)
+	certificates := NewCertificates(nil, nil)
 
-	err := certificates.Run()
+	err := certificates.Run(context.Background())
 	if err == nil {
 		t.Fatalf(`Expected error`)
 	}
@@ -58,7 +57,7 @@ func TestCertificates_RunWithoutInitialize(t *testing.T) {
 
 func TestCertificates_EmptyCertificates(t *testing.T) {
 	t.Parallel()
-	certificates := NewCertificates(context.Background(), nil)
+	certificates := NewCertificates(nil, nil)
 
 	err := certificates.Initialize()
 	if err != nil {
@@ -86,7 +85,7 @@ func TestCertificates_ExerciseHandlers(t *testing.T) {
 
 	k8sClient := fake.NewSimpleClientset()
 
-	certificates := NewCertificates(ctx, k8sClient)
+	certificates := NewCertificates(k8sClient, nil)
 
 	_ = certificates.Initialize()
 
@@ -94,7 +93,7 @@ func TestCertificates_ExerciseHandlers(t *testing.T) {
 
 	//nolint:govet,staticcheck
 	go func() {
-		err := certificates.Run()
+		err := certificates.Run(context.Background())
 		assert.NoError(t, err, "expected no error running certificates")
 	}()
 

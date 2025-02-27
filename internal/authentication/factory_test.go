@@ -37,16 +37,16 @@ func TestTlsFactory_UnspecifiedModeDefaultsToNoTls(t *testing.T) {
 
 func TestTlsFactory_SelfSignedTlsMode(t *testing.T) {
 	t.Parallel()
-	certificates := make(map[string]map[string]core.SecretBytes)
-	certificates[CaCertificateSecretKey] = buildCaCertificateEntry(caCertificatePEM())
+	certs := make(map[string]map[string]core.SecretBytes)
+	certs[CaCertificateSecretKey] = buildCaCertificateEntry(caCertificatePEM())
+
+	certificates := certification.NewCertificates(nil, certs)
+	certificates.CaCertificateSecretKey = CaCertificateSecretKey
+	certificates.ClientCertificateSecretKey = ClientCertificateSecretKey
 
 	settings := configuration.Settings{
-		TLSMode: configuration.SelfSignedTLS,
-		Certificates: &certification.Certificates{
-			Certificates:               certificates,
-			CaCertificateSecretKey:     CaCertificateSecretKey,
-			ClientCertificateSecretKey: ClientCertificateSecretKey,
-		},
+		TLSMode:      configuration.SelfSignedTLS,
+		Certificates: certificates,
 	}
 
 	tlsConfig, err := NewTLSConfig(settings)
@@ -73,14 +73,16 @@ func TestTlsFactory_SelfSignedTlsMode(t *testing.T) {
 
 func TestTlsFactory_SelfSignedTlsModeCertPoolError(t *testing.T) {
 	t.Parallel()
-	certificates := make(map[string]map[string]core.SecretBytes)
-	certificates[CaCertificateSecretKey] = buildCaCertificateEntry(invalidCertificatePEM())
+	certs := make(map[string]map[string]core.SecretBytes)
+	certs[CaCertificateSecretKey] = buildCaCertificateEntry(invalidCertificatePEM())
+
+	certificates := certification.NewCertificates(nil, certs)
+	certificates.CaCertificateSecretKey = CaCertificateSecretKey
+	certificates.ClientCertificateSecretKey = ClientCertificateSecretKey
 
 	settings := configuration.Settings{
-		TLSMode: configuration.SelfSignedTLS,
-		Certificates: &certification.Certificates{
-			Certificates: certificates,
-		},
+		TLSMode:      configuration.SelfSignedTLS,
+		Certificates: certificates,
 	}
 
 	_, err := NewTLSConfig(settings)
@@ -95,16 +97,16 @@ func TestTlsFactory_SelfSignedTlsModeCertPoolError(t *testing.T) {
 
 func TestTlsFactory_SelfSignedTlsModeCertPoolCertificateParseError(t *testing.T) {
 	t.Parallel()
-	certificates := make(map[string]map[string]core.SecretBytes)
-	certificates[CaCertificateSecretKey] = buildCaCertificateEntry(invalidCertificateDataPEM())
+	certs := make(map[string]map[string]core.SecretBytes)
+	certs[CaCertificateSecretKey] = buildCaCertificateEntry(invalidCertificateDataPEM())
+
+	certificates := certification.NewCertificates(nil, certs)
+	certificates.CaCertificateSecretKey = CaCertificateSecretKey
+	certificates.ClientCertificateSecretKey = ClientCertificateSecretKey
 
 	settings := configuration.Settings{
-		TLSMode: configuration.SelfSignedTLS,
-		Certificates: &certification.Certificates{
-			Certificates:               certificates,
-			CaCertificateSecretKey:     CaCertificateSecretKey,
-			ClientCertificateSecretKey: ClientCertificateSecretKey,
-		},
+		TLSMode:      configuration.SelfSignedTLS,
+		Certificates: certificates,
 	}
 
 	_, err := NewTLSConfig(settings)
@@ -119,17 +121,17 @@ func TestTlsFactory_SelfSignedTlsModeCertPoolCertificateParseError(t *testing.T)
 
 func TestTlsFactory_SelfSignedMtlsMode(t *testing.T) {
 	t.Parallel()
-	certificates := make(map[string]map[string]core.SecretBytes)
-	certificates[CaCertificateSecretKey] = buildCaCertificateEntry(caCertificatePEM())
-	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
+	certs := make(map[string]map[string]core.SecretBytes)
+	certs[CaCertificateSecretKey] = buildCaCertificateEntry(caCertificatePEM())
+	certs[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
+
+	certificates := certification.NewCertificates(nil, certs)
+	certificates.CaCertificateSecretKey = CaCertificateSecretKey
+	certificates.ClientCertificateSecretKey = ClientCertificateSecretKey
 
 	settings := configuration.Settings{
-		TLSMode: configuration.SelfSignedMutualTLS,
-		Certificates: &certification.Certificates{
-			Certificates:               certificates,
-			CaCertificateSecretKey:     CaCertificateSecretKey,
-			ClientCertificateSecretKey: ClientCertificateSecretKey,
-		},
+		TLSMode:      configuration.SelfSignedMutualTLS,
+		Certificates: certificates,
 	}
 
 	tlsConfig, err := NewTLSConfig(settings)
@@ -156,15 +158,17 @@ func TestTlsFactory_SelfSignedMtlsMode(t *testing.T) {
 
 func TestTlsFactory_SelfSignedMtlsModeCertPoolError(t *testing.T) {
 	t.Parallel()
-	certificates := make(map[string]map[string]core.SecretBytes)
-	certificates[CaCertificateSecretKey] = buildCaCertificateEntry(invalidCertificatePEM())
-	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
+	certs := make(map[string]map[string]core.SecretBytes)
+	certs[CaCertificateSecretKey] = buildCaCertificateEntry(invalidCertificatePEM())
+	certs[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
+
+	certificates := certification.NewCertificates(nil, certs)
+	certificates.CaCertificateSecretKey = CaCertificateSecretKey
+	certificates.ClientCertificateSecretKey = ClientCertificateSecretKey
 
 	settings := configuration.Settings{
-		TLSMode: configuration.SelfSignedMutualTLS,
-		Certificates: &certification.Certificates{
-			Certificates: certificates,
-		},
+		TLSMode:      configuration.SelfSignedMutualTLS,
+		Certificates: certificates,
 	}
 
 	_, err := NewTLSConfig(settings)
@@ -179,17 +183,17 @@ func TestTlsFactory_SelfSignedMtlsModeCertPoolError(t *testing.T) {
 
 func TestTlsFactory_SelfSignedMtlsModeClientCertificateError(t *testing.T) {
 	t.Parallel()
-	certificates := make(map[string]map[string]core.SecretBytes)
-	certificates[CaCertificateSecretKey] = buildCaCertificateEntry(caCertificatePEM())
-	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), invalidCertificatePEM())
+	certs := make(map[string]map[string]core.SecretBytes)
+	certs[CaCertificateSecretKey] = buildCaCertificateEntry(caCertificatePEM())
+	certs[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), invalidCertificatePEM())
+
+	certificates := certification.NewCertificates(nil, certs)
+	certificates.CaCertificateSecretKey = CaCertificateSecretKey
+	certificates.ClientCertificateSecretKey = ClientCertificateSecretKey
 
 	settings := configuration.Settings{
-		TLSMode: configuration.SelfSignedMutualTLS,
-		Certificates: &certification.Certificates{
-			Certificates:               certificates,
-			CaCertificateSecretKey:     CaCertificateSecretKey,
-			ClientCertificateSecretKey: ClientCertificateSecretKey,
-		},
+		TLSMode:      configuration.SelfSignedMutualTLS,
+		Certificates: certificates,
 	}
 
 	_, err := NewTLSConfig(settings)
@@ -232,16 +236,16 @@ func TestTlsFactory_CaTlsMode(t *testing.T) {
 
 func TestTlsFactory_CaMtlsMode(t *testing.T) {
 	t.Parallel()
-	certificates := make(map[string]map[string]core.SecretBytes)
-	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
+	certs := make(map[string]map[string]core.SecretBytes)
+	certs[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
+
+	certificates := certification.NewCertificates(nil, certs)
+	certificates.CaCertificateSecretKey = CaCertificateSecretKey
+	certificates.ClientCertificateSecretKey = ClientCertificateSecretKey
 
 	settings := configuration.Settings{
-		TLSMode: configuration.CertificateAuthorityMutualTLS,
-		Certificates: &certification.Certificates{
-			Certificates:               certificates,
-			CaCertificateSecretKey:     CaCertificateSecretKey,
-			ClientCertificateSecretKey: ClientCertificateSecretKey,
-		},
+		TLSMode:      configuration.CertificateAuthorityMutualTLS,
+		Certificates: certificates,
 	}
 
 	tlsConfig, err := NewTLSConfig(settings)
@@ -268,15 +272,17 @@ func TestTlsFactory_CaMtlsMode(t *testing.T) {
 
 func TestTlsFactory_CaMtlsModeClientCertificateError(t *testing.T) {
 	t.Parallel()
-	certificates := make(map[string]map[string]core.SecretBytes)
-	certificates[CaCertificateSecretKey] = buildCaCertificateEntry(caCertificatePEM())
-	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), invalidCertificatePEM())
+	certs := make(map[string]map[string]core.SecretBytes)
+	certs[CaCertificateSecretKey] = buildCaCertificateEntry(caCertificatePEM())
+	certs[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), invalidCertificatePEM())
+
+	certificates := certification.NewCertificates(nil, certs)
+	certificates.CaCertificateSecretKey = CaCertificateSecretKey
+	certificates.ClientCertificateSecretKey = ClientCertificateSecretKey
 
 	settings := configuration.Settings{
-		TLSMode: configuration.CertificateAuthorityMutualTLS,
-		Certificates: &certification.Certificates{
-			Certificates: certificates,
-		},
+		TLSMode:      configuration.CertificateAuthorityMutualTLS,
+		Certificates: certificates,
 	}
 
 	_, err := NewTLSConfig(settings)

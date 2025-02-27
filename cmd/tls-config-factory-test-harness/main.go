@@ -89,28 +89,28 @@ func buildConfigMap() map[string]TLSConfiguration {
 }
 
 func ssTLSConfig() configuration.Settings {
-	certificates := make(map[string]map[string]core.SecretBytes)
-	certificates[CaCertificateSecretKey] = buildCaCertificateEntry(caCertificatePEM())
-	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
+	certs := make(map[string]map[string]core.SecretBytes)
+	certs[CaCertificateSecretKey] = buildCaCertificateEntry(caCertificatePEM())
+	certs[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
+
+	certificates := certification.NewCertificates(nil, certs)
 
 	return configuration.Settings{
-		TLSMode: configuration.SelfSignedTLS,
-		Certificates: &certification.Certificates{
-			Certificates: certificates,
-		},
+		TLSMode:      configuration.SelfSignedTLS,
+		Certificates: certificates,
 	}
 }
 
 func ssMtlsConfig() configuration.Settings {
-	certificates := make(map[string]map[string]core.SecretBytes)
-	certificates[CaCertificateSecretKey] = buildCaCertificateEntry(caCertificatePEM())
-	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
+	certs := make(map[string]map[string]core.SecretBytes)
+	certs[CaCertificateSecretKey] = buildCaCertificateEntry(caCertificatePEM())
+	certs[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
+
+	certificates := certification.NewCertificates(nil, certs)
 
 	return configuration.Settings{
-		TLSMode: configuration.SelfSignedMutualTLS,
-		Certificates: &certification.Certificates{
-			Certificates: certificates,
-		},
+		TLSMode:      configuration.SelfSignedMutualTLS,
+		Certificates: certificates,
 	}
 }
 
@@ -121,14 +121,14 @@ func caTLSConfig() configuration.Settings {
 }
 
 func caMtlsConfig() configuration.Settings {
-	certificates := make(map[string]map[string]core.SecretBytes)
-	certificates[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
+	certs := make(map[string]map[string]core.SecretBytes)
+	certs[ClientCertificateSecretKey] = buildClientCertificateEntry(clientKeyPEM(), clientCertificatePEM())
+
+	certificates := certification.NewCertificates(nil, certs)
 
 	return configuration.Settings{
-		TLSMode: configuration.CertificateAuthorityMutualTLS,
-		Certificates: &certification.Certificates{
-			Certificates: certificates,
-		},
+		TLSMode:      configuration.CertificateAuthorityMutualTLS,
+		Certificates: certificates,
 	}
 }
 
