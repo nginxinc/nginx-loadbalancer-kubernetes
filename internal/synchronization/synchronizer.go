@@ -50,9 +50,7 @@ type ServiceKey struct {
 // a Border Client as specified in the Service annotation for the Upstream.
 // See application/border_client.go and application/application_constants.go for details.
 type Synchronizer struct {
-	// TODO: NLB-6294 change to use new typed workqueues
-	//nolint:staticcheck //ignore deprecation warnings
-	eventQueue    workqueue.RateLimitingInterface
+	eventQueue    workqueue.TypedRateLimitingInterface[ServiceKey]
 	settings      configuration.Settings
 	translator    Translator
 	cache         *cache
@@ -62,8 +60,7 @@ type Synchronizer struct {
 // NewSynchronizer creates a new Synchronizer.
 func NewSynchronizer(
 	settings configuration.Settings,
-	//nolint:staticcheck //ignore deprecation warnings
-	eventQueue workqueue.RateLimitingInterface,
+	eventQueue workqueue.TypedRateLimitingInterface[ServiceKey],
 	translator Translator,
 	serviceLister corelisters.ServiceLister,
 ) (*Synchronizer, error) {
@@ -292,13 +289,7 @@ func (s *Synchronizer) handleNextServiceEvent(ctx context.Context) bool {
 
 	defer s.eventQueue.Done(svc)
 
-	key, ok := svc.(ServiceKey)
-	if !ok {
-		slog.Warn(`Synchronizer::handleNextServiceEvent: invalid service type`, "service", svc)
-		return true
-	}
-
-	s.withRetry(s.handleServiceEvent(ctx, key), key)
+	s.withRetry(s.handleServiceEvent(ctx, svc), svc)
 
 	return true
 }

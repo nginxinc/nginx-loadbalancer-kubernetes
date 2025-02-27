@@ -22,7 +22,7 @@ import (
 func TestSynchronizer_NewSynchronizer(t *testing.T) {
 	t.Parallel()
 
-	rateLimiter := &mocks.MockRateLimiter{}
+	rateLimiter := &mocks.MockRateLimiter[ServiceKey]{}
 
 	synchronizer, err := NewSynchronizer(
 		configuration.Settings{},
@@ -43,7 +43,7 @@ func TestSynchronizer_AddEventNoHosts(t *testing.T) {
 	t.Parallel()
 	const expectedEventCount = 0
 
-	rateLimiter := &mocks.MockRateLimiter{}
+	rateLimiter := &mocks.MockRateLimiter[ServiceKey]{}
 
 	synchronizer, err := NewSynchronizer(
 		defaultSettings(),
@@ -73,7 +73,7 @@ func TestSynchronizer_AddEventOneHost(t *testing.T) {
 	const expectedEventCount = 1
 	events := buildServerUpdateEvents(1)
 
-	rateLimiter := &mocks.MockRateLimiter{}
+	rateLimiter := &mocks.MockRateLimiter[ServiceKey]{}
 
 	synchronizer, err := NewSynchronizer(
 		defaultSettings("https://localhost:8080"),
@@ -106,7 +106,7 @@ func TestSynchronizer_AddEventManyHosts(t *testing.T) {
 		"https://localhost:8082",
 	}
 
-	rateLimiter := &mocks.MockRateLimiter{}
+	rateLimiter := &mocks.MockRateLimiter[ServiceKey]{}
 
 	synchronizer, err := NewSynchronizer(
 		defaultSettings(hosts...),
@@ -133,7 +133,7 @@ func TestSynchronizer_AddEventsNoHosts(t *testing.T) {
 	t.Parallel()
 	const expectedEventCount = 0
 	events := buildServerUpdateEvents(4)
-	rateLimiter := &mocks.MockRateLimiter{}
+	rateLimiter := &mocks.MockRateLimiter[ServiceKey]{}
 
 	synchronizer, err := NewSynchronizer(
 		defaultSettings(),
@@ -165,7 +165,7 @@ func TestSynchronizer_AddEventsOneHost(t *testing.T) {
 	t.Parallel()
 	const expectedEventCount = 4
 	events := buildServerUpdateEvents(1)
-	rateLimiter := &mocks.MockRateLimiter{}
+	rateLimiter := &mocks.MockRateLimiter[ServiceKey]{}
 
 	synchronizer, err := NewSynchronizer(
 		defaultSettings("https://localhost:8080"),
@@ -195,7 +195,7 @@ func TestSynchronizer_AddEventsManyHosts(t *testing.T) {
 	t.Parallel()
 	const eventCount = 4
 	events := buildServerUpdateEvents(eventCount)
-	rateLimiter := &mocks.MockRateLimiter{}
+	rateLimiter := &mocks.MockRateLimiter[ServiceKey]{}
 
 	hosts := []string{
 		"https://localhost:8080",

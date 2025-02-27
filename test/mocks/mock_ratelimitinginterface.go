@@ -7,51 +7,50 @@ package mocks
 
 import "time"
 
-type MockRateLimiter struct {
-	items []interface{}
+type MockRateLimiter[T any] struct {
+	items []T
 }
 
-func (m *MockRateLimiter) Add(_ interface{}) {
+func (m *MockRateLimiter[T]) Add(_ T) {
 }
 
-func (m *MockRateLimiter) Len() int {
+func (m *MockRateLimiter[T]) Len() int {
 	return len(m.items)
 }
 
-func (m *MockRateLimiter) Get() (item interface{}, shutdown bool) {
+func (m *MockRateLimiter[T]) Get() (item T, shutdown bool) {
 	if len(m.items) > 0 {
 		item = m.items[0]
 		m.items = m.items[1:]
 		return item, false
 	}
-	return nil, false
+	return item, false
 }
 
-func (m *MockRateLimiter) Done(_ interface{}) {
+func (m *MockRateLimiter[T]) Done(_ T) {
 }
 
-func (m *MockRateLimiter) ShutDown() {
+func (m *MockRateLimiter[T]) ShutDown() {
 }
 
-func (m *MockRateLimiter) ShutDownWithDrain() {
+func (m *MockRateLimiter[T]) ShutDownWithDrain() {
 }
 
-func (m *MockRateLimiter) ShuttingDown() bool {
+func (m *MockRateLimiter[T]) ShuttingDown() bool {
 	return true
 }
 
-func (m *MockRateLimiter) AddAfter(item interface{}, _ time.Duration) {
+func (m *MockRateLimiter[T]) AddAfter(item T, _ time.Duration) {
 	m.items = append(m.items, item)
 }
 
-func (m *MockRateLimiter) AddRateLimited(item interface{}) {
+func (m *MockRateLimiter[T]) AddRateLimited(item T) {
 	m.items = append(m.items, item)
 }
 
-func (m *MockRateLimiter) Forget(_ interface{}) {
-
+func (m *MockRateLimiter[T]) Forget(_ T) {
 }
 
-func (m *MockRateLimiter) NumRequeues(_ interface{}) int {
+func (m *MockRateLimiter[T]) NumRequeues(_ T) int {
 	return 0
 }
