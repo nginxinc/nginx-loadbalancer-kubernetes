@@ -63,7 +63,7 @@ func NewTLSConfig(settings configuration.Settings) *tls.Config {
 
 // NewTransport is a factory method to create a new basic Http Transport.
 func NewTransport(config *tls.Config) *netHttp.Transport {
-	transport := netHttp.DefaultTransport.(*netHttp.Transport)
+	transport := netHttp.DefaultTransport.(*netHttp.Transport).Clone()
 	transport.TLSClientConfig = config
 
 	return transport
