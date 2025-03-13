@@ -17,19 +17,11 @@ func TestServerUpdateEventWithIdAndHost(t *testing.T) {
 	t.Parallel()
 	event := NewServerUpdateEvent(Created, "upstream", clientType, emptyUpstreamServers)
 
-	if event.ID != "" {
-		t.Errorf("expected empty ID, got %s", event.ID)
-	}
-
 	if event.NginxHost != "" {
 		t.Errorf("expected empty NginxHost, got %s", event.NginxHost)
 	}
 
-	eventWithIDAndHost := ServerUpdateEventWithIDAndHost(event, "id", "host")
-
-	if eventWithIDAndHost.ID != "id" {
-		t.Errorf("expected Id to be 'id', got %s", eventWithIDAndHost.ID)
-	}
+	eventWithIDAndHost := ServerUpdateEventWithHost(event, "host")
 
 	if eventWithIDAndHost.NginxHost != "host" {
 		t.Errorf("expected NginxHost to be 'host', got %s", eventWithIDAndHost.NginxHost)

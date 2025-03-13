@@ -146,10 +146,9 @@ func (s *Synchronizer) fanOutEventToHosts(event core.ServerUpdateEvents) core.Se
 
 	var events core.ServerUpdateEvents
 
-	for hidx, host := range s.settings.NginxPlusHosts {
-		for eidx, event := range event {
-			id := fmt.Sprintf(`[%d:%d]-[%s]-[%s]-[%s]`, hidx, eidx, RandomString(12), event.UpstreamName, host)
-			updatedEvent := core.ServerUpdateEventWithIDAndHost(event, id, host)
+	for _, host := range s.settings.NginxPlusHosts {
+		for _, event := range event {
+			updatedEvent := core.ServerUpdateEventWithHost(event, host)
 
 			events = append(events, updatedEvent)
 		}
@@ -237,7 +236,7 @@ func (s *Synchronizer) handleServiceEvent(ctx context.Context, key ServiceKey) (
 
 // handleCreatedUpdatedEvent handles events of type Created or Updated.
 func (s *Synchronizer) handleCreatedUpdatedEvent(ctx context.Context, serverUpdateEvent *core.ServerUpdateEvent) error {
-	slog.Debug(`Synchronizer::handleCreatedUpdatedEvent`, "eventID", serverUpdateEvent.ID)
+	slog.Debug(`Synchronizer::handleCreatedUpdatedEvent`)
 
 	var err error
 
@@ -255,7 +254,7 @@ func (s *Synchronizer) handleCreatedUpdatedEvent(ctx context.Context, serverUpda
 
 // handleDeletedEvent handles events of type Deleted.
 func (s *Synchronizer) handleDeletedEvent(ctx context.Context, serverUpdateEvent *core.ServerUpdateEvent) error {
-	slog.Debug(`Synchronizer::handleDeletedEvent`, "eventID", serverUpdateEvent.ID)
+	slog.Debug(`Synchronizer::handleDeletedEvent`)
 
 	var err error
 

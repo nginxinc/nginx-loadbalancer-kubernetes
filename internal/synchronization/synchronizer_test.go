@@ -244,7 +244,6 @@ func buildServerUpdateEvents(count int) core.ServerUpdateEvents {
 	events := make(core.ServerUpdateEvents, count)
 	for i := 0; i < count; i++ {
 		events[i] = &core.ServerUpdateEvent{
-			ID:              fmt.Sprintf("id-%v", i),
 			NginxHost:       "https://localhost:8080",
 			Type:            0,
 			UpstreamName:    "",

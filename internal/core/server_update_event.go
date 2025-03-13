@@ -9,13 +9,9 @@ package core
 // from Events received from the Handler. These are then consumed by the Synchronizer and passed along to
 // the appropriate BorderClient.
 type ServerUpdateEvent struct {
-
 	// ClientType is the type of BorderClient that should handle this event. This is configured via Service Annotations.
 	// See application_constants.go for the list of supported types.
 	ClientType string
-
-	// Id is the unique identifier for this event.
-	ID string
 
 	// NginxHost is the host name of the NGINX Plus instance that should handle this event.
 	NginxHost string
@@ -48,11 +44,10 @@ func NewServerUpdateEvent(
 	}
 }
 
-// ServerUpdateEventWithIDAndHost creates a new ServerUpdateEvent with the specified Id and Host.
-func ServerUpdateEventWithIDAndHost(event *ServerUpdateEvent, id string, nginxHost string) *ServerUpdateEvent {
+// ServerUpdateEventWithHost creates a new ServerUpdateEvent with the specified Host.
+func ServerUpdateEventWithHost(event *ServerUpdateEvent, nginxHost string) *ServerUpdateEvent {
 	return &ServerUpdateEvent{
 		ClientType:      event.ClientType,
-		ID:              id,
 		NginxHost:       nginxHost,
 		Type:            event.Type,
 		UpstreamName:    event.UpstreamName,
