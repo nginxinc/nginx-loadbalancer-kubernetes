@@ -4,13 +4,13 @@
 
 module github.com/nginxinc/kubernetes-nginx-ingress
 
-go 1.23.0
+go 1.23.8
 
 require (
 	github.com/nginx/nginx-plus-go-client/v2 v2.3.0
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0
-	golang.org/x/sync v0.11.0
+	golang.org/x/sync v0.12.0
 	k8s.io/api v0.32.2
 	k8s.io/apimachinery v0.32.2
 	k8s.io/client-go v0.32.2
