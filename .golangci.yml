@@ -63,6 +63,8 @@ linters-settings:
       - "gitlab.com/f5/nginx/nginxazurelb/azure-resource-provider/internal/dpo/agent/certificates.CertGetRequest"
 
 issues:
+  exclude-dirs:
+    - .go/pkg/mod
   # Exclude configuration
   exclude-rules:
     # Exclude gochecknoinits and gosec from running on tests files
