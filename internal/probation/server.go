@@ -8,6 +8,7 @@ package probation
 import (
 	"fmt"
 	"log/slog"
+	"net"
 	"net/http"
 	"time"
 )
@@ -58,10 +59,17 @@ func (hs *HealthServer) Start() {
 	mux.HandleFunc("/livez", hs.HandleLive)
 	mux.HandleFunc("/readyz", hs.HandleReady)
 	mux.HandleFunc("/startupz", hs.HandleStartup)
-	hs.httpServer = &http.Server{Addr: address, Handler: mux, ReadTimeout: 2 * time.Second}
+
+	listener, err := net.Listen("tcp", address)
+	if err != nil {
+		slog.Error("failed to listen", "error", err)
+		return
+	}
+
+	hs.httpServer = &http.Server{Handler: mux, ReadTimeout: 2 * time.Second}
 
 	go func() {
-		if err := hs.httpServer.ListenAndServe(); err != nil {
+		if err := hs.httpServer.Serve(listener); err != nil {
 			slog.Error("unable to start probe listener", "address", hs.httpServer.Addr, "error", err)
 		}
 	}()
