@@ -1,0 +1,22 @@
+# Please edit the object below. Lines beginning with a '#' will be ignored,
+# and an empty file will abort the edit. If an error occurs while saving this file will be
+# reopened with the relevant failures.
+#
+apiVersion: v1
+data:
+  config.yaml: |
+    log-level: "debug"
+    nginx-hosts: "http://10.1.1.12:9000/nplus"
+    tls-mode: "ca-tls"
+kind: ConfigMap
+metadata:
+  annotations:
+    meta.helm.sh/release-name: nlk
+    meta.helm.sh/release-namespace: nlk
+  creationTimestamp: "2025-04-02T16:17:08Z"
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  name: nlk-nginxaas-loadbalancer-kubernetes-nlk-config
+  namespace: nlk
+  resourceVersion: "51884"
+  uid: 025d0fa7-d165-4fdd-bf95-61fa24d2079f
