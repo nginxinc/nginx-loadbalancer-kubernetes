@@ -9,7 +9,7 @@ data:
     log-level: "{{ . }}"
 {{- end }}
 {{- with .Values.nlk.config.nginxHosts }}
-    nginx-hosts: "{{ . }}"
+    nginx-hosts: {{ toJson . }}
 {{- end }}
     tls-mode: "{{ .Values.nlk.config.tls.mode }}"
 {{- with .Values.nlk.config.serviceAnnotationMatch }}
