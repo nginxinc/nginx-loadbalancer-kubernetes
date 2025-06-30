@@ -9,15 +9,13 @@ import (
 	"bytes"
 	netHttp "net/http"
 	"testing"
-
-	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 )
 
 func TestNewRoundTripper(t *testing.T) {
 	t.Parallel()
 
 	headers := NewHeaders("fakeKey")
-	transport := NewTransport(NewTLSConfig(defaultSettings()))
+	transport := NewTransport(true)
 	roundTripper := NewRoundTripper(headers, transport)
 
 	if roundTripper == nil {
@@ -57,7 +55,7 @@ func TestRoundTripperRoundTrip(t *testing.T) {
 	t.Parallel()
 
 	headers := NewHeaders("fakeKey")
-	transport := NewTransport(NewTLSConfig(defaultSettings()))
+	transport := NewTransport(true)
 	roundTripper := NewRoundTripper(headers, transport)
 
 	request, err := NewRequest("GET", "http://example.com", nil)
@@ -91,10 +89,4 @@ func NewRequest(method string, url string, body []byte) (*netHttp.Request, error
 	}
 
 	return request, nil
-}
-
-func defaultSettings() configuration.Settings {
-	return configuration.Settings{
-		TLSMode: configuration.NoTLS,
-	}
 }

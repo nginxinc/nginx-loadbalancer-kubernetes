@@ -4,13 +4,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nginxinc/kubernetes-nginx-ingress/internal/certification"
 	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 
 	"github.com/stretchr/testify/require"
 )
 
-func TestConfiguration(t *testing.T) {
+func TestConfiguration_Read(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
@@ -22,11 +21,7 @@ func TestConfiguration(t *testing.T) {
 			expectedSettings: configuration.Settings{
 				LogLevel:       "warn",
 				NginxPlusHosts: []string{"https://10.0.0.1:9000/api"},
-				TLSMode:        configuration.NoTLS,
-				Certificates: &certification.Certificates{
-					CaCertificateSecretKey:     "fakeCAKey",
-					ClientCertificateSecretKey: "fakeCertKey",
-				},
+				SkipVerifyTLS:  false,
 				Handler: configuration.HandlerSettings{
 					RetryCount: 5,
 					Threads:    1,
@@ -58,11 +53,7 @@ func TestConfiguration(t *testing.T) {
 			expectedSettings: configuration.Settings{
 				LogLevel:       "warn",
 				NginxPlusHosts: []string{"https://10.0.0.1:9000/api", "https://10.0.0.2:9000/api"},
-				TLSMode:        configuration.NoTLS,
-				Certificates: &certification.Certificates{
-					CaCertificateSecretKey:     "fakeCAKey",
-					ClientCertificateSecretKey: "fakeCertKey",
-				},
+				SkipVerifyTLS:  true,
 				Handler: configuration.HandlerSettings{
 					RetryCount: 5,
 					Threads:    1,
@@ -97,6 +88,51 @@ func TestConfiguration(t *testing.T) {
 			settings, err := configuration.Read(tc.testFile, "./testdata")
 			require.NoError(t, err)
 			require.Equal(t, tc.expectedSettings, settings)
+		})
+	}
+}
+
+func TestConfiguration_TLS(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		tlsMode               string
+		expectedSkipVerifyTLS bool
+		expectedErr           bool
+	}{
+		"no input": {
+			tlsMode:               "",
+			expectedSkipVerifyTLS: false,
+		},
+		"no tls": {
+			tlsMode:               "no-tls",
+			expectedSkipVerifyTLS: true,
+		},
+		"skip verify tls": {
+			tlsMode:               "skip-verify-tls",
+			expectedSkipVerifyTLS: true,
+		},
+		"ca tls": {
+			tlsMode:               "ca-tls",
+			expectedSkipVerifyTLS: false,
+		},
+		"unexpected input": {
+			tlsMode:     "unexpected-tls-mode",
+			expectedErr: true,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			skipVerifyTLS, err := configuration.ValidateTLSMode(tc.tlsMode)
+			if tc.expectedErr {
+				require.Error(t, err)
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, tc.expectedSkipVerifyTLS, skipVerifyTLS)
 		})
 	}
 }

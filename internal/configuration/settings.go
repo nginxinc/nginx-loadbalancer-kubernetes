@@ -11,8 +11,6 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/nginxinc/kubernetes-nginx-ingress/internal/certification"
-
 	"github.com/spf13/viper"
 )
 
@@ -110,15 +108,11 @@ type Settings struct {
 	// NginxPlusHosts is a list of Nginx Plus hosts that will be used to update the Border Servers.
 	NginxPlusHosts []string
 
-	// TlsMode is the value used to determine which of the five TLS modes will be used to communicate
-	// with the Border Servers (see: ../../docs/tls/README.md).
-	TLSMode TLSMode
+	// SkipVerifyTLS determines whether the http client will skip TLS verification or not.
+	SkipVerifyTLS bool
 
 	// APIKey is the api key used to authenticate with the dataplane API.
 	APIKey string
-
-	// Certificates is the object used to retrieve the certificates and keys used to communicate with the Border Servers.
-	Certificates *certification.Certificates
 
 	// Handler contains the configuration values needed by the Handler.
 	Handler HandlerSettings
@@ -144,11 +138,13 @@ func Read(configName, configPath string) (s Settings, err error) {
 		return s, err
 	}
 
-	tlsMode := NoTLS
-	if t, err := validateTLSMode(v.GetString("tls-mode")); err != nil {
+	skipVerifyTLS, err := ValidateTLSMode(v.GetString("tls-mode"))
+	if err != nil {
 		slog.Error("could not validate tls mode", "error", err)
-	} else {
-		tlsMode = t
+	}
+
+	if skipVerifyTLS {
+		slog.Warn("skipping TLS verification for NGINX hosts")
 	}
 
 	serviceAnnotation := DefaultServiceAnnotation
@@ -159,12 +155,8 @@ func Read(configName, configPath string) (s Settings, err error) {
 	return Settings{
 		LogLevel:       v.GetString("log-level"),
 		NginxPlusHosts: v.GetStringSlice("nginx-hosts"),
-		TLSMode:        tlsMode,
+		SkipVerifyTLS:  skipVerifyTLS,
 		APIKey:         base64.StdEncoding.EncodeToString([]byte(v.GetString("NGINXAAS_DATAPLANE_API_KEY"))),
-		Certificates: &certification.Certificates{
-			CaCertificateSecretKey:     v.GetString("ca-certificate"),
-			ClientCertificateSecretKey: v.GetString("client-certificate"),
-		},
 		Handler: HandlerSettings{
 			RetryCount: 5,
 			Threads:    1,
@@ -192,10 +184,15 @@ func Read(configName, configPath string) (s Settings, err error) {
 	}, nil
 }
 
-func validateTLSMode(tlsConfigMode string) (TLSMode, error) {
-	if tlsMode, tlsModeFound := TLSModeMap[tlsConfigMode]; tlsModeFound {
-		return tlsMode, nil
+func ValidateTLSMode(tlsConfigMode string) (skipVerify bool, err error) {
+	if tlsConfigMode == "" {
+		return false, nil
 	}
 
-	return NoTLS, fmt.Errorf(`invalid tls-mode value: %s`, tlsConfigMode)
+	var tlsModeFound bool
+	if skipVerify, tlsModeFound = tlsModeMap[tlsConfigMode]; tlsModeFound {
+		return skipVerify, nil
+	}
+
+	return false, fmt.Errorf(`invalid tls-mode value: %s`, tlsConfigMode)
 }

@@ -6,24 +6,19 @@
 package communication
 
 import (
-	"crypto/tls"
 	"fmt"
-	"log/slog"
 	netHttp "net/http"
 	"time"
 
-	"github.com/nginxinc/kubernetes-nginx-ingress/internal/authentication"
-	"github.com/nginxinc/kubernetes-nginx-ingress/internal/configuration"
 	"github.com/nginxinc/kubernetes-nginx-ingress/pkg/buildinfo"
 )
 
-// NewHTTPClient is a factory method to create a new Http Client with a default configuration.
-// RoundTripper is a wrapper around the default net/communication Transport to add additional headers, in this case,
-// the Headers are configured for JSON.
-func NewHTTPClient(settings configuration.Settings) (*netHttp.Client, error) {
-	headers := NewHeaders(settings.APIKey)
-	tlsConfig := NewTLSConfig(settings)
-	transport := NewTransport(tlsConfig)
+// NewHTTPClient is a factory method to create a new Http Client configured for
+// working with NGINXaaS or the N+ api. If skipVerify is set to true, the http
+// transport will skip TLS certificate verification.
+func NewHTTPClient(apiKey string, skipVerify bool) (*netHttp.Client, error) {
+	headers := NewHeaders(apiKey)
+	transport := NewTransport(skipVerify)
 	roundTripper := NewRoundTripper(headers, transport)
 
 	return &netHttp.Client{
@@ -49,22 +44,10 @@ func NewHeaders(apiKey string) []string {
 	return headers
 }
 
-// NewTLSConfig is a factory method to create a new basic Tls Config.
-// More attention should be given to the use of `InsecureSkipVerify: true`, as it is not recommended for production use.
-func NewTLSConfig(settings configuration.Settings) *tls.Config {
-	tlsConfig, err := authentication.NewTLSConfig(settings)
-	if err != nil {
-		slog.Warn("Failed to create TLS config", "error", err)
-		return &tls.Config{InsecureSkipVerify: true} //nolint:gosec
-	}
-
-	return tlsConfig
-}
-
 // NewTransport is a factory method to create a new basic Http Transport.
-func NewTransport(config *tls.Config) *netHttp.Transport {
+func NewTransport(skipVerify bool) *netHttp.Transport {
 	transport := netHttp.DefaultTransport.(*netHttp.Transport).Clone()
-	transport.TLSClientConfig = config
+	transport.TLSClientConfig.InsecureSkipVerify = skipVerify
 
 	return transport
 }

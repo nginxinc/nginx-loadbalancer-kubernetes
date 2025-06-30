@@ -126,8 +126,7 @@ func (s *Synchronizer) buildBorderClient(event *core.ServerUpdateEvent) (applica
 	slog.Debug(`Synchronizer::buildBorderClient`)
 
 	var err error
-
-	httpClient, err := communication.NewHTTPClient(s.settings)
+	httpClient, err := communication.NewHTTPClient(s.settings.APIKey, s.settings.SkipVerifyTLS)
 	if err != nil {
 		return nil, fmt.Errorf(`error creating HTTP client: %v`, err)
 	}

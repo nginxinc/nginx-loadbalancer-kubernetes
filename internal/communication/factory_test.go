@@ -7,12 +7,14 @@ package communication
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewHTTPClient(t *testing.T) {
 	t.Parallel()
 
-	client, err := NewHTTPClient(defaultSettings())
+	client, err := NewHTTPClient("fakeKey", true)
 	if err != nil {
 		t.Fatalf(`Unexpected error: %v`, err)
 	}
@@ -80,8 +82,7 @@ func TestNewHeadersWithNoAPIKey(t *testing.T) {
 func TestNewTransport(t *testing.T) {
 	t.Parallel()
 
-	config := NewTLSConfig(defaultSettings())
-	transport := NewTransport(config)
+	transport := NewTransport(false)
 
 	if transport == nil {
 		t.Fatalf(`transport should not be nil`)
@@ -91,11 +92,5 @@ func TestNewTransport(t *testing.T) {
 		t.Fatalf(`transport.TLSClientConfig should not be nil`)
 	}
 
-	if transport.TLSClientConfig != config {
-		t.Fatalf(`transport.TLSClientConfig should be the same as config`)
-	}
-
-	if !transport.TLSClientConfig.InsecureSkipVerify {
-		t.Fatalf(`transport.TLSClientConfig.InsecureSkipVerify should be true`)
-	}
+	require.False(t, transport.TLSClientConfig.InsecureSkipVerify)
 }

@@ -6,41 +6,19 @@
 package configuration
 
 const (
-	NoTLS TLSMode = iota
-	CertificateAuthorityTLS
-	CertificateAuthorityMutualTLS
-	SelfSignedTLS
-	SelfSignedMutualTLS
+	// NoTLS is deprecated as misleading. It is the same as SkipVerifyTLS.
+	NoTLS = "no-tls"
+	// SkipVerifyTLS causes the http client to skip verification of the NGINX
+	// host's certificate chain and host name.
+	SkipVerifyTLS = "skip-verify-tls"
+	// CertificateAuthorityTLS is deprecated as misleading. This is the same as
+	// the default behavior which is to verify the NGINX hosts's certificate
+	// chain and host name, if https is used.
+	CertificateAuthorityTLS = "ca-tls"
 )
 
-const (
-	NoTLSString                         = "no-tls"
-	CertificateAuthorityTLSString       = "ca-tls"
-	CertificateAuthorityMutualTLSString = "ca-mtls"
-	SelfSignedTLSString                 = "ss-tls"
-	SelfSignedMutualTLSString           = "ss-mtls"
-)
-
-type TLSMode int
-
-var TLSModeMap = map[string]TLSMode{
-	NoTLSString:                         NoTLS,
-	CertificateAuthorityTLSString:       CertificateAuthorityTLS,
-	CertificateAuthorityMutualTLSString: CertificateAuthorityMutualTLS,
-	SelfSignedTLSString:                 SelfSignedTLS,
-	SelfSignedMutualTLSString:           SelfSignedMutualTLS,
-}
-
-func (t TLSMode) String() string {
-	modes := []string{
-		NoTLSString,
-		CertificateAuthorityTLSString,
-		CertificateAuthorityMutualTLSString,
-		SelfSignedTLSString,
-		SelfSignedMutualTLSString,
-	}
-	if t < NoTLS || t > SelfSignedMutualTLS {
-		return ""
-	}
-	return modes[t]
+var tlsModeMap = map[string]bool{
+	NoTLS:                   true,
+	SkipVerifyTLS:           true,
+	CertificateAuthorityTLS: false,
 }
