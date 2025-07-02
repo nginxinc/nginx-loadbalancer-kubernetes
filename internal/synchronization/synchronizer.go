@@ -10,7 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"strings"
+	"net/http"
 	"time"
 
 	nginxClient "github.com/nginx/nginx-plus-go-client/v2/client"
@@ -34,6 +34,13 @@ type Interface interface {
 
 	// ShutDown shuts down the synchronizer.
 	ShutDown()
+}
+
+// StatusError is a wrapper for errors from the go plus client that contain http
+// status codes.
+type StatusError interface {
+	Status() int
+	Code() string
 }
 
 type Translator interface {
@@ -264,11 +271,13 @@ func (s *Synchronizer) handleDeletedEvent(ctx context.Context, serverUpdateEvent
 
 	err = borderClient.Update(ctx, serverUpdateEvent)
 
+	var se StatusError
 	switch {
 	case err == nil:
 		return nil
-	// checking the string is not ideal, but the plus client gives us no option
-	case strings.Contains(err.Error(), "status=404"):
+	case errors.As(err, &se) && se.Status() == http.StatusNotFound:
+		// if the user has already removed the upstream from their NGINX
+		// configuration there is nothing left to do
 		return nil
 	default:
 		return fmt.Errorf(`error occurred deleting the %s upstream servers: %w`, serverUpdateEvent.ClientType, err)
