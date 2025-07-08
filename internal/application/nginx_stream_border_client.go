@@ -18,7 +18,6 @@ import (
 type NginxStreamBorderClient struct {
 	BorderClient
 	nginxClient NginxClientInterface
-	ctx         context.Context
 }
 
 // NewNginxStreamBorderClient is the Factory function for creating an NginxStreamBorderClient.
@@ -30,7 +29,6 @@ func NewNginxStreamBorderClient(client interface{}) (Interface, error) {
 
 	return &NginxStreamBorderClient{
 		nginxClient: ngxClient,
-		ctx:         context.Background(),
 	}, nil
 }
 
