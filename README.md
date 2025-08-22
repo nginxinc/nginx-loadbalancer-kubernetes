@@ -1,14 +1,9 @@
-[![CI](https://github.com/nginxinc/nginx-loadbalancer-kubernetes/actions/workflows/build-test.yml/badge.svg)](https://github.com/nginxinc/nginx-loadbalancer-kubernetess/actions/workflows/build-test.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/nginxinc/nginx-loadbalancer-kubernetes)](https://goreportcard.com/report/github.com/nginxinc/nginx-loadbalancer-kubernetes)
+[![Project Status: Moved to http://github.com/nginx/nginx-loadbalancer-kubernetes – The project has been moved to a new location, and the version at that location should be considered authoritative.](https://www.repostatus.org/badges/latest/moved.svg)](https://github.com/nginx/nginx-loadbalancer-kubernetes)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/nginxinc/nginx-loadbalancer-kubernetes?logo=github&sort=semver)](https://github.com/nginxinc/nginx-loadbalancer-kubernetes/releases/latest) ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/nginxinc/nginx-loadbalancer-kubernetes?logo=go)
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/nginxinc/nginx-loadbalancer-kubernetes/badge)](https://api.securityscorecards.dev/projects/github.com/nginxinc/nginx-loadbalancer-kubernetes)
-[![CodeQL](https://github.com/nginxinc/nginx-loadbalancer-kubernetes/workflows/codeql.yml/badge.svg?branch=main&event=push)](https://github.com/nginxinc/nginx-loadbalancer-kubernetes/actions/codeql.yml)
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fnginxinc%2Fnginx-loadbalancer-kubernetes.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fnginxinc%2Fnginx-loadbalancer-kubernetes?ref=badge_shield)
-[![Community Support](https://badgen.net/badge/support/community/cyan?icon=awesome)](https://github.com/nginxinc/nginx-loadbalancer-kubernetes/discussions)
-[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
+[![Community Support](https://badgen.net/badge/support/community/cyan?icon=awesome)](https://github.com/nginx/nginx-loadbalancer-kubernetes/discussions)
 
-
+# Note: **This repository has been archived. There will likely be no further development at this repo, and security vulnerabilities may be unaddressed. Please find the current, authoritative version here:**  
+# ➡️ [https://github.com/nginx/nginx-loadbalancer-kubernetes](https://github.com/nginx/nginx-loadbalancer-kubernetes)
 
 <div style="margin-bottom: 5em;">
     <span>
